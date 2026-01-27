@@ -5,9 +5,9 @@ import { format } from 'date-fns';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from "@/components/ui/button";
 import { Smile, Meh, Frown, Plus, BookOpen, Sparkles, TrendingUp } from 'lucide-react';
-import MoodTracker from '@/components/mindfulness/MoodTracker';
-import JournalSection from '@/components/mindfulness/JournalSection';
-import MoodHistory from '@/components/mindfulness/MoodHistory';
+import MoodTracker from '@/components/mindfulness/MoodTracker.jsx';
+import JournalSection from '@/components/mindfulness/JournalSection.jsx';
+import MoodHistory from '@/components/mindfulness/MoodHistory.jsx';
 
 export default function Mindfulness() {
   const [activeTab, setActiveTab] = useState('mood');

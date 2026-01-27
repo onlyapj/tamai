@@ -5,10 +5,10 @@ import { format, startOfMonth, endOfMonth } from 'date-fns';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from "@/components/ui/button";
 import { Plus, TrendingUp, TrendingDown, Wallet, PieChart, ArrowUpRight, ArrowDownRight } from 'lucide-react';
-import TransactionList from '@/components/finance/TransactionList';
-import AddTransaction from '@/components/finance/AddTransaction';
-import FinanceOverview from '@/components/finance/FinanceOverview';
-import BudgetSection from '@/components/finance/BudgetSection';
+import TransactionList from '@/components/finance/TransactionList.jsx';
+import AddTransaction from '@/components/finance/AddTransaction.jsx';
+import FinanceOverview from '@/components/finance/FinanceOverview.jsx';
+import BudgetSection from '@/components/finance/BudgetSection.jsx';
 
 export default function Finance() {
   const [showAddTransaction, setShowAddTransaction] = useState(false);

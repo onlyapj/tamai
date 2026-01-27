@@ -4,8 +4,8 @@ import { base44 } from '@/api/base44Client';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from "@/components/ui/button";
 import { Plus, Target, CheckCircle2, Clock, Sparkles } from 'lucide-react';
-import GoalCard from '@/components/goals/GoalCard';
-import GoalForm from '@/components/goals/GoalForm';
+import GoalCard from '@/components/goals/GoalCard.jsx';
+import GoalForm from '@/components/goals/GoalForm.jsx';
 
 export default function Goals() {
   const [showForm, setShowForm] = useState(false);

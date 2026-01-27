@@ -5,10 +5,10 @@ import { format, subDays } from 'date-fns';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from "@/components/ui/button";
 import { Activity, Moon, Droplets, Footprints, Plus, Target, Flame } from 'lucide-react';
-import HealthStats from '@/components/health/HealthStats';
-import HabitTracker from '@/components/health/HabitTracker';
-import HealthLogForm from '@/components/health/HealthLogForm';
-import HealthTrends from '@/components/health/HealthTrends';
+import HealthStats from '@/components/health/HealthStats.jsx';
+import HabitTracker from '@/components/health/HabitTracker.jsx';
+import HealthLogForm from '@/components/health/HealthLogForm.jsx';
+import HealthTrends from '@/components/health/HealthTrends.jsx';
 
 export default function Health() {
   const [showLogForm, setShowLogForm] = useState(false);
