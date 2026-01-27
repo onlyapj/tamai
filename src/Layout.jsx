@@ -1,7 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from './utils';
-import { LayoutDashboard, Heart, Wallet, Activity, Target } from 'lucide-react';
+import { LayoutDashboard, Heart, Wallet, Activity, Target, Watch } from 'lucide-react';
 import { cn } from "@/lib/utils";
 
 export default function Layout({ children, currentPageName }) {
@@ -12,6 +12,8 @@ export default function Layout({ children, currentPageName }) {
     { name: 'Health', icon: Activity, label: 'Health' },
     { name: 'Goals', icon: Target, label: 'Goals' },
   ];
+
+  const showWearableLink = currentPageName === 'Health';
 
   return (
     <div className="min-h-screen bg-slate-50">
@@ -40,6 +42,18 @@ export default function Layout({ children, currentPageName }) {
       <main className="pb-20 lg:pb-0">
         {children}
       </main>
+
+      {/* Wearable Coming Soon Link - shown on Health page */}
+      {showWearableLink && (
+        <Link
+          to={createPageUrl('Wearable')}
+          className="fixed bottom-24 lg:bottom-6 right-4 lg:right-6 bg-slate-900 text-white px-4 py-2.5 rounded-full shadow-lg flex items-center gap-2 hover:bg-slate-800 transition-colors z-40"
+        >
+          <Watch className="h-4 w-4" />
+          <span className="text-sm font-medium">Wearable</span>
+          <span className="text-xs bg-amber-500 text-white px-1.5 py-0.5 rounded-full">Soon</span>
+        </Link>
+      )}
     </div>
   );
 }
