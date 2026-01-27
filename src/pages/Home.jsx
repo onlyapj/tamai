@@ -1,9 +1,11 @@
 import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
+import { Link } from 'react-router-dom';
+import { createPageUrl } from '../utils';
 import { motion, AnimatePresence } from 'framer-motion';
 import { format } from 'date-fns';
-import { Plus, Calendar, ListTodo, Sparkles, ChevronRight } from 'lucide-react';
+import { Plus, Calendar, ListTodo, Sparkles, ChevronRight, Heart, Wallet, Activity, Target, ArrowRight } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import TaskList from '../components/tasks/TaskList';
@@ -100,6 +102,30 @@ export default function Home() {
               New Task
             </Button>
           </div>
+        </div>
+
+        {/* Quick Access Pillars */}
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-8">
+          {[
+            { name: 'Mindfulness', icon: Heart, color: 'from-violet-500 to-purple-500', bg: 'bg-violet-50' },
+            { name: 'Finance', icon: Wallet, color: 'from-emerald-500 to-teal-500', bg: 'bg-emerald-50' },
+            { name: 'Health', icon: Activity, color: 'from-rose-500 to-orange-500', bg: 'bg-rose-50' },
+            { name: 'Goals', icon: Target, color: 'from-amber-500 to-yellow-500', bg: 'bg-amber-50' }
+          ].map((pillar, i) => (
+            <Link 
+              key={pillar.name}
+              to={createPageUrl(pillar.name)}
+              className={`group ${pillar.bg} rounded-2xl p-4 border border-slate-200/60 hover:shadow-md transition-all`}
+            >
+              <div className={`w-10 h-10 rounded-xl bg-gradient-to-br ${pillar.color} flex items-center justify-center mb-2`}>
+                <pillar.icon className="h-5 w-5 text-white" />
+              </div>
+              <p className="font-medium text-slate-800">{pillar.name}</p>
+              <div className="flex items-center text-xs text-slate-500 mt-1 group-hover:text-slate-700">
+                Open <ArrowRight className="h-3 w-3 ml-1 group-hover:translate-x-1 transition-transform" />
+              </div>
+            </Link>
+          ))}
         </div>
 
         {/* Stats */}
