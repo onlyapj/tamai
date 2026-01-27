@@ -1,12 +1,16 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from './utils';
-import { LayoutDashboard, CheckSquare, Calendar, Settings } from 'lucide-react';
+import { LayoutDashboard, Heart, Wallet, Activity, Target } from 'lucide-react';
 import { cn } from "@/lib/utils";
 
 export default function Layout({ children, currentPageName }) {
   const navItems = [
-    { name: 'Home', icon: LayoutDashboard, label: 'Dashboard' },
+    { name: 'Home', icon: LayoutDashboard, label: 'Home' },
+    { name: 'Mindfulness', icon: Heart, label: 'Mind' },
+    { name: 'Finance', icon: Wallet, label: 'Money' },
+    { name: 'Health', icon: Activity, label: 'Health' },
+    { name: 'Goals', icon: Target, label: 'Goals' },
   ];
 
   return (
