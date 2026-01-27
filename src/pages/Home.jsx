@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
 import { Link } from 'react-router-dom';
@@ -12,7 +12,9 @@ import TaskList from '../components/tasks/TaskList';
 import TaskForm from '../components/tasks/TaskForm';
 import ChatInterface from '../components/chat/ChatInterface';
 import DayTimeline from '../components/dashboard/DayTimeline';
-import QuickStats from '../components/dashboard/QuickStats';
+import TopPriorities from '../components/dashboard/TopPriorities';
+import DailyReflection from '../components/dashboard/DailyReflection';
+import TamaiLogo from '../components/common/TamaiLogo';
 
 export default function Home() {
   const [showForm, setShowForm] = useState(false);
@@ -67,6 +69,16 @@ export default function Home() {
   };
 
   const todayStr = format(new Date(), 'yyyy-MM-dd');
+  const currentHour = new Date().getHours();
+  const reflectionType = currentHour < 12 ? 'morning' : 'evening';
+  
+  const { data: todayMood } = useQuery({
+    queryKey: ['todayMood'],
+    queryFn: async () => {
+      const entries = await base44.entities.MoodEntry.filter({ date: todayStr });
+      return entries[0] || null;
+    }
+  });
   
   const filteredTasks = {
     today: tasks.filter(t => t.due_date === todayStr && t.status !== 'completed'),
@@ -81,10 +93,8 @@ export default function Home() {
         {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
           <div>
-            <h1 className="text-2xl sm:text-3xl font-bold text-slate-900">
-              <span className="bg-gradient-to-r from-indigo-600 to-violet-600 bg-clip-text text-transparent">Tamai</span>
-            </h1>
-            <p className="text-slate-500 mt-1">
+            <TamaiLogo size="md" />
+            <p className="text-slate-500 mt-2">
               {format(new Date(), 'EEEE, MMMM d')} • Good {new Date().getHours() < 12 ? 'morning' : new Date().getHours() < 17 ? 'afternoon' : 'evening'}
             </p>
           </div>
@@ -128,9 +138,21 @@ export default function Home() {
           ))}
         </div>
 
-        {/* Stats */}
-        <div className="mb-8">
-          <QuickStats tasks={tasks} />
+        {/* Daily Reflection - Mood Check-in */}
+        {!todayMood && (
+          <DailyReflection 
+            type={reflectionType}
+            existingEntry={todayMood}
+            onComplete={() => queryClient.invalidateQueries(['todayMood'])}
+          />
+        )}
+
+        {/* Top 3 Priorities */}
+        <div className="mb-6">
+          <TopPriorities 
+            tasks={tasks.filter(t => t.due_date === todayStr)} 
+            onToggle={handleToggle}
+          />
         </div>
 
         {/* Main Content */}
