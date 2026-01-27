@@ -4,11 +4,12 @@ import { base44 } from '@/api/base44Client';
 import { format, startOfMonth, endOfMonth } from 'date-fns';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from "@/components/ui/button";
-import { Plus, TrendingUp, TrendingDown, Wallet, PieChart, ArrowUpRight, ArrowDownRight } from 'lucide-react';
+import { Plus, TrendingUp, TrendingDown, Wallet, PieChart, ArrowUpRight, ArrowDownRight, Sparkles } from 'lucide-react';
 import TransactionList from '@/components/finance/TransactionList.jsx';
 import AddTransaction from '@/components/finance/AddTransaction.jsx';
 import FinanceOverview from '@/components/finance/FinanceOverview.jsx';
 import BudgetSection from '@/components/finance/BudgetSection.jsx';
+import AIInsights from '@/components/finance/AIInsights.jsx';
 
 export default function Finance() {
   const [showAddTransaction, setShowAddTransaction] = useState(false);
@@ -43,6 +44,7 @@ export default function Finance() {
 
   const tabs = [
     { id: 'overview', label: 'Overview', icon: PieChart },
+    { id: 'insights', label: 'Insights', icon: Sparkles },
     { id: 'transactions', label: 'Transactions', icon: Wallet },
     { id: 'budget', label: 'Budget', icon: TrendingUp }
   ];
@@ -131,6 +133,11 @@ export default function Finance() {
           {activeTab === 'overview' && (
             <motion.div key="overview" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
               <FinanceOverview transactions={monthTransactions} />
+            </motion.div>
+          )}
+          {activeTab === 'insights' && (
+            <motion.div key="insights" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+              <AIInsights transactions={monthTransactions} budgets={budgets} />
             </motion.div>
           )}
           {activeTab === 'transactions' && (
