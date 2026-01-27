@@ -80,10 +80,10 @@ export default function Home() {
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
           <div>
             <h1 className="text-2xl sm:text-3xl font-bold text-slate-900">
-              Good {new Date().getHours() < 12 ? 'morning' : new Date().getHours() < 17 ? 'afternoon' : 'evening'}
+              <span className="bg-gradient-to-r from-indigo-600 to-violet-600 bg-clip-text text-transparent">Tamai</span>
             </h1>
             <p className="text-slate-500 mt-1">
-              {format(new Date(), 'EEEE, MMMM d')}
+              {format(new Date(), 'EEEE, MMMM d')} • Good {new Date().getHours() < 12 ? 'morning' : new Date().getHours() < 17 ? 'afternoon' : 'evening'}
             </p>
           </div>
           <div className="flex gap-3">
