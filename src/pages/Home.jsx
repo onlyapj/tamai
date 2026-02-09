@@ -5,7 +5,7 @@ import { Link } from 'react-router-dom';
 import { createPageUrl } from '../utils';
 import { motion, AnimatePresence } from 'framer-motion';
 import { format } from 'date-fns';
-import { Plus, Calendar, ListTodo, Sparkles, ChevronRight, Heart, Wallet, Activity, Target, ArrowRight } from 'lucide-react';
+import { Plus, Calendar, ListTodo, Sparkles, ChevronRight, Heart, Wallet, Activity, Target, ArrowRight, MessageCircle } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import TaskList from '../components/tasks/TaskList';
@@ -99,6 +99,16 @@ export default function Home() {
             </p>
           </div>
           <div className="flex gap-3">
+            <a 
+              href={base44.agents.getWhatsAppConnectURL('day_planner')} 
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              <Button variant="outline" className="border-green-600 text-green-600 hover:bg-green-50">
+                <MessageCircle className="h-4 w-4 mr-2" />
+                WhatsApp
+              </Button>
+            </a>
             <Button
               onClick={() => setShowChat(!showChat)}
               variant={showChat ? "default" : "outline"}
