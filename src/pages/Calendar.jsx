@@ -30,7 +30,7 @@ export default function Calendar() {
       
       // Auto-export to Google Calendar if available
       try {
-        await base44.functions.syncGoogleCalendar({
+        await base44.functions.invoke('syncGoogleCalendar', {
           action: 'export_event',
           calendarIds: ['primary'],
           taskId: task.id,
