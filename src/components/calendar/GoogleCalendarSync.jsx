@@ -31,11 +31,12 @@ export default function GoogleCalendarSync({ onSyncComplete }) {
   const connectGoogle = async () => {
     setIsConnecting(true);
     try {
-      // This will trigger OAuth flow
       await refetchCalendars();
       toast.success('Connected to Google Calendar');
     } catch (error) {
-      toast.error('Failed to connect. Make sure backend functions are enabled.');
+      // OAuth required - show error and provide authorization link
+      toast.error('Please authorize Google Calendar access in your app settings');
+      window.open('/dashboard/settings', '_blank');
     } finally {
       setIsConnecting(false);
     }
