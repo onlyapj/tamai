@@ -1,0 +1,202 @@
+import React, { useState, useEffect } from 'react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { base44 } from '@/api/base44Client';
+import { format, startOfMonth, endOfMonth, isSameDay, parseISO, addMinutes, isBefore } from 'date-fns';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Button } from "@/components/ui/button";
+import { Calendar as CalendarIcon, Plus, Bell, Clock, ChevronLeft, ChevronRight } from 'lucide-react';
+import CalendarView from '../components/calendar/CalendarView.jsx';
+import EventForm from '../components/calendar/EventForm.jsx';
+import DaySchedule from '../components/calendar/DaySchedule.jsx';
+import { toast } from 'sonner';
+
+export default function Calendar() {
+  const [selectedDate, setSelectedDate] = useState(new Date());
+  const [showEventForm, setShowEventForm] = useState(false);
+  const [editingTask, setEditingTask] = useState(null);
+  const [currentMonth, setCurrentMonth] = useState(new Date());
+  const queryClient = useQueryClient();
+
+  const { data: tasks = [] } = useQuery({
+    queryKey: ['tasks'],
+    queryFn: () => base44.entities.Task.list('-due_date')
+  });
+
+  const createMutation = useMutation({
+    mutationFn: (data) => base44.entities.Task.create(data),
+    onSuccess: () => {
+      queryClient.invalidateQueries(['tasks']);
+      setShowEventForm(false);
+      toast.success('Event added to calendar');
+    }
+  });
+
+  const updateMutation = useMutation({
+    mutationFn: ({ id, data }) => base44.entities.Task.update(id, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries(['tasks']);
+      setShowEventForm(false);
+      setEditingTask(null);
+      toast.success('Event updated');
+    }
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: (id) => base44.entities.Task.delete(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries(['tasks']);
+      toast.success('Event deleted');
+    }
+  });
+
+  // Check for upcoming reminders
+  useEffect(() => {
+    const checkReminders = () => {
+      const now = new Date();
+      tasks.forEach(task => {
+        if (!task.due_date || !task.scheduled_time || !task.reminder_minutes || task.status === 'completed') return;
+        
+        const [hours, minutes] = task.scheduled_time.split(':');
+        const scheduledDateTime = parseISO(task.due_date);
+        scheduledDateTime.setHours(parseInt(hours), parseInt(minutes), 0);
+        
+        const reminderTime = addMinutes(scheduledDateTime, -task.reminder_minutes);
+        const timeDiff = reminderTime.getTime() - now.getTime();
+        
+        // Show reminder if it's within the next minute
+        if (timeDiff > 0 && timeDiff < 60000) {
+          setTimeout(() => {
+            toast.info(`Reminder: ${task.title}`, {
+              description: `Starting in ${task.reminder_minutes} minutes`,
+              duration: 10000,
+              icon: <Bell className="h-4 w-4" />
+            });
+            
+            // Browser notification if permitted
+            if ('Notification' in window && Notification.permission === 'granted') {
+              new Notification('TAMAI Reminder', {
+                body: `${task.title} - Starting in ${task.reminder_minutes} minutes`,
+                icon: '/favicon.ico'
+              });
+            }
+          }, timeDiff);
+        }
+      });
+    };
+
+    checkReminders();
+    const interval = setInterval(checkReminders, 30000); // Check every 30 seconds
+    return () => clearInterval(interval);
+  }, [tasks]);
+
+  // Request notification permission on mount
+  useEffect(() => {
+    if ('Notification' in window && Notification.permission === 'default') {
+      Notification.requestPermission();
+    }
+  }, []);
+
+  const selectedDateTasks = tasks.filter(task => 
+    task.due_date && isSameDay(parseISO(task.due_date), selectedDate)
+  );
+
+  const handleSubmit = (data) => {
+    if (editingTask) {
+      updateMutation.mutate({ id: editingTask.id, data });
+    } else {
+      createMutation.mutate(data);
+    }
+  };
+
+  return (
+    <div className="min-h-screen bg-slate-50 p-4 sm:p-6 lg:p-8">
+      <div className="max-w-7xl mx-auto">
+        {/* Header */}
+        <div className="flex items-center justify-between mb-6">
+          <div>
+            <h1 className="text-2xl sm:text-3xl font-bold text-slate-900">
+              <span className="bg-gradient-to-r from-indigo-600 to-violet-600 bg-clip-text text-transparent">Calendar</span>
+            </h1>
+            <p className="text-slate-500 mt-1">Schedule your time with intention</p>
+          </div>
+          <Button 
+            onClick={() => { setEditingTask(null); setShowEventForm(true); }}
+            className="bg-indigo-600 hover:bg-indigo-700"
+          >
+            <Plus className="h-4 w-4 mr-2" />
+            Add Event
+          </Button>
+        </div>
+
+        {/* Month Navigation */}
+        <div className="flex items-center justify-between mb-6">
+          <h2 className="text-xl font-semibold text-slate-800">
+            {format(currentMonth, 'MMMM yyyy')}
+          </h2>
+          <div className="flex gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setCurrentMonth(new Date(currentMonth.setMonth(currentMonth.getMonth() - 1)))}
+            >
+              <ChevronLeft className="h-4 w-4" />
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setCurrentMonth(new Date())}
+            >
+              Today
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setCurrentMonth(new Date(currentMonth.setMonth(currentMonth.getMonth() + 1)))}
+            >
+              <ChevronRight className="h-4 w-4" />
+            </Button>
+          </div>
+        </div>
+
+        <div className="grid lg:grid-cols-3 gap-6">
+          {/* Calendar View */}
+          <div className="lg:col-span-2">
+            <CalendarView
+              tasks={tasks}
+              selectedDate={selectedDate}
+              onDateSelect={setSelectedDate}
+              currentMonth={currentMonth}
+            />
+          </div>
+
+          {/* Selected Day Schedule */}
+          <div className="lg:col-span-1">
+            <DaySchedule
+              date={selectedDate}
+              tasks={selectedDateTasks}
+              onEdit={(task) => { setEditingTask(task); setShowEventForm(true); }}
+              onDelete={(task) => deleteMutation.mutate(task.id)}
+              onToggle={(task) => updateMutation.mutate({ 
+                id: task.id, 
+                data: { ...task, status: task.status === 'completed' ? 'pending' : 'completed' }
+              })}
+            />
+          </div>
+        </div>
+
+        {/* Event Form Modal */}
+        <AnimatePresence>
+          {showEventForm && (
+            <EventForm
+              task={editingTask}
+              defaultDate={selectedDate}
+              onSubmit={handleSubmit}
+              onCancel={() => { setShowEventForm(false); setEditingTask(null); }}
+              isLoading={createMutation.isPending || updateMutation.isPending}
+            />
+          )}
+        </AnimatePresence>
+      </div>
+    </div>
+  );
+}
