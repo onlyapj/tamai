@@ -100,7 +100,7 @@ export default function Home() {
           </div>
           <div className="flex gap-3">
             <a 
-              href={base44.agents.getWhatsAppConnectURL('day_planner')} 
+              href={base44.agents.getWhatsAppConnectURL('TAMAI')} 
               target="_blank"
               rel="noopener noreferrer"
             >
