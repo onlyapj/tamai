@@ -4,10 +4,11 @@ import { base44 } from '@/api/base44Client';
 import { format, startOfMonth, endOfMonth, isSameDay, parseISO, addMinutes, isBefore } from 'date-fns';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from "@/components/ui/button";
-import { Calendar as CalendarIcon, Plus, Bell, Clock, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Calendar as CalendarIcon, Plus, Bell, Clock, ChevronLeft, ChevronRight, Settings } from 'lucide-react';
 import CalendarView from '../components/calendar/CalendarView.jsx';
 import EventForm from '../components/calendar/EventForm.jsx';
 import DaySchedule from '../components/calendar/DaySchedule.jsx';
+import GoogleCalendarSync from '../components/calendar/GoogleCalendarSync.jsx';
 import { toast } from 'sonner';
 
 export default function Calendar() {
@@ -15,6 +16,7 @@ export default function Calendar() {
   const [showEventForm, setShowEventForm] = useState(false);
   const [editingTask, setEditingTask] = useState(null);
   const [currentMonth, setCurrentMonth] = useState(new Date());
+  const [showSyncSettings, setShowSyncSettings] = useState(false);
   const queryClient = useQueryClient();
 
   const { data: tasks = [] } = useQuery({
@@ -23,7 +25,23 @@ export default function Calendar() {
   });
 
   const createMutation = useMutation({
-    mutationFn: (data) => base44.entities.Task.create(data),
+    mutationFn: async (data) => {
+      const task = await base44.entities.Task.create(data);
+      
+      // Auto-export to Google Calendar if available
+      try {
+        await base44.functions.syncGoogleCalendar({
+          action: 'export_event',
+          calendarIds: ['primary'],
+          taskId: task.id,
+          taskData: data
+        });
+      } catch (error) {
+        // Silently fail if Google Calendar not connected
+      }
+      
+      return task;
+    },
     onSuccess: () => {
       queryClient.invalidateQueries(['tasks']);
       setShowEventForm(false);
@@ -119,13 +137,22 @@ export default function Calendar() {
             </h1>
             <p className="text-slate-500 mt-1">Schedule your time with intention</p>
           </div>
-          <Button 
-            onClick={() => { setEditingTask(null); setShowEventForm(true); }}
-            className="bg-indigo-600 hover:bg-indigo-700"
-          >
-            <Plus className="h-4 w-4 mr-2" />
-            Add Event
-          </Button>
+          <div className="flex gap-2">
+            <Button 
+              onClick={() => setShowSyncSettings(!showSyncSettings)}
+              variant="outline"
+            >
+              <Settings className="h-4 w-4 mr-2" />
+              Sync
+            </Button>
+            <Button 
+              onClick={() => { setEditingTask(null); setShowEventForm(true); }}
+              className="bg-indigo-600 hover:bg-indigo-700"
+            >
+              <Plus className="h-4 w-4 mr-2" />
+              Add Event
+            </Button>
+          </div>
         </div>
 
         {/* Month Navigation */}
@@ -157,6 +184,22 @@ export default function Calendar() {
             </Button>
           </div>
         </div>
+
+        {/* Google Calendar Sync */}
+        <AnimatePresence>
+          {showSyncSettings && (
+            <motion.div
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: 'auto' }}
+              exit={{ opacity: 0, height: 0 }}
+              className="mb-6 overflow-hidden"
+            >
+              <GoogleCalendarSync 
+                onSyncComplete={() => queryClient.invalidateQueries(['tasks'])}
+              />
+            </motion.div>
+          )}
+        </AnimatePresence>
 
         <div className="grid lg:grid-cols-3 gap-6">
           {/* Calendar View */}
