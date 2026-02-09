@@ -1,7 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from './utils';
-import { LayoutDashboard, Heart, Wallet, Activity, Target, CalendarDays, Watch } from 'lucide-react';
+import { LayoutDashboard, Heart, Wallet, Activity, Target, CalendarDays, Watch, User } from 'lucide-react';
 import { cn } from "@/lib/utils";
 
 export default function Layout({ children, currentPageName }) {
@@ -12,6 +12,7 @@ export default function Layout({ children, currentPageName }) {
     { name: 'Finance', icon: Wallet, label: 'Money' },
     { name: 'Health', icon: Activity, label: 'Health' },
     { name: 'Goals', icon: Target, label: 'Goals' },
+    { name: 'Profile', icon: User, label: 'Profile' },
   ];
 
   const showWearableLink = currentPageName === 'Health';

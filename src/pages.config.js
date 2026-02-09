@@ -54,6 +54,7 @@ import Home from './pages/Home';
 import Mindfulness from './pages/Mindfulness';
 import Wearable from './pages/Wearable';
 import Calendar from './pages/Calendar';
+import Profile from './pages/Profile';
 import __Layout from './Layout.jsx';
 
 
@@ -65,6 +66,7 @@ export const PAGES = {
     "Mindfulness": Mindfulness,
     "Wearable": Wearable,
     "Calendar": Calendar,
+    "Profile": Profile,
 }
 
 export const pagesConfig = {
