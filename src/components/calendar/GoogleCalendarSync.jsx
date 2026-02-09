@@ -40,10 +40,11 @@ export default function GoogleCalendarSync({ onSyncComplete }) {
 
   const importMutation = useMutation({
     mutationFn: async () => {
-      return await base44.functions.syncGoogleCalendar({
+      const response = await base44.functions.invoke('syncGoogleCalendar', {
         action: 'import_events',
         calendarIds: selectedCalendars
       });
+      return response.data;
     },
     onSuccess: (data) => {
       toast.success(`Imported ${data.imported} events from Google Calendar`);
