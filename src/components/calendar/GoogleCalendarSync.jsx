@@ -99,10 +99,6 @@ export default function GoogleCalendarSync({ onSyncComplete }) {
               </>
             )}
           </Button>
-          <p className="text-xs text-amber-600 mt-3 flex items-center justify-center gap-1">
-            <AlertCircle className="h-3 w-3" />
-            Requires backend functions to be enabled
-          </p>
         </div>
       ) : (
         <div className="space-y-4">
