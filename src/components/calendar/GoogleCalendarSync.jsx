@@ -16,16 +16,12 @@ export default function GoogleCalendarSync({ onSyncComplete }) {
   const { data: calendarsData, refetch: refetchCalendars } = useQuery({
     queryKey: ['google-calendars'],
     queryFn: async () => {
-      try {
-        const result = await base44.functions.syncGoogleCalendar({ action: 'list_calendars' });
-        setIsConnected(true);
-        return result.calendars || [];
-      } catch (error) {
-        setIsConnected(false);
-        return [];
-      }
+      const response = await base44.functions.invoke('syncGoogleCalendar', { action: 'list_calendars' });
+      setIsConnected(true);
+      return response.data.calendars || [];
     },
-    enabled: false
+    enabled: false,
+    retry: false
   });
 
   const connectGoogle = async () => {
