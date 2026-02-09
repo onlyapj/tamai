@@ -1,16 +1,32 @@
-import React, { useState } from 'react';
-import { useMutation, useQuery } from '@tanstack/react-query';
+import React, { useState, useEffect } from 'react';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Calendar, RefreshCw, Download, Upload, Link as LinkIcon, CheckCircle2, AlertCircle } from 'lucide-react';
+import { Calendar, RefreshCw, Download, Upload, Link as LinkIcon, CheckCircle2, AlertCircle, Unlink } from 'lucide-react';
 import { toast } from 'sonner';
 
 export default function GoogleCalendarSync({ onSyncComplete }) {
   const [selectedCalendars, setSelectedCalendars] = useState([]);
   const [isConnecting, setIsConnecting] = useState(false);
   const [isConnected, setIsConnected] = useState(false);
+  const queryClient = useQueryClient();
+
+  // Fetch current user to check sync settings
+  const { data: user } = useQuery({
+    queryKey: ['current-user'],
+    queryFn: () => base44.auth.me()
+  });
+
+  // Load sync settings on mount
+  useEffect(() => {
+    if (user?.google_calendar_sync?.enabled) {
+      setIsConnected(true);
+      setSelectedCalendars(user.google_calendar_sync.selected_calendars || []);
+      refetchCalendars();
+    }
+  }, [user]);
 
   // Fetch available Google Calendars
   const { data: calendarsData, refetch: refetchCalendars } = useQuery({
@@ -46,12 +62,37 @@ export default function GoogleCalendarSync({ onSyncComplete }) {
       });
       return response.data;
     },
-    onSuccess: (data) => {
+    onSuccess: async (data) => {
+      // Save sync settings
+      await base44.auth.updateMe({
+        google_calendar_sync: {
+          enabled: true,
+          selected_calendars: selectedCalendars
+        }
+      });
+      queryClient.invalidateQueries(['current-user']);
       toast.success(`Imported ${data.imported} events from Google Calendar`);
       onSyncComplete?.();
     },
     onError: () => {
       toast.error('Failed to import events');
+    }
+  });
+
+  const unsyncMutation = useMutation({
+    mutationFn: async () => {
+      await base44.auth.updateMe({
+        google_calendar_sync: {
+          enabled: false,
+          selected_calendars: []
+        }
+      });
+    },
+    onSuccess: () => {
+      setIsConnected(false);
+      setSelectedCalendars([]);
+      queryClient.invalidateQueries(['current-user']);
+      toast.success('Google Calendar disconnected');
     }
   });
 
@@ -99,9 +140,21 @@ export default function GoogleCalendarSync({ onSyncComplete }) {
         </div>
       ) : (
         <div className="space-y-4">
-          <div className="flex items-center gap-2 text-sm text-emerald-600 bg-emerald-50 px-3 py-2 rounded-lg">
-            <CheckCircle2 className="h-4 w-4" />
-            Connected to Google Calendar
+          <div className="flex items-center justify-between gap-2 text-sm text-emerald-600 bg-emerald-50 px-3 py-2 rounded-lg">
+            <div className="flex items-center gap-2">
+              <CheckCircle2 className="h-4 w-4" />
+              Connected to Google Calendar
+            </div>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => unsyncMutation.mutate()}
+              disabled={unsyncMutation.isPending}
+              className="h-7 text-slate-600 hover:text-red-600"
+            >
+              <Unlink className="h-3 w-3 mr-1" />
+              Disconnect
+            </Button>
           </div>
 
           <div>
