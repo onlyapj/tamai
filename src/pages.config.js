@@ -47,26 +47,28 @@
  *
  * The mainPage value must match a key in the PAGES object exactly.
  */
+import Calendar from './pages/Calendar';
 import Finance from './pages/Finance';
 import Goals from './pages/Goals';
 import Health from './pages/Health';
 import Home from './pages/Home';
 import Mindfulness from './pages/Mindfulness';
-import Wearable from './pages/Wearable';
-import Calendar from './pages/Calendar';
 import Profile from './pages/Profile';
+import Wearable from './pages/Wearable';
+import AdminFeedback from './pages/AdminFeedback';
 import __Layout from './Layout.jsx';
 
 
 export const PAGES = {
+    "Calendar": Calendar,
     "Finance": Finance,
     "Goals": Goals,
     "Health": Health,
     "Home": Home,
     "Mindfulness": Mindfulness,
-    "Wearable": Wearable,
-    "Calendar": Calendar,
     "Profile": Profile,
+    "Wearable": Wearable,
+    "AdminFeedback": AdminFeedback,
 }
 
 export const pagesConfig = {

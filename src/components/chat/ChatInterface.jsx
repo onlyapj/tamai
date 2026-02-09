@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Send, Sparkles, Loader2, MessageSquare, Mic, MicOff } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 import MessageBubble from './MessageBubble';
+import FeedbackWidget from './FeedbackWidget';
 
 export default function ChatInterface({ onTasksUpdate }) {
   const [messages, setMessages] = useState([]);
@@ -171,6 +172,13 @@ export default function ChatInterface({ onTasksUpdate }) {
         
         <div ref={messagesEndRef} />
       </div>
+
+      {/* Feedback Widget */}
+      {messages.length > 0 && conversation && (
+        <div className="px-5 pb-3">
+          <FeedbackWidget conversationId={conversation.id} />
+        </div>
+      )}
 
       {/* Input */}
       <div className="p-4 border-t border-slate-100">
