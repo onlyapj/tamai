@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Send, Sparkles, Loader2, MessageSquare } from 'lucide-react';
+import { Send, Sparkles, Loader2, MessageSquare, Mic, MicOff } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 import MessageBubble from './MessageBubble';
 
@@ -11,11 +11,36 @@ export default function ChatInterface({ onTasksUpdate }) {
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [conversation, setConversation] = useState(null);
+  const [isListening, setIsListening] = useState(false);
   const messagesEndRef = useRef(null);
   const inputRef = useRef(null);
+  const recognitionRef = useRef(null);
 
   useEffect(() => {
     initConversation();
+    
+    // Initialize speech recognition
+    if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
+      const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+      recognitionRef.current = new SpeechRecognition();
+      recognitionRef.current.continuous = false;
+      recognitionRef.current.interimResults = false;
+      recognitionRef.current.lang = 'en-US';
+
+      recognitionRef.current.onresult = (event) => {
+        const transcript = event.results[0][0].transcript;
+        setInput(transcript);
+        setIsListening(false);
+      };
+
+      recognitionRef.current.onerror = () => {
+        setIsListening(false);
+      };
+
+      recognitionRef.current.onend = () => {
+        setIsListening(false);
+      };
+    }
   }, []);
 
   useEffect(() => {
@@ -58,6 +83,21 @@ export default function ChatInterface({ onTasksUpdate }) {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
       handleSend();
+    }
+  };
+
+  const toggleVoiceInput = () => {
+    if (!recognitionRef.current) {
+      alert('Voice input is not supported in your browser');
+      return;
+    }
+
+    if (isListening) {
+      recognitionRef.current.stop();
+      setIsListening(false);
+    } else {
+      recognitionRef.current.start();
+      setIsListening(true);
     }
   };
 
@@ -140,10 +180,18 @@ export default function ChatInterface({ onTasksUpdate }) {
             value={input}
             onChange={(e) => setInput(e.target.value)}
             onKeyPress={handleKeyPress}
-            placeholder="Ask anything..."
+            placeholder={isListening ? "Listening..." : "Ask anything or use voice..."}
             className="flex-1 border-slate-200 focus-visible:ring-indigo-500/20"
             disabled={isLoading || !conversation}
           />
+          <Button
+            onClick={toggleVoiceInput}
+            disabled={isLoading || !conversation}
+            variant={isListening ? "default" : "outline"}
+            className={isListening ? "bg-red-500 hover:bg-red-600" : ""}
+          >
+            {isListening ? <MicOff className="h-4 w-4" /> : <Mic className="h-4 w-4" />}
+          </Button>
           <Button
             onClick={handleSend}
             disabled={!input.trim() || isLoading || !conversation}
