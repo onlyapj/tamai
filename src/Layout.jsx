@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from './utils';
 import { LayoutDashboard, Heart, Wallet, Activity, Target, CalendarDays, Watch, User } from 'lucide-react';
+import NotificationBell from './components/notifications/NotificationBell';
 import { cn } from "@/lib/utils";
 import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
 import { base44 } from '@/api/base44Client';
@@ -59,6 +60,11 @@ export default function Layout({ children, currentPageName }) {
 
   return (
     <div className="min-h-screen bg-slate-50">
+      {/* Notification Bell - Desktop */}
+      <div className="hidden lg:block fixed top-6 right-6 z-50">
+        <NotificationBell />
+      </div>
+
       {/* Top Navigation - Mobile */}
       <nav className="lg:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 z-50">
         <DragDropContext onDragEnd={handleDragEnd}>

@@ -29,9 +29,21 @@ export default function UserManagement() {
 
   const updateRoleMutation = useMutation({
     mutationFn: ({ userId, role }) => base44.entities.User.update(userId, { role }),
-    onSuccess: () => {
+    onSuccess: async (_, { userId, role }) => {
       queryClient.invalidateQueries(['all-users']);
       toast.success('User role updated');
+      
+      // Notify user of role change
+      const targetUser = users.find(u => u.id === userId);
+      if (targetUser) {
+        await base44.functions.invoke('sendNotification', {
+          recipient_email: targetUser.email,
+          type: 'info',
+          category: 'user_management',
+          title: 'Role Updated',
+          message: `Your role has been changed to ${role}.`
+        });
+      }
     },
     onError: () => {
       toast.error('Failed to update role');
@@ -40,9 +52,21 @@ export default function UserManagement() {
 
   const deleteUserMutation = useMutation({
     mutationFn: (userId) => base44.entities.User.delete(userId),
-    onSuccess: () => {
+    onSuccess: async () => {
       queryClient.invalidateQueries(['all-users']);
       toast.success('User deleted');
+      
+      // Notify all admins
+      const admins = users.filter(u => u.role === 'admin' && u.id !== currentUser?.id);
+      for (const admin of admins) {
+        await base44.functions.invoke('sendNotification', {
+          recipient_email: admin.email,
+          type: 'alert',
+          category: 'user_management',
+          title: 'User Deleted',
+          message: `A user account was deleted by ${currentUser?.full_name || currentUser?.email}.`
+        });
+      }
     },
     onError: () => {
       toast.error('Failed to delete user');

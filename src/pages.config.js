@@ -57,6 +57,7 @@ import Profile from './pages/Profile';
 import Wearable from './pages/Wearable';
 import AdminFeedback from './pages/AdminFeedback';
 import UserManagement from './pages/UserManagement';
+import NotificationSettings from './pages/NotificationSettings';
 import __Layout from './Layout.jsx';
 
 
@@ -71,6 +72,7 @@ export const PAGES = {
     "Wearable": Wearable,
     "AdminFeedback": AdminFeedback,
     "UserManagement": UserManagement,
+    "NotificationSettings": NotificationSettings,
 }
 
 export const pagesConfig = {

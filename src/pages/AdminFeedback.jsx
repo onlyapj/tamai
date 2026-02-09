@@ -32,11 +32,26 @@ export default function AdminFeedback() {
 
   const updateMutation = useMutation({
     mutationFn: ({ id, data }) => base44.entities.Feedback.update(id, data),
-    onSuccess: () => {
+    onSuccess: async (_, { id, data }) => {
       queryClient.invalidateQueries(['feedback']);
       setEditingId(null);
       setAdminNotes('');
       toast.success('Feedback updated');
+      
+      // If status changed to reviewed or resolved, notify the user
+      if ((data.status === 'reviewed' || data.status === 'resolved') && data.admin_notes) {
+        const feedbackItem = feedback.find(f => f.id === id);
+        if (feedbackItem) {
+          await base44.functions.invoke('sendNotification', {
+            recipient_email: feedbackItem.created_by,
+            type: 'success',
+            category: 'feedback',
+            title: 'Your Feedback Was Reviewed',
+            message: `Thank you for your feedback. An admin has responded.`,
+            action_url: '/Home'
+          });
+        }
+      }
     }
   });
 
