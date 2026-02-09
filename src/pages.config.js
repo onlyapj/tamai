@@ -56,6 +56,7 @@ import Mindfulness from './pages/Mindfulness';
 import Profile from './pages/Profile';
 import Wearable from './pages/Wearable';
 import AdminFeedback from './pages/AdminFeedback';
+import UserManagement from './pages/UserManagement';
 import __Layout from './Layout.jsx';
 
 
@@ -69,6 +70,7 @@ export const PAGES = {
     "Profile": Profile,
     "Wearable": Wearable,
     "AdminFeedback": AdminFeedback,
+    "UserManagement": UserManagement,
 }
 
 export const pagesConfig = {
