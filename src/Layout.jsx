@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from './utils';
-import { LayoutDashboard, Heart, Wallet, Activity, Target, CalendarDays, Watch, User } from 'lucide-react';
+import { LayoutDashboard, Heart, Wallet, Activity, Target, CalendarDays, Watch, User, BarChart3 } from 'lucide-react';
 import NotificationBell from './components/notifications/NotificationBell';
 import { cn } from "@/lib/utils";
 import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
@@ -13,6 +13,7 @@ export default function Layout({ children, currentPageName }) {
   const defaultNavItems = [
     { name: 'Home', icon: LayoutDashboard, label: 'Home' },
     { name: 'Calendar', icon: CalendarDays, label: 'Calendar' },
+    { name: 'Analytics', icon: BarChart3, label: 'Analytics' },
     { name: 'Mindfulness', icon: Heart, label: 'Mind' },
     { name: 'Finance', icon: Wallet, label: 'Money' },
     { name: 'Health', icon: Activity, label: 'Health' },
