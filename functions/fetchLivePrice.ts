@@ -23,18 +23,42 @@ Deno.serve(async (req) => {
     let price = null;
     let symbol = ticker.toUpperCase();
 
-    // Fetch price based on type
+    // For crypto, use CoinGecko API (free, no key needed)
     if (type === 'crypto') {
-      // Cryptocurrency pricing
-      const cryptoUrl = `https://www.alphavantage.co/query?function=CURRENCY_EXCHANGE_RATE&from_symbol=${symbol}&to_symbol=USD&apikey=${apiKey}`;
-      const cryptoRes = await fetch(cryptoUrl);
-      const cryptoData = await cryptoRes.json();
-      
-      if (cryptoData['Realtime Currency Exchange Rate']) {
-        price = parseFloat(cryptoData['Realtime Currency Exchange Rate']['5. Exchange Rate']);
+      try {
+        const cryptoMap = {
+          'BTC': 'bitcoin',
+          'ETH': 'ethereum', 
+          'SOL': 'solana',
+          'ADA': 'cardano',
+          'XRP': 'ripple',
+          'DOGE': 'dogecoin',
+          'USDT': 'tether',
+          'BNB': 'binancecoin',
+          'USDC': 'usd-coin',
+          'TRX': 'tron',
+          'AVAX': 'avalanche-2',
+          'SHIB': 'shiba-inu',
+          'DOT': 'polkadot',
+          'LINK': 'chainlink',
+          'MATIC': 'matic-network'
+        };
+        
+        const coinId = cryptoMap[symbol];
+        if (coinId) {
+          const url = `https://api.coingecko.com/api/v3/simple/price?ids=${coinId}&vs_currencies=usd`;
+          const res = await fetch(url);
+          const data = await res.json();
+          
+          if (data[coinId]) {
+            price = data[coinId].usd;
+          }
+        }
+      } catch (error) {
+        console.error('CoinGecko error:', error.message);
       }
     } else {
-      // Stock, ETF, etc.
+      // Stock, ETF using Alpha Vantage
       const stockUrl = `https://www.alphavantage.co/query?function=GLOBAL_QUOTE&symbol=${symbol}&apikey=${apiKey}`;
       const stockRes = await fetch(stockUrl);
       const stockData = await stockRes.json();
@@ -46,7 +70,7 @@ Deno.serve(async (req) => {
 
     if (price === null) {
       return Response.json({ 
-        error: 'Unable to fetch price. Check ticker symbol.',
+        error: 'Unable to fetch price',
         ticker: symbol
       }, { status: 404 });
     }
