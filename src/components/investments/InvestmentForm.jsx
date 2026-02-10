@@ -101,10 +101,33 @@ export default function InvestmentForm({ investment, currencySymbol, onSubmit, o
   };
 
   // When cost basis is entered, calculate quantity from live price
-  const handleCostBasisChange = (value) => {
+  const handleCostBasisChange = async (value) => {
     setCostBasis(value);
-    // Only auto-calculate if we have a live price AND the user has entered a cost basis
-    if (livePrice && value && !isNaN(parseFloat(value)) && parseFloat(value) > 0) {
+    
+    // If we don't have a live price yet and ticker is set, fetch it automatically
+    if (!livePrice && ticker && ticker.trim() && value && !isNaN(parseFloat(value)) && parseFloat(value) > 0) {
+      setFetchingPrice(true);
+      try {
+        const { data } = await base44.functions.invoke('fetchLivePrice', { 
+          ticker: ticker.trim(),
+          type 
+        });
+        setLivePrice(data.price);
+        
+        // Now calculate quantity with the fetched price
+        const calculatedQuantity = parseFloat(value) / data.price;
+        setQuantity(calculatedQuantity.toFixed(8));
+        setCurrentValue(value);
+        
+        toast.success(`Live price: ${currencySymbol}${data.price.toLocaleString()}`);
+      } catch (error) {
+        toast.error(error.response?.data?.error || 'Failed to fetch live price');
+      } finally {
+        setFetchingPrice(false);
+      }
+    }
+    // If we already have live price, just calculate
+    else if (livePrice && value && !isNaN(parseFloat(value)) && parseFloat(value) > 0) {
       const calculatedQuantity = parseFloat(value) / livePrice;
       setQuantity(calculatedQuantity.toFixed(8));
       setCurrentValue(value);
