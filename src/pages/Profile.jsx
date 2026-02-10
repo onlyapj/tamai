@@ -347,8 +347,8 @@ export default function Profile() {
 
               {/* Business Organization Selection */}
               {user?.account_type === 'business' && (
-                <div>
-                  <label className="text-sm font-medium text-slate-700 mb-2 block">
+                <div className="space-y-3">
+                  <label className="text-sm font-medium text-slate-700 block">
                     Select Organization
                   </label>
                   <Select
@@ -366,9 +366,60 @@ export default function Profile() {
                       ))}
                     </SelectContent>
                   </Select>
-                  <p className="text-xs text-slate-500 mt-2">
+                  <p className="text-xs text-slate-500">
                     {organizations.length === 0 ? 'No organizations yet' : `You have ${organizations.length} organization(s)`}
                   </p>
+
+                  {/* Create New Organization */}
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setShowCreateOrgForm(!showCreateOrgForm)}
+                    className="w-full"
+                  >
+                    + New Organization
+                  </Button>
+
+                  {showCreateOrgForm && (
+                    <div className="bg-slate-50 rounded-lg p-4 space-y-3 border border-slate-200">
+                      <Input
+                        placeholder="Organization name"
+                        value={newOrgName}
+                        onChange={(e) => setNewOrgName(e.target.value)}
+                        className="bg-white"
+                      />
+                      <Textarea
+                        placeholder="Description (optional)"
+                        value={newOrgDescription}
+                        onChange={(e) => setNewOrgDescription(e.target.value)}
+                        className="bg-white min-h-20"
+                      />
+                      <div className="flex gap-2">
+                        <Button
+                          size="sm"
+                          onClick={() => {
+                            if (newOrgName.trim()) {
+                              createOrganizationMutation.mutate({ name: newOrgName, description: newOrgDescription });
+                            } else {
+                              toast.error('Organization name is required');
+                            }
+                          }}
+                          className="bg-indigo-600 hover:bg-indigo-700 flex-1"
+                          disabled={createOrganizationMutation.isPending}
+                        >
+                          Create
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => setShowCreateOrgForm(false)}
+                          className="flex-1"
+                        >
+                          Cancel
+                        </Button>
+                      </div>
+                    </div>
+                  )}
                 </div>
               )}
 
