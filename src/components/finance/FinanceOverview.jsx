@@ -16,7 +16,7 @@ const categoryColors = {
   other: '#64748b'
 };
 
-export default function FinanceOverview({ transactions }) {
+export default function FinanceOverview({ transactions, currencySymbol = '$' }) {
   const expenses = transactions.filter(t => t.type === 'expense');
   
   // Group by category
@@ -73,7 +73,7 @@ export default function FinanceOverview({ transactions }) {
                   <div className="w-3 h-3 rounded-full" style={{ backgroundColor: cat.color }} />
                   <div className="min-w-0">
                     <p className="text-xs text-slate-500 capitalize truncate">{cat.name.replace('_', ' ')}</p>
-                    <p className="text-sm font-semibold text-slate-800">${cat.value.toLocaleString()}</p>
+                    <p className="text-sm font-semibold text-slate-800">{currencySymbol}{cat.value.toLocaleString()}</p>
                   </div>
                 </motion.div>
               ))}
@@ -99,7 +99,7 @@ export default function FinanceOverview({ transactions }) {
               >
                 <div className="flex justify-between text-sm mb-1">
                   <span className="text-slate-600 capitalize">{cat.name.replace('_', ' ')}</span>
-                  <span className="font-medium text-slate-800">${cat.value.toLocaleString()}</span>
+                  <span className="font-medium text-slate-800">{currencySymbol}{cat.value.toLocaleString()}</span>
                 </div>
                 <div className="h-2 bg-slate-100 rounded-full overflow-hidden">
                   <motion.div

@@ -32,7 +32,7 @@ const categoryColors = {
   other: 'bg-slate-100 text-slate-600'
 };
 
-export default function TransactionList({ transactions, onDelete }) {
+export default function TransactionList({ transactions, currencySymbol = '$', onDelete }) {
   // Group by date
   const grouped = transactions.reduce((acc, t) => {
     const date = t.date || 'Unknown';

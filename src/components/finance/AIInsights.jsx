@@ -4,7 +4,7 @@ import { base44 } from '@/api/base44Client';
 import { Sparkles, TrendingUp, TrendingDown, Lightbulb, RefreshCw, DollarSign, PiggyBank, AlertTriangle } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 
-export default function AIInsights({ transactions, budgets }) {
+export default function AIInsights({ transactions, budgets, currencySymbol = '$' }) {
   const [insights, setInsights] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -31,15 +31,15 @@ export default function AIInsights({ transactions, budgets }) {
     const prompt = `You are TAMAI, a calm and supportive financial assistant. Analyze this user's financial data and provide gentle, encouraging insights. Never use shame or guilt language.
 
 Monthly Financial Summary:
-- Total Income: $${totalIncome}
-- Total Expenses: $${totalExpenses}
-- Balance: $${totalIncome - totalExpenses}
+- Total Income: ${currencySymbol}${totalIncome}
+- Total Expenses: ${currencySymbol}${totalExpenses}
+- Balance: ${currencySymbol}${totalIncome - totalExpenses}
 
 Spending by Category:
-${Object.entries(categorySpending).map(([cat, amount]) => `- ${cat}: $${amount}`).join('\n')}
+${Object.entries(categorySpending).map(([cat, amount]) => `- ${cat}: ${currencySymbol}${amount}`).join('\n')}
 
 Budget Status:
-${budgetStatus.length > 0 ? budgetStatus.map(b => `- ${b.category}: $${b.spent}/$${b.limit} (${b.percentage}%)`).join('\n') : 'No budgets set'}
+${budgetStatus.length > 0 ? budgetStatus.map(b => `- ${b.category}: ${currencySymbol}${b.spent}/${currencySymbol}${b.limit} (${b.percentage}%)`).join('\n') : 'No budgets set'}
 
 Provide exactly 3 insights:
 1. A reassuring overall assessment (how they're doing)
@@ -203,7 +203,7 @@ Keep each insight to 1-2 sentences. Be warm and supportive. Frame money in terms
                 {insights.suggestion?.potential_savings > 0 && (
                   <div className="flex items-center gap-1 mt-2 text-sm text-emerald-600">
                     <PiggyBank className="h-4 w-4" />
-                    <span>Could free up ~${insights.suggestion.potential_savings}/month</span>
+                    <span>Could free up ~{currencySymbol}{insights.suggestion.potential_savings}/month</span>
                   </div>
                 )}
               </div>

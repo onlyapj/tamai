@@ -20,7 +20,7 @@ const categoryColors = {
   other: 'bg-slate-500'
 };
 
-export default function BudgetSection({ budgets, transactions, currentMonth }) {
+export default function BudgetSection({ budgets, transactions, currentMonth, currencySymbol = '$' }) {
   const [showForm, setShowForm] = useState(false);
   const [category, setCategory] = useState('');
   const [limit, setLimit] = useState('');
@@ -138,7 +138,7 @@ export default function BudgetSection({ budgets, transactions, currentMonth }) {
                   {isOver && <AlertTriangle className="h-4 w-4 text-red-500" />}
                   {!isOver && !isNear && <CheckCircle2 className="h-4 w-4 text-emerald-500" />}
                   <span className={`text-sm font-semibold ${isOver ? 'text-red-500' : 'text-slate-700'}`}>
-                    ${spent.toLocaleString()} / ${budget.monthly_limit.toLocaleString()}
+                    {currencySymbol}{spent.toLocaleString()} / {currencySymbol}{budget.monthly_limit.toLocaleString()}
                   </span>
                 </div>
               </div>
@@ -154,8 +154,8 @@ export default function BudgetSection({ budgets, transactions, currentMonth }) {
               </div>
               <p className="text-xs text-slate-500 mt-2">
                 {isOver 
-                  ? `$${(spent - budget.monthly_limit).toLocaleString()} over budget`
-                  : `$${(budget.monthly_limit - spent).toLocaleString()} remaining`
+                  ? `${currencySymbol}${(spent - budget.monthly_limit).toLocaleString()} over budget`
+                  : `${currencySymbol}${(budget.monthly_limit - spent).toLocaleString()} remaining`
                 }
               </p>
             </motion.div>
