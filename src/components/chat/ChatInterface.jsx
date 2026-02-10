@@ -153,7 +153,7 @@ export default function ChatInterface({ onTasksUpdate }) {
             <p className="text-sm text-slate-500 mb-6">
               I can help you manage tasks, plan your day, and stay organized.
             </p>
-            <div className="grid grid-cols-2 gap-2 w-full max-w-sm">
+            <div className="grid grid-cols-1 gap-2 w-full max-w-sm">
               {suggestions.map((suggestion, i) => (
                 <button
                   key={i}
@@ -161,7 +161,7 @@ export default function ChatInterface({ onTasksUpdate }) {
                     setInput(suggestion);
                     inputRef.current?.focus();
                   }}
-                  className="text-left text-xs px-3 py-2.5 rounded-xl bg-white border border-slate-200 text-slate-600 hover:border-indigo-300 hover:bg-indigo-50/50 transition-all"
+                  className="text-left text-sm px-4 py-3 rounded-xl bg-white border border-slate-200 text-slate-700 hover:border-indigo-400 hover:bg-indigo-50 transition-all font-medium"
                 >
                   {suggestion}
                 </button>
