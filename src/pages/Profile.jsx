@@ -39,6 +39,20 @@ export default function Profile() {
     }
   });
 
+  const { data: organizations = [] } = useQuery({
+    queryKey: ['user-organizations', user?.email],
+    queryFn: () => base44.entities.Organization.filter({ owner_email: user?.email }),
+    enabled: !!user?.email && user?.account_type === 'business',
+  });
+
+  const selectOrganizationMutation = useMutation({
+    mutationFn: (orgId) => base44.auth.updateMe({ active_organization_id: orgId }),
+    onSuccess: () => {
+      queryClient.invalidateQueries(['current-user']);
+      toast.success('Organization selected');
+    }
+  });
+
   const updateThemeMutation = useMutation({
     mutationFn: (theme) => base44.auth.updateMe({ theme }),
     onSuccess: (_, theme) => {
