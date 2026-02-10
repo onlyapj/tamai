@@ -88,8 +88,8 @@ export default function Landing() {
             <a href="#pricing" className="text-slate-600 hover:text-slate-900 font-medium">Pricing</a>
           </div>
           <div className="flex gap-3">
-            <Button variant="outline" onClick={() => base44.auth.redirectToLogin()}>Login</Button>
-            <Button className="bg-indigo-600 hover:bg-indigo-700" onClick={() => base44.auth.redirectToLogin()}>Get Started Free</Button>
+            <Button variant="outline" onClick={() => base44.auth.redirectToLogin(createPageUrl('Home'))}>Login</Button>
+            <Button className="bg-indigo-600 hover:bg-indigo-700" onClick={() => base44.auth.redirectToLogin(createPageUrl('Home'))}>Get Started Free</Button>
           </div>
         </div>
       </nav>
