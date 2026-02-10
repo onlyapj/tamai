@@ -374,6 +374,19 @@ export default function Investments() {
               isLoading={updateInvestmentSettings.isPending}
             />
           )}
+          {selectedInvestmentForTransaction && (
+            <TransactionForm
+              transaction={editingTransaction}
+              investment={selectedInvestmentForTransaction}
+              currencySymbol={currencySymbol}
+              onSubmit={handleTransactionSubmit}
+              onCancel={() => { 
+                setSelectedInvestmentForTransaction(null); 
+                setEditingTransaction(null); 
+              }}
+              isLoading={createTransaction.isPending || updateTransaction.isPending}
+            />
+          )}
         </AnimatePresence>
       </div>
     </div>
