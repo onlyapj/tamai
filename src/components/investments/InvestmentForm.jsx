@@ -90,22 +90,19 @@ export default function InvestmentForm({ investment, currencySymbol, onSubmit, o
   };
 
   // When quantity is entered, calculate cost basis from live price
-  const handleQuantityChange = (value) => {
+  const handleQuantityChange = async (value) => {
     setQuantity(value);
-    // Only auto-calculate if we have a live price AND the user has entered a quantity
-    if (livePrice && value && !isNaN(parseFloat(value)) && parseFloat(value) > 0) {
+    
+    if (!value || isNaN(parseFloat(value)) || parseFloat(value) <= 0) return;
+    
+    // If we have live price, calculate immediately
+    if (livePrice) {
       const calculatedCostBasis = livePrice * parseFloat(value);
       setCostBasis(calculatedCostBasis.toFixed(2));
       setCurrentValue(calculatedCostBasis.toFixed(2));
     }
-  };
-
-  // When cost basis is entered, calculate quantity from live price
-  const handleCostBasisChange = async (value) => {
-    setCostBasis(value);
-    
-    // If we don't have a live price yet and ticker is set, fetch it automatically
-    if (!livePrice && ticker && ticker.trim() && value && !isNaN(parseFloat(value)) && parseFloat(value) > 0) {
+    // Otherwise fetch price first if ticker exists
+    else if (ticker && ticker.trim()) {
       setFetchingPrice(true);
       try {
         const { data } = await base44.functions.invoke('fetchLivePrice', { 
@@ -114,23 +111,47 @@ export default function InvestmentForm({ investment, currencySymbol, onSubmit, o
         });
         setLivePrice(data.price);
         
-        // Now calculate quantity with the fetched price
-        const calculatedQuantity = parseFloat(value) / data.price;
-        setQuantity(calculatedQuantity.toFixed(8));
-        setCurrentValue(value);
-        
-        toast.success(`Live price: ${currencySymbol}${data.price.toLocaleString()}`);
+        const calculatedCostBasis = data.price * parseFloat(value);
+        setCostBasis(calculatedCostBasis.toFixed(2));
+        setCurrentValue(calculatedCostBasis.toFixed(2));
       } catch (error) {
-        toast.error(error.response?.data?.error || 'Failed to fetch live price');
+        toast.error('Failed to fetch price');
       } finally {
         setFetchingPrice(false);
       }
     }
-    // If we already have live price, just calculate
-    else if (livePrice && value && !isNaN(parseFloat(value)) && parseFloat(value) > 0) {
+  };
+
+  // When cost basis is entered, calculate quantity from live price
+  const handleCostBasisChange = async (value) => {
+    setCostBasis(value);
+    
+    if (!value || isNaN(parseFloat(value)) || parseFloat(value) <= 0) return;
+    
+    // If we have live price, calculate immediately
+    if (livePrice) {
       const calculatedQuantity = parseFloat(value) / livePrice;
       setQuantity(calculatedQuantity.toFixed(8));
       setCurrentValue(value);
+    }
+    // Otherwise fetch price first if ticker exists
+    else if (ticker && ticker.trim()) {
+      setFetchingPrice(true);
+      try {
+        const { data } = await base44.functions.invoke('fetchLivePrice', { 
+          ticker: ticker.trim(),
+          type 
+        });
+        setLivePrice(data.price);
+        
+        const calculatedQuantity = parseFloat(value) / data.price;
+        setQuantity(calculatedQuantity.toFixed(8));
+        setCurrentValue(value);
+      } catch (error) {
+        toast.error('Failed to fetch price');
+      } finally {
+        setFetchingPrice(false);
+      }
     }
   };
 
