@@ -52,6 +52,31 @@ export default function InvestmentForm({ investment, currencySymbol, onSubmit, o
   const [fetchingPrice, setFetchingPrice] = useState(false);
   const [livePrice, setLivePrice] = useState(null);
 
+  // Real-time price updates every 30 seconds
+  React.useEffect(() => {
+    if (!ticker || !livePrice) return;
+    
+    const interval = setInterval(async () => {
+      try {
+        const { data } = await base44.functions.invoke('fetchLivePrice', { 
+          ticker: ticker.trim(),
+          type 
+        });
+        setLivePrice(data.price);
+        
+        // Update current value based on quantity
+        if (quantity && !isNaN(parseFloat(quantity)) && parseFloat(quantity) > 0) {
+          const newValue = data.price * parseFloat(quantity);
+          setCurrentValue(newValue.toFixed(2));
+        }
+      } catch (error) {
+        // Silent fail on background updates
+      }
+    }, 30000);
+
+    return () => clearInterval(interval);
+  }, [ticker, type, quantity, livePrice]);
+
   const fetchLivePrice = async () => {
     if (!ticker || !ticker.trim()) {
       toast.error('Enter a ticker symbol first');
