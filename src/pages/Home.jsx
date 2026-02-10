@@ -18,6 +18,9 @@ import TamaiLogo from '../components/common/TamaiLogo';
 import BudgetOverviewWidget from '../components/finance/BudgetOverviewWidget';
 import TutorialOverlay from '../components/onboarding/TutorialOverlay';
 import CoachingDashboard from '../components/health/CoachingDashboard';
+import ADHDQuickLog from '../components/adhd/ADHDQuickLog';
+import ADHDTaskView from '../components/adhd/ADHDTaskView';
+import ADHDFocusBooster from '../components/adhd/ADHDFocusBooster';
 
 export default function Home() {
     const [showForm, setShowForm] = useState(false);
@@ -25,6 +28,8 @@ export default function Home() {
     const [activeTab, setActiveTab] = useState('today');
     const [showChat, setShowChat] = useState(false);
     const [showTutorial, setShowTutorial] = useState(false);
+    const [showFocusBooster, setShowFocusBooster] = useState(false);
+    const [boosterTrigger, setBoosterTrigger] = useState(null);
     const queryClient = useQueryClient();
 
   const { data: tasks = [], isLoading } = useQuery({
@@ -95,6 +100,25 @@ export default function Home() {
     }
   });
 
+  // Check for ADHD profile and recent logs
+  const { data: adhdProfile } = useQuery({
+    queryKey: ['adhd-profile'],
+    queryFn: async () => {
+      const profiles = await base44.asServiceRole.entities.ADHDProfile.list();
+      const user_ = await base44.auth.me();
+      return profiles.find(p => p.created_by === user_.email);
+    }
+  });
+
+  const { data: todayADHDLog } = useQuery({
+    queryKey: ['today-adhd-log'],
+    queryFn: async () => {
+      const logs = await base44.entities.ADHDLog.filter({ date: todayStr });
+      return logs[0] || null;
+    },
+    enabled: !!adhdProfile?.has_adhd
+  });
+
   // Show tutorial on first login
   useEffect(() => {
     if (user && !user.tutorial_completed) {
@@ -125,6 +149,15 @@ export default function Home() {
   return (
         <div className="min-h-screen bg-slate-50">
           {showTutorial && <TutorialOverlay onComplete={handleTutorialComplete} />}
+          {showFocusBooster && boosterTrigger && (
+            <div className="fixed inset-0 bg-black/30 z-40 flex items-center justify-center p-4">
+              <ADHDFocusBooster
+                energyLevel={boosterTrigger.energy_level}
+                symptomSeverity={boosterTrigger.symptom_severity}
+                onClose={() => setShowFocusBooster(false)}
+              />
+            </div>
+          )}
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 lg:py-10">
         {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
@@ -261,6 +294,26 @@ export default function Home() {
                   <div className="flex items-center justify-center py-12">
                     <div className="h-8 w-8 border-2 border-indigo-600 border-t-transparent rounded-full animate-spin" />
                   </div>
+                ) : adhdProfile?.has_adhd ? (
+                  <div className="space-y-3">
+                    {filteredTasks.length > 0 ? (
+                      filteredTasks.map((task) => (
+                        <ADHDTaskView
+                          key={task.id}
+                          task={task}
+                          onToggle={handleToggle}
+                          onEdit={handleEdit}
+                        />
+                      ))
+                    ) : (
+                      <div className="text-center py-8 text-slate-500">
+                        {activeTab === 'today' ? "No tasks for today" :
+                        activeTab === 'upcoming' ? "No upcoming tasks" :
+                        activeTab === 'completed' ? "No completed tasks yet" :
+                        "No tasks yet"}
+                      </div>
+                    )}
+                  </div>
                 ) : (
                   <TaskList
                     tasks={filteredTasks}
@@ -301,7 +354,32 @@ export default function Home() {
             )}
           </AnimatePresence>
         </div>
+      {/* ADHD Quick Log Widget */}
+      {adhdProfile?.has_adhd && <ADHDQuickLog />}
+
+      {/* Show Focus Booster if energy/symptoms are concerning */}
+      {adhdProfile?.has_adhd && todayADHDLog && !showFocusBooster && (
+        todayADHDLog.energy_level <= 3 || todayADHDLog.symptom_severity >= 8
+      ) && (
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="fixed bottom-28 lg:bottom-6 right-4 lg:right-72 z-40 max-w-sm"
+        >
+          <button
+            onClick={() => {
+              setBoosterTrigger({
+                energy_level: todayADHDLog.energy_level,
+                symptom_severity: todayADHDLog.symptom_severity
+              });
+              setShowFocusBooster(true);
+            }}
+            className="w-full bg-gradient-to-r from-rose-500 to-red-500 text-white px-4 py-3 rounded-full shadow-lg hover:shadow-xl transition-all font-medium text-sm"
+          >
+            🆘 Need Help? Try a Break
+          </button>
+        </motion.div>
+      )}
       </div>
-    </div>
-  );
-}
+      );
+      }
