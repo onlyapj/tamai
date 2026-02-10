@@ -20,6 +20,24 @@ const investmentTypes = [
   { value: 'other', label: 'Other' }
 ];
 
+const cryptoOptions = [
+  { symbol: 'BTC', name: 'Bitcoin' },
+  { symbol: 'ETH', name: 'Ethereum' },
+  { symbol: 'USDT', name: 'Tether' },
+  { symbol: 'BNB', name: 'Binance Coin' },
+  { symbol: 'SOL', name: 'Solana' },
+  { symbol: 'XRP', name: 'Ripple' },
+  { symbol: 'USDC', name: 'USD Coin' },
+  { symbol: 'ADA', name: 'Cardano' },
+  { symbol: 'DOGE', name: 'Dogecoin' },
+  { symbol: 'TRX', name: 'TRON' },
+  { symbol: 'AVAX', name: 'Avalanche' },
+  { symbol: 'SHIB', name: 'Shiba Inu' },
+  { symbol: 'DOT', name: 'Polkadot' },
+  { symbol: 'LINK', name: 'Chainlink' },
+  { symbol: 'MATIC', name: 'Polygon' }
+];
+
 export default function InvestmentForm({ investment, currencySymbol, onSubmit, onCancel, isLoading }) {
   const [name, setName] = useState(investment?.name || '');
   const [type, setType] = useState(investment?.type || 'stock');
@@ -70,6 +88,17 @@ export default function InvestmentForm({ investment, currencySymbol, onSubmit, o
     if (livePrice && value && parseFloat(value) > 0) {
       const calculatedValue = livePrice * parseFloat(value);
       setCurrentValue(calculatedValue.toFixed(2));
+    }
+  };
+
+  // Auto-calculate quantity when cost basis changes and live price is available
+  const handleCostBasisChange = (value) => {
+    setCostBasis(value);
+    if (livePrice && value && parseFloat(value) > 0) {
+      const calculatedQuantity = parseFloat(value) / livePrice;
+      setQuantity(calculatedQuantity.toFixed(8));
+      // Also update current value
+      setCurrentValue(value);
     }
   };
 
@@ -143,41 +172,104 @@ export default function InvestmentForm({ investment, currencySymbol, onSubmit, o
 
           {/* Ticker */}
           <div>
-            <Label className="text-xs text-slate-500">Ticker/Symbol</Label>
-            <div className="flex gap-2 mt-1">
-              <Input
-                value={ticker}
-                onChange={(e) => setTicker(e.target.value.toUpperCase())}
-                placeholder="e.g., AAPL, BTC, ETH"
-                className="flex-1"
-              />
-              <Button
-                type="button"
-                onClick={fetchLivePrice}
-                disabled={fetchingPrice || !ticker}
-                variant="outline"
-                size="sm"
-                className="whitespace-nowrap"
-              >
-                {fetchingPrice ? (
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                ) : (
-                  <>
-                    <TrendingUp className="h-4 w-4 mr-1" />
-                    Live Price
-                  </>
+            <Label className="text-xs text-slate-500">
+              {type === 'crypto' ? 'Cryptocurrency' : 'Ticker/Symbol'}
+            </Label>
+            {type === 'crypto' ? (
+              <div className="space-y-2">
+                <Select value={ticker} onValueChange={(value) => {
+                  setTicker(value);
+                  setLivePrice(null);
+                }}>
+                  <SelectTrigger className="mt-1">
+                    <SelectValue placeholder="Select cryptocurrency" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {cryptoOptions.map(crypto => (
+                      <SelectItem key={crypto.symbol} value={crypto.symbol}>
+                        {crypto.symbol} - {crypto.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                {ticker && (
+                  <Button
+                    type="button"
+                    onClick={fetchLivePrice}
+                    disabled={fetchingPrice}
+                    variant="outline"
+                    size="sm"
+                    className="w-full"
+                  >
+                    {fetchingPrice ? (
+                      <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                    ) : (
+                      <TrendingUp className="h-4 w-4 mr-2" />
+                    )}
+                    Get Live Price
+                  </Button>
                 )}
-              </Button>
-            </div>
-            {livePrice && (
+                {livePrice && (
+                  <p className="text-xs text-emerald-600 font-medium">
+                    Current: {currencySymbol}{livePrice.toLocaleString()}
+                  </p>
+                )}
+              </div>
+            ) : (
+              <div className="flex gap-2 mt-1">
+                <Input
+                  value={ticker}
+                  onChange={(e) => setTicker(e.target.value.toUpperCase())}
+                  placeholder="e.g., AAPL, SPY"
+                  className="flex-1"
+                />
+                <Button
+                  type="button"
+                  onClick={fetchLivePrice}
+                  disabled={fetchingPrice || !ticker}
+                  variant="outline"
+                  size="sm"
+                  className="whitespace-nowrap"
+                >
+                  {fetchingPrice ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <>
+                      <TrendingUp className="h-4 w-4 mr-1" />
+                      Live Price
+                    </>
+                  )}
+                </Button>
+              </div>
+            )}
+            {type !== 'crypto' && livePrice && (
               <p className="text-xs text-emerald-600 mt-1 font-medium">
                 Current: {currencySymbol}{livePrice.toLocaleString()}
               </p>
             )}
           </div>
 
-          {/* Quantity & Cost Basis */}
+          {/* Cost Basis & Quantity */}
           <div className="grid grid-cols-2 gap-3">
+            <div>
+              <Label className="text-xs text-slate-500">Cost Basis *</Label>
+              <div className="relative mt-1">
+                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm">
+                  {currencySymbol}
+                </span>
+                <Input
+                  type="number"
+                  value={costBasis}
+                  onChange={(e) => handleCostBasisChange(e.target.value)}
+                  placeholder="0.00"
+                  step="0.01"
+                  min="0"
+                  className="pl-7"
+                  required
+                />
+              </div>
+              <p className="text-xs text-slate-500 mt-1">Total amount paid</p>
+            </div>
             <div>
               <Label className="text-xs text-slate-500">Quantity *</Label>
               <Input
@@ -190,24 +282,11 @@ export default function InvestmentForm({ investment, currencySymbol, onSubmit, o
                 className="mt-1"
                 required
               />
-            </div>
-            <div>
-              <Label className="text-xs text-slate-500">Cost Basis *</Label>
-              <div className="relative mt-1">
-                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm">
-                  {currencySymbol}
-                </span>
-                <Input
-                  type="number"
-                  value={costBasis}
-                  onChange={(e) => setCostBasis(e.target.value)}
-                  placeholder="0.00"
-                  step="0.01"
-                  min="0"
-                  className="pl-7"
-                  required
-                />
-              </div>
+              {livePrice && costBasis && (
+                <p className="text-xs text-emerald-600 mt-1">
+                  Auto-calculated
+                </p>
+              )}
             </div>
           </div>
 
