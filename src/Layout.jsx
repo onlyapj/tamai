@@ -222,7 +222,7 @@ export default function Layout({ children, currentPageName }) {
       )}
 
       {/* Main Content */}
-      <main className={cn("pb-20", user && "lg:ml-20 lg:pb-0")}>
+      <main className={cn("pb-20", user && "lg:ml-20 lg:mt-20 lg:pb-0")}>
         {children}
       </main>
 
