@@ -13,6 +13,8 @@ import InvestmentCard from '@/components/investments/InvestmentCard.jsx';
 import PortfolioChart from '@/components/investments/PortfolioChart.jsx';
 import AutoContributionSetup from '@/components/investments/AutoContributionSetup.jsx';
 import RebalancingSettings from '@/components/investments/RebalancingSettings.jsx';
+import TransactionForm from '@/components/investments/TransactionForm.jsx';
+import TransactionHistory from '@/components/investments/TransactionHistory.jsx';
 
 export default function Investments() {
   const [showForm, setShowForm] = useState(false);
