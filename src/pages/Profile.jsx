@@ -340,10 +340,10 @@ export default function Profile() {
 
               {/* Password */}
               <div>
-                <label className="text-sm font-medium text-slate-700 mb-2 flex items-center gap-2">
-                  <Lock className="h-4 w-4" />
-                  Password
-                </label>
+                <label className={cn("text-sm font-medium mb-2 flex items-center gap-2", user?.theme === 'dark' ? 'text-slate-300' : 'text-slate-700')}>
+                    <Lock className="h-4 w-4" />
+                    Password
+                  </label>
                 {isChangingPassword ? (
                   <div className="space-y-3">
                     <Input
