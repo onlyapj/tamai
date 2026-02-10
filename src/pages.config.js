@@ -64,6 +64,7 @@ import TrueLayerCallback from './pages/TrueLayerCallback';
 import UserManagement from './pages/UserManagement';
 import Wearable from './pages/Wearable';
 import BusinessHome from './pages/BusinessHome';
+import SharedProjects from './pages/SharedProjects';
 import __Layout from './Layout.jsx';
 
 
@@ -85,6 +86,7 @@ export const PAGES = {
     "UserManagement": UserManagement,
     "Wearable": Wearable,
     "BusinessHome": BusinessHome,
+    "SharedProjects": SharedProjects,
 }
 
 export const pagesConfig = {
