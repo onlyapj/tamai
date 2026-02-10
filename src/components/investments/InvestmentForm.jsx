@@ -5,8 +5,10 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { X } from 'lucide-react';
+import { X, TrendingUp, Loader2 } from 'lucide-react';
 import { format } from 'date-fns';
+import { base44 } from '@/api/base44Client';
+import { toast } from 'sonner';
 
 const investmentTypes = [
   { value: 'stock', label: 'Stock' },
@@ -29,6 +31,47 @@ export default function InvestmentForm({ investment, currencySymbol, onSubmit, o
     investment?.purchase_date || format(new Date(), 'yyyy-MM-dd')
   );
   const [notes, setNotes] = useState(investment?.notes || '');
+  const [fetchingPrice, setFetchingPrice] = useState(false);
+  const [livePrice, setLivePrice] = useState(null);
+
+  const fetchLivePrice = async () => {
+    if (!ticker || !ticker.trim()) {
+      toast.error('Enter a ticker symbol first');
+      return;
+    }
+
+    setFetchingPrice(true);
+    try {
+      const { data } = await base44.functions.invoke('fetchLivePrice', { 
+        ticker: ticker.trim(),
+        type 
+      });
+      
+      setLivePrice(data.price);
+      
+      // Auto-calculate current value if quantity is set
+      if (quantity && parseFloat(quantity) > 0) {
+        const calculatedValue = data.price * parseFloat(quantity);
+        setCurrentValue(calculatedValue.toFixed(2));
+      }
+      
+      toast.success(`Live price: ${currencySymbol}${data.price.toLocaleString()}`);
+    } catch (error) {
+      toast.error(error.response?.data?.error || 'Failed to fetch live price');
+      setLivePrice(null);
+    } finally {
+      setFetchingPrice(false);
+    }
+  };
+
+  // Auto-update current value when quantity or live price changes
+  const handleQuantityChange = (value) => {
+    setQuantity(value);
+    if (livePrice && value && parseFloat(value) > 0) {
+      const calculatedValue = livePrice * parseFloat(value);
+      setCurrentValue(calculatedValue.toFixed(2));
+    }
+  };
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -101,12 +144,36 @@ export default function InvestmentForm({ investment, currencySymbol, onSubmit, o
           {/* Ticker */}
           <div>
             <Label className="text-xs text-slate-500">Ticker/Symbol</Label>
-            <Input
-              value={ticker}
-              onChange={(e) => setTicker(e.target.value.toUpperCase())}
-              placeholder="e.g., AAPL, BTC"
-              className="mt-1"
-            />
+            <div className="flex gap-2 mt-1">
+              <Input
+                value={ticker}
+                onChange={(e) => setTicker(e.target.value.toUpperCase())}
+                placeholder="e.g., AAPL, BTC, ETH"
+                className="flex-1"
+              />
+              <Button
+                type="button"
+                onClick={fetchLivePrice}
+                disabled={fetchingPrice || !ticker}
+                variant="outline"
+                size="sm"
+                className="whitespace-nowrap"
+              >
+                {fetchingPrice ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <>
+                    <TrendingUp className="h-4 w-4 mr-1" />
+                    Live Price
+                  </>
+                )}
+              </Button>
+            </div>
+            {livePrice && (
+              <p className="text-xs text-emerald-600 mt-1 font-medium">
+                Current: {currencySymbol}{livePrice.toLocaleString()}
+              </p>
+            )}
           </div>
 
           {/* Quantity & Cost Basis */}
@@ -116,7 +183,7 @@ export default function InvestmentForm({ investment, currencySymbol, onSubmit, o
               <Input
                 type="number"
                 value={quantity}
-                onChange={(e) => setQuantity(e.target.value)}
+                onChange={(e) => handleQuantityChange(e.target.value)}
                 placeholder="0"
                 step="0.00000001"
                 min="0"
@@ -162,6 +229,11 @@ export default function InvestmentForm({ investment, currencySymbol, onSubmit, o
                 required
               />
             </div>
+            {livePrice && quantity && (
+              <p className="text-xs text-slate-500 mt-1">
+                Auto-calculated from live price × quantity
+              </p>
+            )}
           </div>
 
           {/* Purchase Date */}
