@@ -17,7 +17,7 @@ export default function BankConnection() {
   const connectBank = useMutation({
     mutationFn: async () => {
       const { data } = await base44.functions.invoke('connectTrueLayer', { action: 'init' });
-      window.location.href = data.authUrl;
+      window.open(data.authUrl, '_blank');
     }
   });
 
