@@ -119,12 +119,10 @@ export default function Landing() {
           </p>
 
           <div className="flex flex-col sm:flex-row gap-4 justify-center mb-12">
-            <Link to={createPageUrl('Home')}>
-              <Button size="lg" className="bg-indigo-600 hover:bg-indigo-700 w-full sm:w-auto">
-                Start Free Trial
-                <ArrowRight className="ml-2 h-4 w-4" />
-              </Button>
-            </Link>
+            <Button size="lg" className="bg-indigo-600 hover:bg-indigo-700 w-full sm:w-auto" onClick={() => base44.auth.redirectToLogin()}>
+              Start Free Trial
+              <ArrowRight className="ml-2 h-4 w-4" />
+            </Button>
             <Button size="lg" variant="outline" className="w-full sm:w-auto">
               Watch Demo
             </Button>
