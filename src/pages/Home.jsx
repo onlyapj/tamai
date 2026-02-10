@@ -19,11 +19,12 @@ import BudgetOverviewWidget from '../components/finance/BudgetOverviewWidget';
 import TutorialOverlay from '../components/onboarding/TutorialOverlay';
 
 export default function Home() {
-  const [showForm, setShowForm] = useState(false);
-  const [editingTask, setEditingTask] = useState(null);
-  const [activeTab, setActiveTab] = useState('today');
-  const [showChat, setShowChat] = useState(false);
-  const queryClient = useQueryClient();
+    const [showForm, setShowForm] = useState(false);
+    const [editingTask, setEditingTask] = useState(null);
+    const [activeTab, setActiveTab] = useState('today');
+    const [showChat, setShowChat] = useState(false);
+    const [showTutorial, setShowTutorial] = useState(false);
+    const queryClient = useQueryClient();
 
   const { data: tasks = [], isLoading } = useQuery({
     queryKey: ['tasks'],
