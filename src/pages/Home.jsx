@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { createPageUrl } from '../utils';
 import { motion, AnimatePresence } from 'framer-motion';
 import { format } from 'date-fns';
@@ -24,7 +24,6 @@ import ADHDTaskView from '../components/adhd/ADHDTaskView';
 import ADHDFocusBooster from '../components/adhd/ADHDFocusBooster';
 
 export default function Home() {
-    const navigate = useNavigate();
     const [showForm, setShowForm] = useState(false);
     const [editingTask, setEditingTask] = useState(null);
     const [activeTab, setActiveTab] = useState('today');
@@ -38,33 +37,13 @@ export default function Home() {
     const [sectionOrder, setSectionOrder] = useState(defaultSectionOrder);
     const [isRearrangeMode, setIsRearrangeMode] = useState(false);
 
-  const { data: user } = useQuery({
-    queryKey: ['current-user'],
-    queryFn: () => base44.auth.me(),
-    retry: false
-  });
-
   const { data: tasks = [], isLoading } = useQuery({
-    queryKey: ['tasks', user?.active_organization_id, user?.current_mode],
-    queryFn: async () => {
-      const filter = user?.current_mode === 'business' && user?.active_organization_id
-        ? { organization_id: user.active_organization_id }
-        : { organization_id: null };
-      return base44.entities.Task.filter(filter, '-created_date');
-    },
-    enabled: !!user,
+    queryKey: ['tasks'],
+    queryFn: () => base44.entities.Task.list('-created_date'),
   });
 
   const createMutation = useMutation({
-    mutationFn: (data) => {
-      const taskData = { ...data };
-      if (user?.current_mode === 'business' && user?.active_organization_id) {
-        taskData.organization_id = user.active_organization_id;
-      } else {
-        taskData.organization_id = null;
-      }
-      return base44.entities.Task.create(taskData);
-    },
+    mutationFn: (data) => base44.entities.Task.create(data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['tasks'] });
       setShowForm(false);
@@ -113,6 +92,11 @@ export default function Home() {
     const reflectionType = currentHour < 12 ? 'morning' : 'evening';
     const currentMonth = format(new Date(), 'yyyy-MM');
   
+  const { data: user } = useQuery({
+    queryKey: ['current-user'],
+    queryFn: () => base44.auth.me(),
+  });
+
   const { data: todayMood } = useQuery({
     queryKey: ['todayMood'],
     queryFn: async () => {
@@ -139,13 +123,6 @@ export default function Home() {
     },
     enabled: !!adhdProfile?.has_adhd
   });
-
-  // Redirect to BusinessDashboard if in business mode
-  useEffect(() => {
-    if (user && user.current_mode === 'business') {
-      navigate(createPageUrl('BusinessDashboard'));
-    }
-  }, [user?.current_mode, user?.id, navigate]);
 
   // Show tutorial on first login
   useEffect(() => {
@@ -176,29 +153,16 @@ export default function Home() {
   };
 
   const { data: transactions = [] } = useQuery({
-    queryKey: ['transactions-month', user?.active_organization_id, user?.current_mode],
+    queryKey: ['transactions-month'],
     queryFn: async () => {
-      const filter = user?.current_mode === 'business' && user?.active_organization_id
-        ? { organization_id: user.active_organization_id }
-        : { organization_id: null };
-      const all = await base44.entities.Transaction.filter(filter, '-date', 100);
+      const all = await base44.entities.Transaction.list('-date', 100);
       return all.filter(t => t.date?.startsWith(currentMonth));
-    },
-    enabled: !!user,
+    }
   });
 
   const { data: budgets = [] } = useQuery({
-    queryKey: ['budgets-month', user?.active_organization_id, user?.current_mode],
-    queryFn: () => {
-      const filter = { month: currentMonth };
-      if (user?.current_mode === 'business' && user?.active_organization_id) {
-        filter.organization_id = user.active_organization_id;
-      } else {
-        filter.organization_id = null;
-      }
-      return base44.entities.Budget.filter(filter);
-    },
-    enabled: !!user,
+    queryKey: ['budgets-month'],
+    queryFn: () => base44.entities.Budget.filter({ month: currentMonth })
   });
   
   const filteredTasks = {

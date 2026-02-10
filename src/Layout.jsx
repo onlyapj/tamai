@@ -44,10 +44,10 @@ export default function Layout({ children, currentPageName }) {
       retry: false
     });
 
-    // Update nav items based on current mode
+    // Update nav items based on account type
     useEffect(() => {
       if (user) {
-        const baseItems = user.current_mode === 'business' ? businessNavItems : individualNavItems;
+        const baseItems = user.account_type === 'business' ? businessNavItems : individualNavItems;
 
         if (user?.nav_order) {
           const ordered = user.nav_order
@@ -61,7 +61,7 @@ export default function Layout({ children, currentPageName }) {
           setNavItems(baseItems);
         }
       }
-    }, [user?.current_mode, user?.nav_order]);
+    }, [user?.account_type, user?.nav_order]);
 
     // Redirect based on auth status
     useEffect(() => {
@@ -103,42 +103,14 @@ export default function Layout({ children, currentPageName }) {
 
   return (
     <div className="min-h-screen bg-slate-50">
-      {/* Header with Mode Toggle - Desktop */}
-            <div className="hidden lg:block fixed top-0 right-0 z-50 bg-white border-b border-slate-200 w-full">
-              <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
-                {user && (
-                  <div className="flex items-center gap-4">
-                    <div className="flex items-center gap-2 bg-slate-100 rounded-lg p-1">
-                      <button
-                        onClick={() => base44.auth.updateMe({ current_mode: 'personal' })}
-                        className={`px-4 py-2 rounded-md transition-colors ${
-                          user?.current_mode === 'personal'
-                            ? 'bg-white text-indigo-600 font-medium shadow-sm'
-                            : 'text-slate-600 hover:text-slate-900'
-                        }`}
-                      >
-                        Personal
-                      </button>
-                      <button
-                        onClick={() => base44.auth.updateMe({ current_mode: 'business' })}
-                        className={`px-4 py-2 rounded-md transition-colors ${
-                          user?.current_mode === 'business'
-                            ? 'bg-white text-indigo-600 font-medium shadow-sm'
-                            : 'text-slate-600 hover:text-slate-900'
-                        }`}
-                      >
-                        Business
-                      </button>
-                    </div>
-                  </div>
-                )}
-                <NotificationBell />
-              </div>
-            </div>
+      {/* Notification Bell - Desktop */}
+      <div className="hidden lg:block fixed top-6 right-6 z-50">
+        <NotificationBell />
+      </div>
 
       {/* Desktop Sidebar */}
       {user && (
-        <nav className="hidden lg:fixed lg:left-0 lg:top-20 lg:h-[calc(100vh-80px)] lg:w-20 lg:bg-white lg:border-r lg:border-slate-200 lg:flex lg:flex-col lg:items-center lg:py-8 lg:gap-4 z-40">
+        <nav className="hidden lg:fixed lg:left-0 lg:top-0 lg:h-screen lg:w-20 lg:bg-white lg:border-r lg:border-slate-200 lg:flex lg:flex-col lg:items-center lg:py-8 lg:gap-4 z-50">
           <DragDropContext onDragEnd={handleDragEnd}>
             <Droppable droppableId="nav-desktop" direction="vertical">
               {(provided) => (
@@ -222,7 +194,7 @@ export default function Layout({ children, currentPageName }) {
       )}
 
       {/* Main Content */}
-      <main className={cn("pb-20", user && "lg:ml-20 lg:mt-20 lg:pb-0")}>
+      <main className={cn("pb-20", user && "lg:ml-20 lg:pb-0")}>
         {children}
       </main>
 

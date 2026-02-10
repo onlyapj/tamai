@@ -4,7 +4,6 @@ import { base44 } from '@/api/base44Client';
 import { createPageUrl } from '@/utils';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { User, Mail, LogOut, Save, Lock, Key, Sun, Moon, DollarSign, Building2 } from 'lucide-react';
 import { toast } from 'sonner';
@@ -40,40 +39,6 @@ export default function Profile() {
     }
   });
 
-  const { data: organizations = [] } = useQuery({
-    queryKey: ['user-organizations', user?.email],
-    queryFn: () => base44.entities.Organization.filter({ owner_email: user?.email }),
-    enabled: !!user?.email && user?.account_type === 'business',
-  });
-
-  const selectOrganizationMutation = useMutation({
-    mutationFn: (orgId) => base44.auth.updateMe({ active_organization_id: orgId }),
-    onSuccess: () => {
-      queryClient.invalidateQueries(['current-user']);
-      toast.success('Organization selected');
-    }
-  });
-
-  const [newOrgName, setNewOrgName] = useState('');
-  const [newOrgDescription, setNewOrgDescription] = useState('');
-  const [showCreateOrgForm, setShowCreateOrgForm] = useState(false);
-
-  const createOrganizationMutation = useMutation({
-    mutationFn: (orgData) => base44.entities.Organization.create({
-      ...orgData,
-      owner_email: user.email,
-      member_count: 1
-    }),
-    onSuccess: (newOrg) => {
-      queryClient.invalidateQueries(['user-organizations']);
-      selectOrganizationMutation.mutate(newOrg.id);
-      setNewOrgName('');
-      setNewOrgDescription('');
-      setShowCreateOrgForm(false);
-      toast.success('Organization created and selected');
-    }
-  });
-
   const updateThemeMutation = useMutation({
     mutationFn: (theme) => base44.auth.updateMe({ theme }),
     onSuccess: (_, theme) => {
@@ -99,7 +64,6 @@ export default function Profile() {
     mutationFn: (accountType) => base44.auth.updateMe({ account_type: accountType }),
     onSuccess: (_, accountType) => {
       queryClient.invalidateQueries(['current-user']);
-      queryClient.invalidateQueries(['user-organizations']);
       toast.success(`Switched to ${accountType === 'business' ? 'business' : 'personal'} account`);
     }
   });
@@ -345,84 +309,6 @@ export default function Profile() {
                   </SelectContent>
                 </Select>
               </div>
-
-              {/* Business Organization Selection */}
-              {user?.account_type === 'business' && (
-                <div className="space-y-3">
-                  <label className="text-sm font-medium text-slate-700 block">
-                    Select Organization
-                  </label>
-                  <Select
-                    value={user?.active_organization_id || ''}
-                    onValueChange={(value) => selectOrganizationMutation.mutate(value)}
-                  >
-                    <SelectTrigger className="bg-slate-50">
-                      <SelectValue placeholder="Choose an organization" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {organizations.map((org) => (
-                        <SelectItem key={org.id} value={org.id}>
-                          {org.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <p className="text-xs text-slate-500">
-                    {organizations.length === 0 ? 'No organizations yet' : `You have ${organizations.length} organization(s)`}
-                  </p>
-
-                  {/* Create New Organization */}
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => setShowCreateOrgForm(!showCreateOrgForm)}
-                    className="w-full"
-                  >
-                    + New Organization
-                  </Button>
-
-                  {showCreateOrgForm && (
-                    <div className="bg-slate-50 rounded-lg p-4 space-y-3 border border-slate-200">
-                      <Input
-                        placeholder="Organization name"
-                        value={newOrgName}
-                        onChange={(e) => setNewOrgName(e.target.value)}
-                        className="bg-white"
-                      />
-                      <Textarea
-                        placeholder="Description (optional)"
-                        value={newOrgDescription}
-                        onChange={(e) => setNewOrgDescription(e.target.value)}
-                        className="bg-white min-h-20"
-                      />
-                      <div className="flex gap-2">
-                        <Button
-                          size="sm"
-                          onClick={() => {
-                            if (newOrgName.trim()) {
-                              createOrganizationMutation.mutate({ name: newOrgName, description: newOrgDescription });
-                            } else {
-                              toast.error('Organization name is required');
-                            }
-                          }}
-                          className="bg-indigo-600 hover:bg-indigo-700 flex-1"
-                          disabled={createOrganizationMutation.isPending}
-                        >
-                          Create
-                        </Button>
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={() => setShowCreateOrgForm(false)}
-                          className="flex-1"
-                        >
-                          Cancel
-                        </Button>
-                      </div>
-                    </div>
-                  )}
-                </div>
-              )}
 
               {/* Currency */}
               <div>
