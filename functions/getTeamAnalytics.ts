@@ -11,19 +11,24 @@ Deno.serve(async (req) => {
 
     const { team_id } = await req.json();
 
-    // Verify user is team member
+    // Get team info
+    const teams = await base44.asServiceRole.entities.Team.filter({ id: team_id });
+    const team = teams[0];
+
+    if (!team) {
+      return Response.json({ error: 'Team not found' }, { status: 404 });
+    }
+
+    // Verify user is team owner or member
+    const isOwner = team.owner_email === user.email;
     const teamMembers = await base44.entities.TeamMember.filter({
       team_id,
       user_email: user.email
     });
 
-    if (teamMembers.length === 0) {
-      return Response.json({ error: 'Not a team member' }, { status: 403 });
+    if (!isOwner && teamMembers.length === 0) {
+      return Response.json({ error: 'Not authorized' }, { status: 403 });
     }
-
-    // Get team info
-    const teams = await base44.asServiceRole.entities.Team.filter({ id: team_id });
-    const team = teams[0];
 
     // Get all team members
     const members = await base44.asServiceRole.entities.TeamMember.filter({
