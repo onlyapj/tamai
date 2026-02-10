@@ -30,10 +30,16 @@ export default function Layout({ children, currentPageName }) {
       retry: false
     });
 
-    // Redirect to Landing page if not authenticated and not on Landing page
+    // Redirect based on auth status
     useEffect(() => {
-      if (!isLoading && !user && currentPageName !== 'Landing') {
-        navigate(createPageUrl('Landing'));
+      if (!isLoading) {
+        if (!user && currentPageName !== 'Landing') {
+          // Not logged in, redirect to Landing
+          navigate(createPageUrl('Landing'));
+        } else if (user && currentPageName === 'Landing') {
+          // Logged in, redirect away from Landing to Home
+          navigate(createPageUrl('Home'));
+        }
       }
     }, [user, isLoading, currentPageName, navigate]);
 
