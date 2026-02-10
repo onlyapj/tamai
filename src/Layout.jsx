@@ -153,7 +153,7 @@ export default function Layout({ children, currentPageName }) {
 
       {/* Top Navigation - Mobile */}
       {user && (
-        <nav className="lg:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 z-50">
+        <nav className={cn("lg:hidden fixed bottom-0 left-0 right-0 border-t z-50 transition-colors duration-200", user?.theme === 'dark' ? 'bg-slate-900 border-slate-700' : 'bg-white border-slate-200')}>
           <DragDropContext onDragEnd={handleDragEnd}>
             <Droppable droppableId="nav" direction="horizontal">
               {(provided) => (
