@@ -131,9 +131,9 @@ export default function Layout({ children, currentPageName }) {
                           className={cn(
                             "w-14 h-14 flex items-center justify-center rounded-xl transition-all",
                             currentPageName === item.name
-                              ? "text-indigo-600 bg-indigo-50"
-                              : "text-slate-400 hover:text-slate-600 hover:bg-slate-50",
-                            snapshot.isDragging && "shadow-lg bg-white"
+                              ? "text-indigo-600 bg-indigo-50 dark:bg-indigo-950 dark:text-indigo-400"
+                              : user?.theme === 'dark' ? "text-slate-500 hover:text-slate-300 hover:bg-slate-800" : "text-slate-400 hover:text-slate-600 hover:bg-slate-50",
+                            snapshot.isDragging && user?.theme === 'dark' ? "shadow-lg bg-slate-800" : snapshot.isDragging && "shadow-lg bg-white"
                           )}
                           title={item.label}
                           style={provided.draggableProps.style}
