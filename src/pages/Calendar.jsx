@@ -245,31 +245,61 @@ export default function Calendar() {
           )}
         </AnimatePresence>
 
-        <div className="grid lg:grid-cols-3 gap-6">
-          {/* Calendar View */}
-          <div className="lg:col-span-2">
-            <CalendarView
-              tasks={tasks}
-              selectedDate={selectedDate}
-              onDateSelect={setSelectedDate}
-              currentMonth={currentMonth}
-            />
-          </div>
+        <AnimatePresence mode="wait">
+          {viewMode === 'month' ? (
+            <motion.div
+              key="month"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="grid lg:grid-cols-3 gap-6"
+            >
+              {/* Calendar View */}
+              <div className="lg:col-span-2">
+                <CalendarView
+                  tasks={tasks}
+                  selectedDate={selectedDate}
+                  onDateSelect={setSelectedDate}
+                  currentMonth={currentMonth}
+                />
+              </div>
 
-          {/* Selected Day Schedule */}
-          <div className="lg:col-span-1">
-            <DaySchedule
-              date={selectedDate}
-              tasks={selectedDateTasks}
-              onEdit={(task) => { setEditingTask(task); setShowEventForm(true); }}
-              onDelete={(task) => deleteMutation.mutate(task.id)}
-              onToggle={(task) => updateMutation.mutate({ 
-                id: task.id, 
-                data: { ...task, status: task.status === 'completed' ? 'pending' : 'completed' }
-              })}
-            />
-          </div>
-        </div>
+              {/* Selected Day Schedule */}
+              <div className="lg:col-span-1">
+                <DaySchedule
+                  date={selectedDate}
+                  tasks={selectedDateTasks}
+                  onEdit={(task) => { setEditingTask(task); setShowEventForm(true); }}
+                  onDelete={(task) => deleteMutation.mutate(task.id)}
+                  onToggle={(task) => updateMutation.mutate({ 
+                    id: task.id, 
+                    data: { ...task, status: task.status === 'completed' ? 'pending' : 'completed' }
+                  })}
+                />
+              </div>
+            </motion.div>
+          ) : (
+            <motion.div
+              key="day"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="w-full"
+            >
+              <DaySchedule
+                date={selectedDate}
+                tasks={selectedDateTasks}
+                onEdit={(task) => { setEditingTask(task); setShowEventForm(true); }}
+                onDelete={(task) => deleteMutation.mutate(task.id)}
+                onToggle={(task) => updateMutation.mutate({ 
+                  id: task.id, 
+                  data: { ...task, status: task.status === 'completed' ? 'pending' : 'completed' }
+                })}
+                fullScreen
+              />
+            </motion.div>
+          )}
+        </AnimatePresence>
 
         {/* Event Form Modal */}
         <AnimatePresence>
