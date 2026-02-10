@@ -85,6 +85,48 @@ export default function Layout({ children, currentPageName }) {
         <NotificationBell />
       </div>
 
+      {/* Desktop Sidebar */}
+      {user && (
+        <nav className="hidden lg:fixed lg:left-0 lg:top-0 lg:h-screen lg:w-20 lg:bg-white lg:border-r lg:border-slate-200 lg:flex lg:flex-col lg:items-center lg:py-8 lg:gap-4 z-50">
+          <DragDropContext onDragEnd={handleDragEnd}>
+            <Droppable droppableId="nav-desktop" direction="vertical">
+              {(provided) => (
+                <div
+                  ref={provided.innerRef}
+                  {...provided.droppableProps}
+                  className="flex flex-col gap-3 items-center"
+                >
+                  {navItems.map((item, index) => (
+                    <Draggable key={item.name} draggableId={item.name} index={index}>
+                      {(provided, snapshot) => (
+                        <Link
+                          ref={provided.innerRef}
+                          {...provided.draggableProps}
+                          {...provided.dragHandleProps}
+                          to={createPageUrl(item.name)}
+                          className={cn(
+                            "w-14 h-14 flex items-center justify-center rounded-xl transition-all",
+                            currentPageName === item.name
+                              ? "text-indigo-600 bg-indigo-50"
+                              : "text-slate-400 hover:text-slate-600 hover:bg-slate-50",
+                            snapshot.isDragging && "shadow-lg bg-white"
+                          )}
+                          title={item.label}
+                          style={provided.draggableProps.style}
+                        >
+                          <item.icon className="h-6 w-6" />
+                        </Link>
+                      )}
+                    </Draggable>
+                  ))}
+                  {provided.placeholder}
+                </div>
+              )}
+            </Droppable>
+          </DragDropContext>
+        </nav>
+      )}
+
       {/* Top Navigation - Mobile */}
       <nav className="lg:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 z-50">
         <DragDropContext onDragEnd={handleDragEnd}>
