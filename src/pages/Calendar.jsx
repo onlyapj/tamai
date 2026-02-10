@@ -292,6 +292,25 @@ export default function Calendar() {
                 />
               </div>
             </motion.div>
+          ) : viewMode === 'week' ? (
+            <motion.div
+              key="week"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="w-full overflow-x-auto"
+            >
+              <WeeklyView
+                date={selectedDate}
+                tasks={tasks}
+                onEdit={(task) => { setEditingTask(task); setShowEventForm(true); }}
+                onDelete={(task) => deleteMutation.mutate(task.id)}
+                onToggle={(task) => updateMutation.mutate({ 
+                  id: task.id, 
+                  data: { ...task, status: task.status === 'completed' ? 'pending' : 'completed' }
+                })}
+              />
+            </motion.div>
           ) : (
             <motion.div
               key="day"
