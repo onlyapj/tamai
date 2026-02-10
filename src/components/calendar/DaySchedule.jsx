@@ -5,6 +5,19 @@ import { Button } from "@/components/ui/button";
 import { Calendar, Clock, Bell, Trash2, Edit2, CheckCircle2, Circle } from 'lucide-react';
 import { cn } from "@/lib/utils";
 
+const priorityColors = {
+  high: 'border-l-4 border-red-500 bg-red-50',
+  medium: 'border-l-4 border-amber-500 bg-amber-50',
+  low: 'border-l-4 border-blue-500 bg-blue-50'
+};
+
+const categoryColors = {
+  'Work': 'bg-indigo-100 text-indigo-800',
+  'Personal': 'bg-purple-100 text-purple-800',
+  'Health': 'bg-emerald-100 text-emerald-800',
+  'General': 'bg-slate-100 text-slate-800'
+};
+
 export default function DaySchedule({ date, tasks, onEdit, onDelete, onToggle, fullScreen }) {
   const sortedTasks = [...tasks].sort((a, b) => {
     if (!a.scheduled_time) return 1;
