@@ -60,6 +60,14 @@ export default function Profile() {
     }
   });
 
+  const updateAccountTypeMutation = useMutation({
+    mutationFn: (accountType) => base44.auth.updateMe({ account_type: accountType }),
+    onSuccess: (_, accountType) => {
+      queryClient.invalidateQueries(['current-user']);
+      toast.success(`Switched to ${accountType === 'business' ? 'business' : 'personal'} account`);
+    }
+  });
+
   const updateNameMutation = useMutation({
     mutationFn: (newName) => base44.auth.updateMe({ full_name: newName }),
     onSuccess: () => {
