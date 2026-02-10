@@ -1,5 +1,6 @@
 import React from 'react';
 import { base44 } from '@/api/base44Client';
+import { createPageUrl } from '@/utils';
 import { Button } from '@/components/ui/button';
 import { 
   ArrowRight, Check, Zap, Brain, Calendar, Sparkles, 
