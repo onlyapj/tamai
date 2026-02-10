@@ -230,7 +230,7 @@ export default function Calendar() {
               onClick={() => setViewMode('week')}
               title="Week view"
             >
-              <Calendar className="h-4 w-4" />
+              <CalendarIcon className="h-4 w-4" />
             </Button>
             <Button
               variant={viewMode === 'day' ? 'default' : 'outline'}
