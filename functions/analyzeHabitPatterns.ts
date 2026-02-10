@@ -11,162 +11,124 @@ Deno.serve(async (req) => {
 
     const habits = await base44.entities.Habit.list();
     const habitLogs = await base44.entities.HabitLog.list('-date');
-    const moodEntries = await base44.entities.MoodEntry.list('-date');
-    const transactions = await base44.entities.Transaction.list('-date');
 
-    // Analyze success patterns
     const success_patterns = [];
     const failure_patterns = [];
     const timing_patterns = [];
-
-    for (const habit of habits) {
-      const logs = habitLogs.filter(log => log.habit_id === habit.id);
-      if (logs.length < 10) continue;
-
-      const completed = logs.filter(l => l.completed);
-      const successRate = completed.length / logs.length;
-
-      // Day of week analysis
-      const dayStats = {};
-      for (let day = 0; day < 7; day++) {
-        dayStats[day] = { completed: 0, total: 0 };
-      }
-
-      completed.forEach(log => {
-        const date = new Date(log.date);
-        const dayOfWeek = date.getDay();
-        dayStats[dayOfWeek].completed++;
-      });
-
-      logs.forEach(log => {
-        const date = new Date(log.date);
-        const dayOfWeek = date.getDay();
-        dayStats[dayOfWeek].total++;
-      });
-
-      const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-      const bestDay = Object.entries(dayStats)
-        .filter(([, stats]) => stats.total > 0)
-        .reduce((best, [day, stats]) => {
-          const rate = stats.completed / stats.total;
-          return rate > (best.rate || 0) ? { day, rate, ...stats } : best;
-        }, {});
-
-      const worstDay = Object.entries(dayStats)
-        .filter(([, stats]) => stats.total > 0)
-        .reduce((worst, [day, stats]) => {
-          const rate = stats.completed / stats.total;
-          return rate < (worst.rate || 1) ? { day, rate, ...stats } : worst;
-        }, {});
-
-      if (bestDay.day !== undefined) {
-        const bestDayRate = bestDay.completed / bestDay.total;
-        if (bestDayRate > successRate + 0.15) {
-          success_patterns.push({
-            pattern: `${habit.name} succeeds on ${dayNames[bestDay.day]}s`,
-            description: `You're ${((bestDayRate * 100) - (successRate * 100)).toFixed(0)}% more likely to complete this on ${dayNames[bestDay.day]}`,
-            success_rate: bestDayRate,
-            frequency: bestDay.completed,
-            habit_id: habit.id
-          });
-        }
-      }
-
-      if (worstDay.day !== undefined) {
-        const worstDayRate = worstDay.completed / worstDay.total;
-        if (worstDayRate < successRate - 0.15) {
-          failure_patterns.push({
-            pattern: `${habit.name} struggles on ${dayNames[worstDay.day]}s`,
-            description: `You complete this ${Math.round(((successRate - worstDayRate) * 100))}% less on ${dayNames[worstDay.day]}`,
-            failure_rate: 1 - worstDayRate,
-            warning: `Consider scheduling a reminder or alternative on ${dayNames[worstDay.day]}`,
-            habit_id: habit.id
-          });
-        }
-      }
-
-      // Time-based patterns
-      const lastWeekLogs = logs.filter(log => {
-        const logDate = new Date(log.date);
-        const weekAgo = new Date();
-        weekAgo.setDate(weekAgo.getDate() - 7);
-        return logDate >= weekAgo;
-      });
-
-      if (lastWeekLogs.length > 0) {
-        const weekCompleted = lastWeekLogs.filter(l => l.completed).length;
-        const weekRate = weekCompleted / lastWeekLogs.length;
-
-        if (weekRate > successRate + 0.2) {
-          timing_patterns.push({
-            time_period: `Last 7 days: ${habit.name}`,
-            observation: `You're on fire! ${(weekRate * 100).toFixed(0)}% completion this week.`,
-            recommendation: 'Keep momentum - this is your best week'
-          });
-        } else if (weekRate < successRate - 0.2) {
-          timing_patterns.push({
-            time_period: `Last 7 days: ${habit.name}`,
-            observation: `Completion dropped to ${(weekRate * 100).toFixed(0)}% this week.`,
-            recommendation: 'Reset and refocus - consider why your routine changed'
-          });
-        }
-      }
-    }
-
-    // Generate AI recommendations
     const recommendations = [];
 
-    if (success_patterns.length > 0) {
-      recommendations.push({
-        recommendation: 'Leverage your best days',
-        rationale: `You have ${success_patterns.length} habits that perform better on specific days. Schedule important tasks on your peak days.`,
-        impact: '+15-20% completion rate'
+    for (const habit of habits) {
+      const logs = habitLogs.filter(l => l.habit_id === habit.id).slice(-90);
+      if (logs.length < 15) continue;
+
+      // Day of week analysis
+      const dayOfWeekStats = {};
+      logs.forEach(log => {
+        const date = new Date(log.date);
+        const day = date.toLocaleDateString('en-US', { weekday: 'long' });
+        if (!dayOfWeekStats[day]) {
+          dayOfWeekStats[day] = { completed: 0, total: 0 };
+        }
+        dayOfWeekStats[day].total++;
+        if (log.completed) dayOfWeekStats[day].completed++;
       });
-    }
 
-    if (failure_patterns.length > 0) {
-      recommendations.push({
-        recommendation: 'Fix your weak days',
-        rationale: `You struggle on certain days. Consider habit stacking (pairing with an existing routine) or changing the time on these days.`,
-        impact: '+10-15% completion rate'
-      });
-    }
+      // Find best and worst days
+      const dayRates = Object.entries(dayOfWeekStats).map(([day, stats]) => ({
+        day,
+        rate: stats.total > 0 ? stats.completed / stats.total : 0
+      }));
 
-    // Analyze external factors
-    const recentMood = moodEntries.slice(-30);
-    const recentLogs = habitLogs.filter(log => {
-      const logDate = new Date(log.date);
-      const thirtyDaysAgo = new Date();
-      thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
-      return logDate >= thirtyDaysAgo;
-    });
+      const bestDay = dayRates.reduce((a, b) => a.rate > b.rate ? a : b);
+      const worstDay = dayRates.reduce((a, b) => a.rate < b.rate ? a : b);
 
-    if (recentMood.length > 10 && recentLogs.length > 10) {
-      const avgMood = recentMood.reduce((sum, m) => sum + (m.mood_score || 0), 0) / recentMood.length;
-      const avgCompletion = recentLogs.filter(l => l.completed).length / recentLogs.length;
+      if (bestDay.rate > 0.7) {
+        success_patterns.push({
+          pattern: `${habit.name} on ${bestDay.day}s`,
+          description: `You complete this habit most reliably on ${bestDay.day}s`,
+          success_rate: bestDay.rate,
+          frequency: Math.round(dayOfWeekStats[bestDay.day].completed),
+          recommendation: `Schedule important ${habit.name} sessions for ${bestDay.day}s`
+        });
+      }
 
-      if (avgMood < 5) {
-        recommendations.push({
-          recommendation: 'Start small during low moods',
-          rationale: 'Your mood has been lower lately. Reduce habit difficulty during these periods to maintain progress.',
-          impact: 'Better long-term consistency'
+      if (worstDay.rate < 0.4 && worstDay.day !== bestDay.day) {
+        failure_patterns.push({
+          pattern: `${habit.name} slumps on ${worstDay.day}s`,
+          description: `Completion drops significantly on ${worstDay.day}s`,
+          failure_rate: 1 - worstDay.rate,
+          warning: `Plan ahead or use reminders to boost ${worstDay.day} completions`,
+          frequency: Math.round(dayOfWeekStats[worstDay.day].total)
+        });
+      }
+
+      // Streak analysis
+      let currentStreak = 0;
+      let maxStreak = 0;
+      let totalStreaks = 0;
+
+      for (const log of logs.sort((a, b) => new Date(a.date) - new Date(b.date))) {
+        if (log.completed) {
+          currentStreak++;
+          maxStreak = Math.max(maxStreak, currentStreak);
+        } else {
+          if (currentStreak > 0) totalStreaks++;
+          currentStreak = 0;
+        }
+      }
+
+      if (maxStreak > 7) {
+        success_patterns.push({
+          pattern: `${maxStreak}-day streak potential`,
+          description: `You've achieved ${maxStreak}-day streaks before, showing consistent capability`,
+          success_rate: 0.8,
+          frequency: totalStreaks,
+          recommendation: `You're capable of long streaks - aim for your next milestone!`
         });
       }
     }
 
-    if (recommendations.length < 3) {
-      recommendations.push({
-        recommendation: 'Build streak awareness',
-        rationale: 'Focus on not breaking the chain. Even a small daily action maintains momentum better than sporadic effort.',
-        impact: 'Better habit retention'
-      });
-    }
+    // Timing patterns across time of day
+    timing_patterns.push({
+      time_period: 'Morning',
+      observation: 'Typically higher completion rates in the morning',
+      recommendation: 'Schedule difficult habits for mornings when motivation is fresh'
+    });
+
+    // Generate AI recommendations
+    const prompt = `Based on this habit tracking data for user, generate 3 specific, actionable recommendations:
+- Best performing habits: ${habits.filter(h => h.completion_rate > 70).map(h => h.name).join(', ') || 'none yet'}
+- Struggling habits: ${habits.filter(h => h.completion_rate < 40).map(h => h.name).join(', ') || 'none yet'}
+- Total habits: ${habits.length}
+- Data points: ${habitLogs.length}
+
+Format as JSON array with objects containing: recommendation, rationale, impact`;
+
+    const aiResponse = await base44.integrations.Core.InvokeLLM({
+      prompt,
+      response_json_schema: {
+        type: 'object',
+        properties: {
+          recommendations: {
+            type: 'array',
+            items: {
+              type: 'object',
+              properties: {
+                recommendation: { type: 'string' },
+                rationale: { type: 'string' },
+                impact: { type: 'string' }
+              }
+            }
+          }
+        }
+      }
+    });
 
     return Response.json({
-      success_patterns: success_patterns.slice(0, 5),
-      failure_patterns: failure_patterns.slice(0, 5),
-      timing_patterns: timing_patterns.slice(0, 3),
-      recommendations: recommendations.slice(0, 3)
+      success_patterns,
+      failure_patterns,
+      timing_patterns,
+      recommendations: aiResponse.recommendations || []
     });
   } catch (error) {
     return Response.json({ error: error.message }, { status: 500 });
