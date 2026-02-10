@@ -103,7 +103,7 @@ export default function Layout({ children, currentPageName }) {
   const showWearableLink = currentPageName === 'Health';
 
   return (
-    <div className="min-h-screen bg-slate-50">
+          <div className={cn("min-h-screen transition-colors duration-200", user?.theme === 'dark' ? 'bg-slate-950 text-white' : 'bg-slate-50 text-slate-900')}>
       {/* Notification Bell - Desktop */}
       <div className="hidden lg:block fixed top-6 right-6 z-50">
         <NotificationBell />
