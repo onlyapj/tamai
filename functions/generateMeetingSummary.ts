@@ -100,9 +100,30 @@ Respond in JSON format with this structure:
       key_decisions: key_decisions || [],
       action_items: action_items || [],
       discussion_points: discussion_points || [],
-      attendees,
+      attendees: finalAttendees,
+      sentiment_analysis: sentiment || { overall: 'neutral', confidence: 0, explanation: '' },
       generated_at: new Date().toISOString()
     });
+
+    // Create follow-up tasks from action items
+    if (action_items && action_items.length > 0) {
+      for (const item of action_items) {
+        if (item.action) {
+          try {
+            await base44.entities.Task.create({
+              title: `[Action Item] ${item.action}`,
+              description: `From meeting: ${meeting_title}`,
+              due_date: item.due_date || null,
+              priority: 'high',
+              status: 'pending',
+              list_name: 'From Meetings'
+            });
+          } catch (e) {
+            // Silently fail for individual action items
+          }
+        }
+      }
+    }
 
     return Response.json(meetingSummary);
   } catch (error) {
