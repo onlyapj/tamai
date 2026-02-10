@@ -29,6 +29,7 @@ export default function Layout({ children, currentPageName }) {
       { name: 'TaskManager', icon: Activity, label: 'Tasks' },
       { name: 'GoalsOKR', icon: Target, label: 'Goals' },
       { name: 'TeamManagement', icon: Users, label: 'Team' },
+      { name: 'Organizations', icon: Building2, label: 'Orgs' },
       { name: 'AIAssistant', icon: Brain, label: 'AI' },
       { name: 'Calendar', icon: CalendarDays, label: 'Calendar' },
       { name: 'Profile', icon: User, label: 'Profile' },
