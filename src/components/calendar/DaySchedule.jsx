@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Calendar, Clock, Bell, Trash2, Edit2, CheckCircle2, Circle } from 'lucide-react';
 import { cn } from "@/lib/utils";
 
-export default function DaySchedule({ date, tasks, onEdit, onDelete, onToggle }) {
+export default function DaySchedule({ date, tasks, onEdit, onDelete, onToggle, fullScreen }) {
   const sortedTasks = [...tasks].sort((a, b) => {
     if (!a.scheduled_time) return 1;
     if (!b.scheduled_time) return -1;
@@ -19,7 +19,7 @@ export default function DaySchedule({ date, tasks, onEdit, onDelete, onToggle })
   };
 
   return (
-    <div className="bg-white rounded-3xl border border-slate-200 shadow-sm p-6 sticky top-6">
+    <div className={cn("bg-white rounded-3xl border border-slate-200 shadow-sm p-6", fullScreen ? "w-full" : "sticky top-6")}>
       <div className="flex items-center gap-2 mb-4">
         <Calendar className="h-5 w-5 text-indigo-600" />
         <h3 className="font-semibold text-slate-800">
