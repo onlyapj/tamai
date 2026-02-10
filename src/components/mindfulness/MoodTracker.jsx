@@ -28,6 +28,17 @@ export default function MoodTracker({ todayMood, onUpdate }) {
 
   const queryClient = useQueryClient();
 
+  // Sync state with todayMood prop when it changes
+  React.useEffect(() => {
+    if (todayMood) {
+      setMood(todayMood.mood_score || 3);
+      setEnergy(todayMood.energy_level || 5);
+      setStress(todayMood.stress_level || 5);
+      setNotes(todayMood.notes || '');
+      setSelectedTags(todayMood.tags || []);
+    }
+  }, [todayMood?.id]);
+
   const saveMood = useMutation({
     mutationFn: async (data) => {
       if (todayMood) {
