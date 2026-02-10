@@ -115,13 +115,13 @@ export default function Health() {
           ))}
         </div>
 
-        {/* AI Coach - Always visible */}
-        <div className="mb-6">
-          <AIHabitCoach />
-        </div>
-
         {/* Content */}
         <AnimatePresence mode="wait">
+          {activeTab === 'coaching' && (
+            <motion.div key="coaching" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+              <CoachingDashboard />
+            </motion.div>
+          )}
           {activeTab === 'today' && (
             <motion.div key="today" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
               <HealthStats todayLog={todayLog} healthLogs={healthLogs} />
