@@ -9,7 +9,6 @@ import {
 import { motion, AnimatePresence } from 'framer-motion';
 
 export default function Landing() {
-  const [selectedAccountType, setSelectedAccountType] = useState(null);
   const features = [
     {
       icon: Brain,
