@@ -165,16 +165,29 @@ export default function Home() {
   };
 
   const { data: transactions = [] } = useQuery({
-    queryKey: ['transactions-month'],
+    queryKey: ['transactions-month', user?.active_organization_id, user?.current_mode],
     queryFn: async () => {
-      const all = await base44.entities.Transaction.list('-date', 100);
+      const filter = user?.current_mode === 'business' && user?.active_organization_id
+        ? { organization_id: user.active_organization_id }
+        : { organization_id: null };
+      const all = await base44.entities.Transaction.filter(filter, '-date', 100);
       return all.filter(t => t.date?.startsWith(currentMonth));
-    }
+    },
+    enabled: !!user,
   });
 
   const { data: budgets = [] } = useQuery({
-    queryKey: ['budgets-month'],
-    queryFn: () => base44.entities.Budget.filter({ month: currentMonth })
+    queryKey: ['budgets-month', user?.active_organization_id, user?.current_mode],
+    queryFn: () => {
+      const filter = { month: currentMonth };
+      if (user?.current_mode === 'business' && user?.active_organization_id) {
+        filter.organization_id = user.active_organization_id;
+      } else {
+        filter.organization_id = null;
+      }
+      return base44.entities.Budget.filter(filter);
+    },
+    enabled: !!user,
   });
   
   const filteredTasks = {
