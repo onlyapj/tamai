@@ -10,7 +10,7 @@ import AddTransaction from '@/components/finance/AddTransaction.jsx';
 import FinanceOverview from '@/components/finance/FinanceOverview.jsx';
 import BudgetSection from '@/components/finance/BudgetSection.jsx';
 import AIInsights from '@/components/finance/AIInsights.jsx';
-import BankConnection from '@/components/finance/BankConnection.jsx';
+
 
 export default function Finance() {
   const [showAddTransaction, setShowAddTransaction] = useState(false);
@@ -87,8 +87,7 @@ export default function Finance() {
           </Button>
         </div>
 
-        {/* Bank Connection */}
-        <BankConnection />
+
 
         {/* Quick Stats */}
         <div className="grid grid-cols-3 gap-3 mb-6">

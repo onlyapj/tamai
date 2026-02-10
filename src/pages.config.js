@@ -57,9 +57,9 @@ import Home from './pages/Home';
 import Mindfulness from './pages/Mindfulness';
 import NotificationSettings from './pages/NotificationSettings';
 import Profile from './pages/Profile';
+import TrueLayerCallback from './pages/TrueLayerCallback';
 import UserManagement from './pages/UserManagement';
 import Wearable from './pages/Wearable';
-import TrueLayerCallback from './pages/TrueLayerCallback';
 import __Layout from './Layout.jsx';
 
 
@@ -74,9 +74,9 @@ export const PAGES = {
     "Mindfulness": Mindfulness,
     "NotificationSettings": NotificationSettings,
     "Profile": Profile,
+    "TrueLayerCallback": TrueLayerCallback,
     "UserManagement": UserManagement,
     "Wearable": Wearable,
-    "TrueLayerCallback": TrueLayerCallback,
 }
 
 export const pagesConfig = {
