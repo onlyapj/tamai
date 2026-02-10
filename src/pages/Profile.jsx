@@ -301,7 +301,7 @@ export default function Profile() {
                   value={user?.account_type || 'individual'}
                   onValueChange={(value) => updateAccountTypeMutation.mutate(value)}
                 >
-                  <SelectTrigger className="bg-slate-50">
+                  <SelectTrigger className={user?.theme === 'dark' ? 'bg-slate-800' : 'bg-slate-50'}>
                     <SelectValue placeholder="Select account type" />
                   </SelectTrigger>
                   <SelectContent>
