@@ -1,24 +1,57 @@
-import React from 'react';
-import { useQuery } from '@tanstack/react-query';
+import React, { useState, useEffect } from 'react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
 import { createPageUrl } from '../utils';
 import { format } from 'date-fns';
-import { BarChart3, Users, TrendingUp, Target, ArrowRight, Calendar } from 'lucide-react';
+import { BarChart3, Users, TrendingUp, Target, ArrowRight, Calendar, Plus } from 'lucide-react';
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Link } from 'react-router-dom';
+import TeamMembersList from '../components/business/TeamMembersList';
+import TeamAnalytics from '../components/business/TeamAnalytics';
 
 export default function BusinessHome() {
+  const [teamId, setTeamId] = useState(null);
+  const [showCreateTeam, setShowCreateTeam] = useState(false);
+  const [teamName, setTeamName] = useState('');
+  const queryClient = useQueryClient();
+
   const { data: user } = useQuery({
     queryKey: ['current-user'],
     queryFn: () => base44.auth.me(),
   });
 
-  const stats = [
-    { label: 'Team Members', value: '—', icon: Users, color: 'from-blue-500 to-cyan-500' },
-    { label: 'Total Revenue', value: '—', icon: TrendingUp, color: 'from-emerald-500 to-teal-500' },
-    { label: 'Goals on Track', value: '—', icon: Target, color: 'from-amber-500 to-orange-500' },
-    { label: 'Meetings This Week', value: '4', icon: Calendar, color: 'from-violet-500 to-purple-500' }
-  ];
+  // Get or create team for business user
+  const { data: teams = [] } = useQuery({
+    queryKey: ['user-teams'],
+    queryFn: async () => {
+      const allTeams = await base44.entities.Team.list();
+      return allTeams.filter(t => t.owner_email === user?.email);
+    },
+    enabled: !!user
+  });
+
+  useEffect(() => {
+    if (teams.length > 0) {
+      setTeamId(teams[0].id);
+    }
+  }, [teams]);
+
+  const createTeamMutation = useMutation({
+    mutationFn: async (name) => {
+      return base44.entities.Team.create({
+        name,
+        owner_email: user.email,
+        member_count: 1
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['user-teams'] });
+      setShowCreateTeam(false);
+      setTeamName('');
+    }
+  });
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-slate-50 to-white p-4 sm:p-6 lg:p-8">
