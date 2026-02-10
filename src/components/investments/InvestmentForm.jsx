@@ -284,43 +284,43 @@ export default function InvestmentForm({ investment, currencySymbol, onSubmit, o
             </Label>
             {type === 'crypto' ? (
               <div className="space-y-2">
-                <Select value={ticker} onValueChange={async (value) => {
-                  setTicker(value);
-                  setName(`${cryptoOptions.find(c => c.symbol === value)?.name || value}`);
-                  setLivePrice(null);
-                  
-                  // Auto-fetch price and calculate quantity if cost is already entered
-                  if (costBasis && !isNaN(parseFloat(costBasis)) && parseFloat(costBasis) > 0) {
-                    setFetchingPrice(true);
-                    try {
-                      const { data } = await base44.functions.invoke('fetchLivePrice', { 
-                        ticker: value,
-                        type 
-                      });
-                      setLivePrice(data.price);
-                      
-                      const calculatedQuantity = parseFloat(costBasis) / data.price;
-                      setQuantity(calculatedQuantity.toFixed(8));
-                      setCurrentValue(parseFloat(costBasis).toFixed(2));
-                      toast.success(`${calculatedQuantity.toFixed(8)} ${value} @ ${currencySymbol}${data.price.toLocaleString()}`);
-                    } catch (error) {
-                      toast.error('Failed to fetch price');
-                    } finally {
-                      setFetchingPrice(false);
-                    }
-                  }
-                }}>
-                  <SelectTrigger className="mt-1">
-                    <SelectValue placeholder="Select cryptocurrency" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {cryptoOptions.map(crypto => (
-                      <SelectItem key={crypto.symbol} value={crypto.symbol}>
-                        {crypto.symbol} - {crypto.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <div className="flex gap-2">
+                  <Select value={ticker} onValueChange={(value) => {
+                    setTicker(value);
+                    setName(`${cryptoOptions.find(c => c.symbol === value)?.name || value}`);
+                    setLivePrice(null);
+                    setQuantity('');
+                    setCurrentValue('');
+                  }}>
+                    <SelectTrigger className="mt-1 flex-1">
+                      <SelectValue placeholder="Select cryptocurrency" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {cryptoOptions.map(crypto => (
+                        <SelectItem key={crypto.symbol} value={crypto.symbol}>
+                          {crypto.symbol} - {crypto.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <Button
+                    type="button"
+                    onClick={fetchLivePrice}
+                    disabled={fetchingPrice || !ticker}
+                    variant="outline"
+                    size="sm"
+                    className="mt-1 whitespace-nowrap"
+                  >
+                    {fetchingPrice ? (
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                    ) : (
+                      <>
+                        <TrendingUp className="h-4 w-4 mr-1" />
+                        Get Price
+                      </>
+                    )}
+                  </Button>
+                </div>
                 {livePrice && (
                   <div className="bg-emerald-50 rounded-lg p-3 space-y-1">
                     <p className="text-xs text-emerald-600 font-medium">
@@ -331,12 +331,6 @@ export default function InvestmentForm({ investment, currencySymbol, onSubmit, o
                         You own: {parseFloat(quantity).toFixed(8)} {ticker}
                       </p>
                     )}
-                  </div>
-                )}
-                {fetchingPrice && (
-                  <div className="flex items-center gap-2 text-xs text-slate-500">
-                    <Loader2 className="h-3 w-3 animate-spin" />
-                    Fetching live price...
                   </div>
                 )}
               </div>
