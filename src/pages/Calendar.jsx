@@ -157,32 +157,35 @@ export default function Calendar() {
           </div>
         </div>
 
-        {/* Month Navigation */}
+        {/* Navigation */}
         <div className="flex items-center justify-between mb-6">
           <h2 className="text-xl font-semibold text-slate-800">
             {viewMode === 'month' ? format(currentMonth, 'MMMM yyyy') : format(selectedDate, 'EEEE, MMMM d, yyyy')}
           </h2>
           <div className="flex gap-2">
-            {viewMode === 'month' && (
+            {(viewMode === 'month' || viewMode === 'week') && (
               <>
                 <Button
                   variant="outline"
                   size="sm"
-                  onClick={() => setCurrentMonth(new Date(currentMonth.setMonth(currentMonth.getMonth() - 1)))}
+                  onClick={() => viewMode === 'month' ? setCurrentMonth(new Date(currentMonth.setMonth(currentMonth.getMonth() - 1))) : setSelectedDate(new Date(selectedDate.setDate(selectedDate.getDate() - 7)))}
                 >
                   <ChevronLeft className="h-4 w-4" />
                 </Button>
                 <Button
                   variant="outline"
                   size="sm"
-                  onClick={() => setCurrentMonth(new Date())}
+                  onClick={() => {
+                    setCurrentMonth(new Date());
+                    setSelectedDate(new Date());
+                  }}
                 >
                   Today
                 </Button>
                 <Button
                   variant="outline"
                   size="sm"
-                  onClick={() => setCurrentMonth(new Date(currentMonth.setMonth(currentMonth.getMonth() + 1)))}
+                  onClick={() => viewMode === 'month' ? setCurrentMonth(new Date(currentMonth.setMonth(currentMonth.getMonth() + 1))) : setSelectedDate(new Date(selectedDate.setDate(selectedDate.getDate() + 7)))}
                 >
                   <ChevronRight className="h-4 w-4" />
                 </Button>
@@ -217,13 +220,23 @@ export default function Calendar() {
               variant={viewMode === 'month' ? 'default' : 'outline'}
               size="sm"
               onClick={() => setViewMode('month')}
+              title="Month view"
             >
               <LayoutGrid className="h-4 w-4" />
+            </Button>
+            <Button
+              variant={viewMode === 'week' ? 'default' : 'outline'}
+              size="sm"
+              onClick={() => setViewMode('week')}
+              title="Week view"
+            >
+              <Calendar className="h-4 w-4" />
             </Button>
             <Button
               variant={viewMode === 'day' ? 'default' : 'outline'}
               size="sm"
               onClick={() => setViewMode('day')}
+              title="Day view"
             >
               <ListIcon className="h-4 w-4" />
             </Button>
