@@ -322,7 +322,7 @@ export default function Investments() {
             currencySymbol={currencySymbol}
             onAdd={() => { 
               setEditingTransaction(null); 
-              setSelectedInvestmentForTransaction({} as any);
+              setSelectedInvestmentForTransaction(investments[0] || null);
             }}
             onEdit={(trans) => {
               setEditingTransaction(trans);
