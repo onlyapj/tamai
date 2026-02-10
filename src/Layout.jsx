@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { createPageUrl } from './utils';
-import { LayoutDashboard, Heart, Wallet, Activity, Target, CalendarDays, Watch, User, BarChart3 } from 'lucide-react';
+import { LayoutDashboard, Heart, Wallet, Activity, Target, CalendarDays, Watch, User, BarChart3, Brain } from 'lucide-react';
 import NotificationBell from './components/notifications/NotificationBell';
 import { cn } from "@/lib/utils";
 import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
@@ -27,7 +27,8 @@ export default function Layout({ children, currentPageName }) {
       { name: 'BusinessDashboard', icon: LayoutDashboard, label: 'Dashboard' },
       { name: 'FinanceCFO', icon: Wallet, label: 'Finance' },
       { name: 'TaskManager', icon: Activity, label: 'Tasks' },
-      { name: 'Goals', icon: Target, label: 'Goals' },
+      { name: 'GoalsOKR', icon: Target, label: 'Goals' },
+      { name: 'AIAssistant', icon: Brain, label: 'AI' },
       { name: 'Calendar', icon: CalendarDays, label: 'Calendar' },
       { name: 'Profile', icon: User, label: 'Profile' },
     ];
