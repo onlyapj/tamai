@@ -5,7 +5,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
-import { Users, UserPlus, Crown, Loader2, Mail, MoreVertical, Shield, User } from 'lucide-react';
+import { Users, UserPlus, Crown, Loader2, Mail, MoreVertical, Shield, User, Eye, Edit3, Briefcase } from 'lucide-react';
+import { ROLE_DESCRIPTIONS, ROLES } from '../../lib/rolePermissions';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -88,8 +89,10 @@ export default function TeamMembersList({ teamId, isAdmin }) {
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="member">Member</SelectItem>
-                <SelectItem value="admin">Admin</SelectItem>
+                <SelectItem value="viewer">Viewer - Read-only access</SelectItem>
+                <SelectItem value="editor">Editor - Can edit projects</SelectItem>
+                <SelectItem value="manager">Manager - Manage team & projects</SelectItem>
+                <SelectItem value="admin">Admin - Full control</SelectItem>
               </SelectContent>
             </Select>
             <Button 
@@ -124,7 +127,16 @@ export default function TeamMembersList({ teamId, isAdmin }) {
                       {member.user_name || member.user_email}
                     </p>
                     {member.role === 'admin' && (
-                      <Crown className="h-4 w-4 text-amber-500" />
+                      <Crown className="h-4 w-4 text-amber-500" title="Admin" />
+                    )}
+                    {member.role === 'manager' && (
+                      <Briefcase className="h-4 w-4 text-blue-500" title="Manager" />
+                    )}
+                    {member.role === 'editor' && (
+                      <Edit3 className="h-4 w-4 text-green-500" title="Editor" />
+                    )}
+                    {member.role === 'viewer' && (
+                      <Eye className="h-4 w-4 text-slate-500" title="Viewer" />
                     )}
                   </div>
                   <div className="flex items-center gap-2">
@@ -143,19 +155,45 @@ export default function TeamMembersList({ teamId, isAdmin }) {
                       <MoreVertical className="h-4 w-4" />
                     </Button>
                   </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end">
+                  <DropdownMenuContent align="end" className="w-48">
+                    <div className="px-2 py-1.5 text-xs font-medium text-slate-600">Change Role</div>
                     <DropdownMenuItem 
-                      onClick={() => updateRoleMutation.mutate({ 
-                        memberId: member.id, 
-                        role: member.role === 'admin' ? 'member' : 'admin' 
-                      })}
+                      onClick={() => updateRoleMutation.mutate({ memberId: member.id, role: ROLES.VIEWER })}
                     >
-                      {member.role === 'admin' ? (
-                        <><User className="h-4 w-4 mr-2" /> Make Member</>
-                      ) : (
-                        <><Shield className="h-4 w-4 mr-2" /> Make Admin</>
-                      )}
+                      <Eye className="h-4 w-4 mr-2 text-slate-500" />
+                      <div className="flex flex-col">
+                        <span>Viewer</span>
+                        <span className="text-xs text-slate-500">Read-only</span>
+                      </div>
                     </DropdownMenuItem>
+                    <DropdownMenuItem 
+                      onClick={() => updateRoleMutation.mutate({ memberId: member.id, role: ROLES.EDITOR })}
+                    >
+                      <Edit3 className="h-4 w-4 mr-2 text-green-500" />
+                      <div className="flex flex-col">
+                        <span>Editor</span>
+                        <span className="text-xs text-slate-500">Edit projects</span>
+                      </div>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem 
+                      onClick={() => updateRoleMutation.mutate({ memberId: member.id, role: ROLES.MANAGER })}
+                    >
+                      <Briefcase className="h-4 w-4 mr-2 text-blue-500" />
+                      <div className="flex flex-col">
+                        <span>Manager</span>
+                        <span className="text-xs text-slate-500">Manage team</span>
+                      </div>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem 
+                      onClick={() => updateRoleMutation.mutate({ memberId: member.id, role: ROLES.ADMIN })}
+                    >
+                      <Crown className="h-4 w-4 mr-2 text-amber-500" />
+                      <div className="flex flex-col">
+                        <span>Admin</span>
+                        <span className="text-xs text-slate-500">Full control</span>
+                      </div>
+                    </DropdownMenuItem>
+                    <div className="my-1 border-t border-slate-100" />
                     <DropdownMenuItem 
                       className="text-red-600"
                       onClick={() => removeMutation.mutate(member.id)}
