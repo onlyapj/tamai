@@ -4,8 +4,9 @@ import { base44 } from '@/api/base44Client';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { User, Mail, LogOut, Save, Lock, Key } from 'lucide-react';
+import { User, Mail, LogOut, Save, Lock, Key, Sun, Moon } from 'lucide-react';
 import { toast } from 'sonner';
+import { Switch } from "@/components/ui/switch";
 
 export default function Profile() {
   const queryClient = useQueryClient();
@@ -24,7 +25,28 @@ export default function Profile() {
       const userData = await base44.auth.me();
       setName(userData.full_name || '');
       setEmail(userData.email || '');
+      
+      // Apply theme preference
+      if (userData.theme === 'dark') {
+        document.documentElement.classList.add('dark');
+      } else {
+        document.documentElement.classList.remove('dark');
+      }
+      
       return userData;
+    }
+  });
+
+  const updateThemeMutation = useMutation({
+    mutationFn: (theme) => base44.auth.updateMe({ theme }),
+    onSuccess: (_, theme) => {
+      queryClient.invalidateQueries(['current-user']);
+      if (theme === 'dark') {
+        document.documentElement.classList.add('dark');
+      } else {
+        document.documentElement.classList.remove('dark');
+      }
+      toast.success(`${theme === 'dark' ? 'Dark' : 'Light'} mode enabled`);
     }
   });
 
@@ -226,6 +248,28 @@ export default function Profile() {
                     </Button>
                   </div>
                 )}
+              </div>
+
+              {/* Theme */}
+              <div>
+                <label className="text-sm font-medium text-slate-700 mb-2 flex items-center gap-2">
+                  {user?.theme === 'dark' ? <Moon className="h-4 w-4" /> : <Sun className="h-4 w-4" />}
+                  Appearance
+                </label>
+                <div className="flex items-center justify-between p-3 bg-slate-50 rounded-lg">
+                  <div className="flex items-center gap-3">
+                    <Sun className="h-4 w-4 text-slate-600" />
+                    <span className="text-slate-900">Light Mode</span>
+                  </div>
+                  <Switch
+                    checked={user?.theme === 'dark'}
+                    onCheckedChange={(checked) => updateThemeMutation.mutate(checked ? 'dark' : 'light')}
+                  />
+                  <div className="flex items-center gap-3">
+                    <span className="text-slate-900">Dark Mode</span>
+                    <Moon className="h-4 w-4 text-slate-600" />
+                  </div>
+                </div>
               </div>
 
               {/* Password */}
