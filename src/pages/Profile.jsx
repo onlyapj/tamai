@@ -4,9 +4,10 @@ import { base44 } from '@/api/base44Client';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { User, Mail, LogOut, Save, Lock, Key, Sun, Moon } from 'lucide-react';
+import { User, Mail, LogOut, Save, Lock, Key, Sun, Moon, DollarSign } from 'lucide-react';
 import { toast } from 'sonner';
 import { Switch } from "@/components/ui/switch";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 export default function Profile() {
   const queryClient = useQueryClient();
@@ -47,6 +48,14 @@ export default function Profile() {
         document.documentElement.classList.remove('dark');
       }
       toast.success(`${theme === 'dark' ? 'Dark' : 'Light'} mode enabled`);
+    }
+  });
+
+  const updateCurrencyMutation = useMutation({
+    mutationFn: (currency) => base44.auth.updateMe({ currency }),
+    onSuccess: () => {
+      queryClient.invalidateQueries(['current-user']);
+      toast.success('Currency updated');
     }
   });
 
@@ -270,6 +279,33 @@ export default function Profile() {
                     <Moon className="h-4 w-4 text-slate-600" />
                   </div>
                 </div>
+              </div>
+
+              {/* Currency */}
+              <div>
+                <label className="text-sm font-medium text-slate-700 mb-2 flex items-center gap-2">
+                  <DollarSign className="h-4 w-4" />
+                  Currency
+                </label>
+                <Select
+                  value={user?.currency || 'USD'}
+                  onValueChange={(value) => updateCurrencyMutation.mutate(value)}
+                >
+                  <SelectTrigger className="bg-slate-50">
+                    <SelectValue placeholder="Select currency" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="USD">USD - US Dollar ($)</SelectItem>
+                    <SelectItem value="EUR">EUR - Euro (€)</SelectItem>
+                    <SelectItem value="GBP">GBP - British Pound (£)</SelectItem>
+                    <SelectItem value="JPY">JPY - Japanese Yen (¥)</SelectItem>
+                    <SelectItem value="CAD">CAD - Canadian Dollar ($)</SelectItem>
+                    <SelectItem value="AUD">AUD - Australian Dollar ($)</SelectItem>
+                    <SelectItem value="CHF">CHF - Swiss Franc (Fr)</SelectItem>
+                    <SelectItem value="CNY">CNY - Chinese Yuan (¥)</SelectItem>
+                    <SelectItem value="INR">INR - Indian Rupee (₹)</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
 
               {/* Password */}
