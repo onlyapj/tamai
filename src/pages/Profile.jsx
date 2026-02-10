@@ -179,9 +179,9 @@ export default function Profile() {
             <CardContent className="space-y-4">
               {/* Name */}
               <div>
-                <label className="text-sm font-medium text-slate-700 mb-2 block">
-                  Full Name
-                </label>
+                <label className={cn("text-sm font-medium mb-2 block", user?.theme === 'dark' ? 'text-slate-300' : 'text-slate-700')}>
+                    Full Name
+                  </label>
                 {isEditingName ? (
                   <div className="flex gap-2">
                     <Input
