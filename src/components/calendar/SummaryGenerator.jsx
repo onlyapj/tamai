@@ -144,7 +144,7 @@ export default function SummaryGenerator({ task, onClose, onSummaryGenerated }) 
 
           {/* Attendees */}
           <div>
-            <Label htmlFor="attendees">Attendees (Optional)</Label>
+            <Label htmlFor="attendees">Attendees (Optional - auto-detected if not provided)</Label>
             <Input
               id="attendees"
               value={attendees}
@@ -152,6 +152,9 @@ export default function SummaryGenerator({ task, onClose, onSummaryGenerated }) 
               placeholder="John Doe, Jane Smith, Bob Johnson (comma separated)"
               className="mt-2"
             />
+            <p className="text-xs text-slate-500 mt-1">
+              Leave empty to auto-detect attendees from notes
+            </p>
           </div>
 
           {/* Actions */}
