@@ -284,7 +284,7 @@ export default function Investments() {
         )}
 
         {/* Investment List */}
-        <div className="space-y-3">
+        <div className="space-y-3 mb-8">
           {investments.map((investment) => {
             const activeContribution = contributions.find(c => c.investment_id === investment.id);
             return (
@@ -301,6 +301,35 @@ export default function Investments() {
               />
             );
           })}
+        </div>
+
+        {/* Transaction History Section */}
+        <div className="mb-8">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-xl font-bold text-slate-900">Transaction History</h2>
+            <Button 
+              onClick={() => setSelectedInvestmentForTransaction({} as any)}
+              className="bg-indigo-600 hover:bg-indigo-700"
+              size="sm"
+            >
+              <Plus className="h-4 w-4 mr-2" />
+              Add Transaction
+            </Button>
+          </div>
+          <TransactionHistory
+            transactions={transactions}
+            currencySymbol={currencySymbol}
+            onAdd={() => { 
+              setEditingTransaction(null); 
+              setSelectedInvestmentForTransaction({} as any);
+            }}
+            onEdit={(trans) => {
+              setEditingTransaction(trans);
+              const inv = investments.find(i => i.id === trans.investment_id);
+              setSelectedInvestmentForTransaction(inv);
+            }}
+            onDelete={(id) => deleteTransaction.mutate(id)}
+          />
         </div>
 
         {investments.length === 0 && (
