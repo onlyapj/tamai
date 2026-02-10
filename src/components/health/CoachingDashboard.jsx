@@ -34,11 +34,11 @@ export default function CoachingDashboard() {
     );
   }
 
-  if (error || !coaching) {
+  if (error || !coaching?.success) {
     return (
       <Card className="bg-gradient-to-br from-violet-50 to-purple-50 border-violet-200">
         <CardContent className="pt-6">
-          <p className="text-slate-600 text-center py-4">{coaching?.message || 'Create habits to unlock personalized coaching!'}</p>
+          <p className="text-slate-600 text-center py-4">{coaching?.message || error?.message || 'Create habits to unlock personalized coaching!'}</p>
         </CardContent>
       </Card>
     );
