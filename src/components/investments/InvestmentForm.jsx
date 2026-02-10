@@ -126,16 +126,26 @@ export default function InvestmentForm({ investment, currencySymbol, onSubmit, o
   const handleCostBasisChange = async (value) => {
     setCostBasis(value);
     
-    if (!value || isNaN(parseFloat(value)) || parseFloat(value) <= 0) return;
+    // Clear fields if value is empty
+    if (!value) {
+      setQuantity('');
+      setCurrentValue('');
+      return;
+    }
+    
+    const costAmount = parseFloat(value);
+    if (isNaN(costAmount) || costAmount <= 0) return;
     
     // If we have live price, calculate immediately
     if (livePrice) {
-      const calculatedQuantity = parseFloat(value) / livePrice;
+      const calculatedQuantity = costAmount / livePrice;
       setQuantity(calculatedQuantity.toFixed(8));
-      setCurrentValue(value);
+      setCurrentValue(costAmount.toFixed(2));
+      return;
     }
-    // Otherwise fetch price first if ticker exists
-    else if (ticker && ticker.trim()) {
+    
+    // Fetch price if ticker exists
+    if (ticker && ticker.trim()) {
       setFetchingPrice(true);
       try {
         const { data } = await base44.functions.invoke('fetchLivePrice', { 
@@ -144,11 +154,12 @@ export default function InvestmentForm({ investment, currencySymbol, onSubmit, o
         });
         setLivePrice(data.price);
         
-        const calculatedQuantity = parseFloat(value) / data.price;
+        const calculatedQuantity = costAmount / data.price;
         setQuantity(calculatedQuantity.toFixed(8));
-        setCurrentValue(value);
+        setCurrentValue(costAmount.toFixed(2));
+        toast.success(`Price: ${currencySymbol}${data.price.toLocaleString()} • ${calculatedQuantity.toFixed(8)} ${ticker}`);
       } catch (error) {
-        toast.error('Failed to fetch price');
+        toast.error('Failed to fetch price - check ticker symbol');
       } finally {
         setFetchingPrice(false);
       }
