@@ -6,7 +6,6 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { Users, UserPlus, Crown, Loader2, Mail, MoreVertical, Shield, User, Eye, Edit3, Briefcase } from 'lucide-react';
-import { ROLES } from './rolePermissions.js';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -158,7 +157,7 @@ export default function TeamMembersList({ teamId, isAdmin }) {
                   <DropdownMenuContent align="end" className="w-48">
                     <div className="px-2 py-1.5 text-xs font-medium text-slate-600">Change Role</div>
                     <DropdownMenuItem 
-                      onClick={() => updateRoleMutation.mutate({ memberId: member.id, role: ROLES.VIEWER })}
+                      onClick={() => updateRoleMutation.mutate({ memberId: member.id, role: 'viewer' })}
                     >
                       <Eye className="h-4 w-4 mr-2 text-slate-500" />
                       <div className="flex flex-col">
@@ -167,7 +166,7 @@ export default function TeamMembersList({ teamId, isAdmin }) {
                       </div>
                     </DropdownMenuItem>
                     <DropdownMenuItem 
-                      onClick={() => updateRoleMutation.mutate({ memberId: member.id, role: ROLES.EDITOR })}
+                      onClick={() => updateRoleMutation.mutate({ memberId: member.id, role: 'editor' })}
                     >
                       <Edit3 className="h-4 w-4 mr-2 text-green-500" />
                       <div className="flex flex-col">
@@ -176,7 +175,7 @@ export default function TeamMembersList({ teamId, isAdmin }) {
                       </div>
                     </DropdownMenuItem>
                     <DropdownMenuItem 
-                      onClick={() => updateRoleMutation.mutate({ memberId: member.id, role: ROLES.MANAGER })}
+                      onClick={() => updateRoleMutation.mutate({ memberId: member.id, role: 'manager' })}
                     >
                       <Briefcase className="h-4 w-4 mr-2 text-blue-500" />
                       <div className="flex flex-col">
@@ -185,7 +184,7 @@ export default function TeamMembersList({ teamId, isAdmin }) {
                       </div>
                     </DropdownMenuItem>
                     <DropdownMenuItem 
-                      onClick={() => updateRoleMutation.mutate({ memberId: member.id, role: ROLES.ADMIN })}
+                      onClick={() => updateRoleMutation.mutate({ memberId: member.id, role: 'admin' })}
                     >
                       <Crown className="h-4 w-4 mr-2 text-amber-500" />
                       <div className="flex flex-col">
