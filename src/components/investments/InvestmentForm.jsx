@@ -90,7 +90,7 @@ export default function InvestmentForm({ investment, currencySymbol, onSubmit, o
       } catch (error) {
         // Silent fail on background updates
       }
-    }, 30000);
+    }, 1000);
 
     return () => clearInterval(interval);
   }, [ticker, type, quantity, livePrice]);
