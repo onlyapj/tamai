@@ -28,6 +28,7 @@ export default function Layout({ children, currentPageName }) {
       { name: 'FinanceCFO', icon: Wallet, label: 'Finance' },
       { name: 'TaskManager', icon: Activity, label: 'Tasks' },
       { name: 'GoalsOKR', icon: Target, label: 'Goals' },
+      { name: 'TeamManagement', icon: Users, label: 'Team' },
       { name: 'AIAssistant', icon: Brain, label: 'AI' },
       { name: 'Calendar', icon: CalendarDays, label: 'Calendar' },
       { name: 'Profile', icon: User, label: 'Profile' },
