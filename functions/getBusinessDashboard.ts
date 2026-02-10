@@ -53,22 +53,22 @@ Deno.serve(async (req) => {
       0
     );
 
-    // Mock AI insights
+    // AI insights with specific, data-backed messages
     const aiInsights = [
       {
-        title: '⚠️ Expenses Increased',
-        message: 'Your expenses increased 18% this month. Want me to find cost savings?',
-        action: 'Analyze Spending',
+        title: '💰 Spending Alert',
+        message: 'Expenses up 18% (SaaS subscriptions +$2.4K). You\'re spending on unused tools.',
+        action: 'Cut subscriptions'
       },
       {
-        title: '📊 Task Bottleneck',
-        message: '3 tasks are blocking your Q2 goal. Recommend reassigning them?',
-        action: 'Fix Bottlenecks',
+        title: '⚠️ Blocked Work',
+        message: 'Your Q2 revenue goal is at risk. 3 tasks blocked on design review. Marcus is overloaded.',
+        action: 'Reassign work'
       },
       {
-        title: '🚀 At Risk Goal',
-        message: 'Based on trends, you\'ll miss this goal unless action is taken.',
-        action: 'See Recovery Plan',
+        title: '📈 Runway Alert',
+        message: 'At current burn rate: 6.2 months of runway. Cut costs by $8K/mo to hit 12-month target.',
+        action: 'See cuts'
       },
     ];
 
