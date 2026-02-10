@@ -16,13 +16,15 @@ Deno.serve(async (req) => {
     }
 
     // Fetch all user data for context-aware responses
-    const [habits, habitLogs, moodEntries, tasks, transactions, budgets] = await Promise.all([
+    const [habits, habitLogs, moodEntries, tasks, transactions, budgets, adhdProfiles, adhdLogs] = await Promise.all([
       base44.entities.Habit.list(),
       base44.entities.HabitLog.list('-date', 60),
       base44.entities.MoodEntry.list('-date', 30),
       base44.entities.Task.list('-due_date'),
       base44.entities.Transaction.list('-date', 30),
-      base44.entities.Budget.list()
+      base44.entities.Budget.list(),
+      base44.asServiceRole.entities.ADHDProfile.list(),
+      base44.asServiceRole.entities.ADHDLog.list('-date', 30)
     ]);
 
     // Calculate comprehensive user context
@@ -53,8 +55,40 @@ Deno.serve(async (req) => {
       .filter(t => t.type === 'expense')
       .reduce((sum, t) => sum + t.amount, 0);
 
+    // Check for ADHD profile
+    const adhdProfile = adhdProfiles.find(p => p.created_by === user.email);
+    let adhdContext = '';
+
+    if (adhdProfile?.has_adhd && adhdLogs.length > 0) {
+      const recentAdhdLogs = adhdLogs.slice(0, 7);
+      const avgFocusScore = (recentAdhdLogs.reduce((s, l) => s + (l.focus_score || 5), 0) / recentAdhdLogs.length).toFixed(1);
+      const avgSymptomSeverity = (recentAdhdLogs.reduce((s, l) => s + (l.symptom_severity || 5), 0) / recentAdhdLogs.length).toFixed(1);
+      const avgEnergyLevel = (recentAdhdLogs.reduce((s, l) => s + (l.energy_level || 5), 0) / recentAdhdLogs.length).toFixed(1);
+
+      adhdContext = `
+
+USER HAS ADHD - SPECIAL CONSIDERATIONS:
+- ADHD Type: ${adhdProfile.adhd_type}
+- On medication: ${adhdProfile.is_medicated ? adhdProfile.medication_name : 'No'}
+- Recent focus score: ${avgFocusScore}/10
+- Symptom severity: ${avgSymptomSeverity}/10
+- Energy level: ${avgEnergyLevel}/10
+- Best focus time: ${adhdProfile.best_productivity_time}
+- Typical focus window: ${adhdProfile.typical_focus_window} minutes
+- Energy crash time: ${adhdProfile.energy_crash_time}
+
+ADHD-Aware Coaching Principles:
+- Break tasks into smaller, manageable steps
+- Acknowledge executive function challenges without judgment
+- Suggest dopamine-positive activities for rewards
+- Recommend working in their peak focus windows
+- Consider hyperfocus as an advantage for important tasks
+- Suggest frequent breaks to manage energy crashes
+- Avoid overloading with too many options`;
+    }
+
     // Build contextual prompt for smarter responses
-    const contextPrompt = `You are TAMAI, an intelligent personal assistant. You help users with productivity, wellness, finance, and habit tracking. Be conversational, smart, and provide actionable insights.
+    const contextPrompt = `You are TAMAI, an intelligent personal assistant. You help users with productivity, wellness, finance, and habit tracking. Be conversational, smart, and provide actionable insights.${adhdContext}
 
 Current User Context (use to make smart decisions):
 - Name: ${user.full_name}
@@ -74,11 +108,11 @@ Top Upcoming: ${upcomingTasks.slice(0, 3).map(t => t.title).join(', ') || 'Nothi
 User Message: "${userMessage}"
 
 Respond conversationally. If the user asks about:
-- Tasks: Reference their current workload, suggest prioritization
+- Tasks: Reference their current workload, suggest prioritization${adhdProfile?.has_adhd ? ', break into smaller steps' : ''}
 - Habits: Connect to their mood/energy data, suggest timing
 - Mood/wellness: Suggest habits that correlate with better mood
 - Finance: Reference their spending patterns
-- Productivity: Consider their energy levels and task load
+- Productivity: Consider their energy levels and task load${adhdProfile?.has_adhd ? ', leverage hyperfocus windows' : ''}
 
 Provide specific, actionable advice. If relevant, suggest specific actions they could take right now.`;
 
