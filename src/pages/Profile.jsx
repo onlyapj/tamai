@@ -271,10 +271,10 @@ export default function Profile() {
 
               {/* Theme */}
               <div>
-                <label className="text-sm font-medium text-slate-700 mb-2 flex items-center gap-2">
-                  {user?.theme === 'dark' ? <Moon className="h-4 w-4" /> : <Sun className="h-4 w-4" />}
-                  Appearance
-                </label>
+                <label className={cn("text-sm font-medium mb-2 flex items-center gap-2", user?.theme === 'dark' ? 'text-slate-300' : 'text-slate-700')}>
+                    {user?.theme === 'dark' ? <Moon className="h-4 w-4" /> : <Sun className="h-4 w-4" />}
+                    Appearance
+                  </label>
                 <div className={cn("flex items-center justify-between p-3 rounded-lg", user?.theme === 'dark' ? 'bg-slate-800' : 'bg-slate-50')}>
                   <div className="flex items-center gap-3">
                     <Sun className={cn("h-4 w-4", user?.theme === 'dark' ? 'text-slate-400' : 'text-slate-600')} />
