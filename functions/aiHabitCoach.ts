@@ -55,7 +55,34 @@ Deno.serve(async (req) => {
     const improving = habitStats.filter(h => h.completionRate > 60 && h.currentStreak > 3);
     const struggling = habitStats.filter(h => h.completionRate < 40);
 
-    const coachPrompt = `You are a supportive, personalized AI habit coach. Based on the user's habit data, provide:
+    // Analyze habit-mood correlations
+const habitMoodCorrelations = [];
+for (const habit of habitStats) {
+  const habitCompletions = habitLogs
+    .filter(l => l.habit_id === habits.find(h => h.name === habit.name)?.id)
+    .slice(0, 30);
+  
+  if (habitCompletions.length > 5 && moodEntries.length > 5) {
+    const completionDates = new Set(habitCompletions.map(l => l.date));
+    const completionMoods = moodEntries.filter(m => completionDates.has(m.date));
+    const nonCompletionMoods = moodEntries.filter(m => !completionDates.has(m.date));
+    
+    if (completionMoods.length > 0 && nonCompletionMoods.length > 0) {
+      const completionAvgMood = completionMoods.reduce((s, m) => s + (m.mood_score || 0), 0) / completionMoods.length;
+      const nonCompletionAvgMood = nonCompletionMoods.reduce((s, m) => s + (m.mood_score || 0), 0) / nonCompletionMoods.length;
+      
+      if (completionAvgMood > nonCompletionAvgMood + 0.5) {
+        habitMoodCorrelations.push({
+          habit: habit.name,
+          impact: 'positive',
+          moodDifference: (completionAvgMood - nonCompletionAvgMood).toFixed(1)
+        });
+      }
+    }
+  }
+}
+
+const coachPrompt = `You are a supportive, personalized AI habit coach. Based on the user's habit data, provide:
 
 User Habit Summary:
 - Total habits: ${habits.length}
@@ -66,16 +93,20 @@ User Habit Summary:
 - Recent mood average: ${moodAverage.toFixed(1)}/10
 - Recent energy average: ${energyAverage.toFixed(1)}/10
 - User name: ${user.full_name || 'friend'}
+- Habits that boost mood: ${habitMoodCorrelations.length > 0 ? habitMoodCorrelations.map(c => c.habit).join(', ') : 'analyzing...'}
 
 Detailed habit breakdown:
 ${habitStats.map(h => `- ${h.name} (${h.category}): ${h.completionRate}% completion rate, ${h.currentStreak} day streak, ${h.totalCompletions} total completions`).join('\n')}
 
 Generate a JSON response with:
 1. "encouragement": One brief, warm sentence of genuine encouragement (acknowledge their efforts, even if struggling)
-2. "tips": Array of 2-3 specific, actionable tips based on their data patterns
-3. "nudges": Array of 2-3 gentle, motivational nudges (not preachy) for habits they're struggling with
+2. "focusArea": One specific area to focus on this week
+3. "tips": Array of 2-3 specific, actionable tips based on their data patterns (include what makes them work)
+4. "nudges": Array of 2-3 gentle, motivational nudges (not preachy) for habits they're struggling with
+5. "weeklyGoal": A realistic, specific goal for this week based on their progress
+6. "successStory": One specific positive observation about their habit journey
 
-Focus on positive reinforcement, realistic goals, and genuine wellness support. Be warm and human.`;
+Focus on positive reinforcement, realistic goals, habit-mood connections, and genuine wellness support. Be warm, encouraging, and human.`;
 
     const response = await base44.integrations.Core.InvokeLLM({
       prompt: coachPrompt,
