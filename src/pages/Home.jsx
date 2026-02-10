@@ -18,7 +18,7 @@ import DailyReflection from '../components/dashboard/DailyReflection';
 import TamaiLogo from '../components/common/TamaiLogo';
 import BudgetOverviewWidget from '../components/finance/BudgetOverviewWidget';
 import TutorialOverlay from '../components/onboarding/TutorialOverlay';
-import CoachingDashboard from '../components/health/CoachingDashboard';
+
 import ADHDQuickLog from '../components/adhd/ADHDQuickLog';
 import ADHDTaskView from '../components/adhd/ADHDTaskView';
 import ADHDFocusBooster from '../components/adhd/ADHDFocusBooster';
@@ -33,7 +33,7 @@ export default function Home() {
     const [boosterTrigger, setBoosterTrigger] = useState(null);
     const queryClient = useQueryClient();
 
-    const defaultSectionOrder = ['reflection', 'coaching', 'insights', 'tasks'];
+    const defaultSectionOrder = ['reflection', 'insights', 'tasks'];
     const [sectionOrder, setSectionOrder] = useState(defaultSectionOrder);
     const [isRearrangeMode, setIsRearrangeMode] = useState(false);
 
@@ -291,12 +291,7 @@ export default function Home() {
                           />
                         )}
 
-                        {section === 'coaching' && (
-                          <div className="bg-white rounded-3xl border border-slate-200/60 shadow-sm p-6">
-                            <h3 className="font-semibold text-slate-800 mb-4">Weekly Coaching</h3>
-                            <CoachingDashboard />
-                          </div>
-                        )}
+
 
                         {section === 'insights' && (
                           <div className="grid lg:grid-cols-2 gap-6">
