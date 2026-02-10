@@ -8,6 +8,7 @@ import { Calendar as CalendarIcon, Plus, Bell, Clock, ChevronLeft, ChevronRight,
 import CalendarView from '../components/calendar/CalendarView.jsx';
 import EventForm from '../components/calendar/EventForm.jsx';
 import DaySchedule from '../components/calendar/DaySchedule.jsx';
+import WeeklyView from '../components/calendar/WeeklyView.jsx';
 import GoogleCalendarSync from '../components/calendar/GoogleCalendarSync.jsx';
 import { toast } from 'sonner';
 
