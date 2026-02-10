@@ -9,96 +9,97 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
+    // Fetch data
     const habits = await base44.entities.Habit.list();
     const habitLogs = await base44.entities.HabitLog.list('-date');
     const moodEntries = await base44.entities.MoodEntry.list('-date');
 
-    // Calculate habit-mood correlations
+    if (habitLogs.length < 20 || moodEntries.length < 10) {
+      return Response.json({ correlations: [], habit_interactions: [] });
+    }
+
+    // Calculate mood correlation with each habit
     const correlations = [];
 
     for (const habit of habits) {
-      const habit_logs = habitLogs.filter(log => log.habit_id === habit.id && log.completed);
+      const logs = habitLogs.filter(l => l.habit_id === habit.id).slice(-60);
+      if (logs.length < 10) continue;
 
-      if (habit_logs.length < 5) continue; // Need minimum data
+      // Get mood entries for same date range
+      const logDates = logs.map(l => l.date);
+      const moodsForDates = moodEntries.filter(m => logDates.includes(m.date));
 
-      // Correlate with mood
-      const moodOnHabitDays = moodEntries.filter(mood => {
-        return habit_logs.some(log => log.date === mood.date);
-      });
+      if (moodsForDates.length < 5) continue;
 
-      if (moodOnHabitDays.length > 0) {
-        const avgMoodOnHabitDays = moodOnHabitDays.reduce((sum, m) => sum + (m.mood_score || 0), 0) / moodOnHabitDays.length;
-        const allMoodAvg = moodEntries.reduce((sum, m) => sum + (m.mood_score || 0), 0) / moodEntries.length;
-        const moodCorrelation = (avgMoodOnHabitDays - allMoodAvg) / allMoodAvg;
+      // Calculate correlation with mood score
+      let moodCorrelation = 0;
+      let energyCorrelation = 0;
 
-        if (Math.abs(moodCorrelation) > 0.1) {
-          correlations.push({
-            habit_name: habit.name,
-            correlation_type: 'mood',
-            correlation: Math.min(1, Math.max(-1, moodCorrelation)),
-            description: moodCorrelation > 0
-              ? `Mood improves by ${Math.abs((moodCorrelation * 100).toFixed(0))}% on days you complete this`
-              : `Mood decreases by ${Math.abs((moodCorrelation * 100).toFixed(0))}% on completion days`,
-            sample_size: moodOnHabitDays.length
-          });
-        }
+      for (let i = 0; i < Math.min(logs.length, moodsForDates.length); i++) {
+        const logCompleted = logs[i].completed ? 1 : 0;
+        const mood = moodsForDates[i];
+
+        // Simple correlation calculation
+        moodCorrelation += (logCompleted * mood.mood_score) / (logs.length * 10);
+        energyCorrelation += (logCompleted * (mood.energy_level || 0)) / (logs.length * 10);
       }
 
-      // Correlate with energy
-      const energyOnHabitDays = moodEntries.filter(mood => {
-        return habit_logs.some(log => log.date === mood.date);
-      });
+      // Store correlations
+      if (Math.abs(moodCorrelation) > 0.1) {
+        correlations.push({
+          habit_name: habit.name,
+          correlation_type: 'mood',
+          correlation: Math.min(Math.max(moodCorrelation, -1), 1),
+          description: moodCorrelation > 0 ? 'Improves when habit is done' : 'Decreases when habit is done',
+          samples: moodsForDates.length
+        });
+      }
 
-      if (energyOnHabitDays.length > 0) {
-        const avgEnergyOnHabitDays = energyOnHabitDays.reduce((sum, m) => sum + (m.energy_level || 0), 0) / energyOnHabitDays.length;
-        const allEnergyAvg = moodEntries.reduce((sum, m) => sum + (m.energy_level || 0), 0) / moodEntries.length;
-        const energyCorrelation = (avgEnergyOnHabitDays - allEnergyAvg) / allEnergyAvg;
-
-        if (Math.abs(energyCorrelation) > 0.1) {
-          correlations.push({
-            habit_name: habit.name,
-            correlation_type: 'energy',
-            correlation: Math.min(1, Math.max(-1, energyCorrelation)),
-            description: energyCorrelation > 0
-              ? `Energy increases by ${Math.abs((energyCorrelation * 100).toFixed(0))}% on days you complete this`
-              : `Energy decreases by ${Math.abs((energyCorrelation * 100).toFixed(0))}% on completion days`,
-            sample_size: energyOnHabitDays.length
-          });
-        }
+      if (Math.abs(energyCorrelation) > 0.1) {
+        correlations.push({
+          habit_name: habit.name,
+          correlation_type: 'energy',
+          correlation: Math.min(Math.max(energyCorrelation, -1), 1),
+          description: energyCorrelation > 0 ? 'Boosts energy' : 'Drains energy',
+          samples: moodsForDates.length
+        });
       }
     }
 
-    // Find synergistic habits
+    // Analyze habit interactions
     const habit_interactions = [];
-
     for (let i = 0; i < habits.length; i++) {
       for (let j = i + 1; j < habits.length; j++) {
-        const habit_a_logs = habitLogs.filter(log => log.habit_id === habits[i].id && log.completed);
-        const habit_b_logs = habitLogs.filter(log => log.habit_id === habits[j].id && log.completed);
+        const habit_a = habits[i];
+        const habit_b = habits[j];
 
-        const both_completed = habit_a_logs.filter(log_a =>
-          habit_b_logs.some(log_b => log_b.date === log_a.date)
+        const logsA = habitLogs.filter(l => l.habit_id === habit_a.id).slice(-30);
+        const logsB = habitLogs.filter(l => l.habit_id === habit_b.id).slice(-30);
+
+        if (logsA.length < 5 || logsB.length < 5) continue;
+
+        // Check if both completed on same day
+        const sameDayCompletions = logsA.filter(la =>
+          logsB.some(lb => lb.date === la.date && lb.completed && la.completed)
         ).length;
 
-        if (both_completed > 5) {
-          const synergy = both_completed / Math.max(habit_a_logs.length, habit_b_logs.length);
+        const coOccurrenceRate = sameDayCompletions / Math.min(logsA.length, logsB.length);
 
-          if (synergy > 0.5) {
-            habit_interactions.push({
-              habit_a: habits[i].name,
-              habit_b: habits[j].name,
-              boost: synergy > 0.7,
-              description: `${habits[i].name} & ${habits[j].name} are often done together (${(synergy * 100).toFixed(0)}% co-completion)`,
-              co_completion_rate: synergy
-            });
-          }
+        if (coOccurrenceRate > 0.4) {
+          habit_interactions.push({
+            habit_a: habit_a.name,
+            habit_b: habit_b.name,
+            boost: coOccurrenceRate > 0.6,
+            description: coOccurrenceRate > 0.6 ? 'These habits naturally synergize' : 'Often done together',
+            co_occurrence: (coOccurrenceRate * 100).toFixed(0)
+          });
         }
       }
     }
 
     return Response.json({
       correlations: correlations.sort((a, b) => Math.abs(b.correlation) - Math.abs(a.correlation)),
-      habit_interactions: habit_interactions.sort((a, b) => b.co_completion_rate - a.co_completion_rate)
+      habit_interactions: habit_interactions.sort((a, b) => b.co_occurrence - a.co_occurrence)
     });
   } catch (error) {
     return Response.json({ error: error.message }, { status: 500 });
