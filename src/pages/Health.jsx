@@ -135,6 +135,11 @@ export default function Health() {
               <HealthTrends healthLogs={healthLogs} />
             </motion.div>
           )}
+          {activeTab === 'analytics' && (
+            <motion.div key="analytics" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+              <HabitAnalyticsDashboard />
+            </motion.div>
+          )}
         </AnimatePresence>
 
         {/* Log Form Modal */}
