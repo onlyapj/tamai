@@ -22,6 +22,10 @@ Deno.serve(async (req) => {
 
     let price = null;
     let symbol = ticker.toUpperCase();
+    
+    // Determine target currency from user preference
+    const userCurrency = user?.currency || 'USD';
+    const currencyCode = userCurrency === 'GBP' ? 'gbp' : userCurrency === 'EUR' ? 'eur' : 'usd';
 
     // For crypto, use CoinGecko API (free, no key needed)
     if (type === 'crypto') {
@@ -46,12 +50,12 @@ Deno.serve(async (req) => {
         
         const coinId = cryptoMap[symbol];
         if (coinId) {
-          const url = `https://api.coingecko.com/api/v3/simple/price?ids=${coinId}&vs_currencies=usd`;
+          const url = `https://api.coingecko.com/api/v3/simple/price?ids=${coinId}&vs_currencies=${currencyCode}`;
           const res = await fetch(url);
           const data = await res.json();
           
-          if (data[coinId]) {
-            price = data[coinId].usd;
+          if (data[coinId] && data[coinId][currencyCode]) {
+            price = data[coinId][currencyCode];
           }
         }
       } catch (error) {
