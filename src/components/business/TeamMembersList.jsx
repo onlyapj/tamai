@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { Users, UserPlus, Crown, Loader2, Mail, MoreVertical, Shield, User, Eye, Edit3, Briefcase } from 'lucide-react';
-import { ROLES } from './rolePermissions';
+import { ROLES } from './rolePermissions.js';
 import {
   DropdownMenu,
   DropdownMenuContent,
