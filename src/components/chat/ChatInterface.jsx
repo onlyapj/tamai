@@ -74,10 +74,28 @@ export default function ChatInterface({ onTasksUpdate }) {
     setInput('');
     setIsLoading(true);
     
-    await base44.agents.addMessage(conversation, {
-      role: 'user',
-      content: userMessage
-    });
+    try {
+      // Get contextual insights before sending message
+      const insights = await base44.functions.invoke('aiAssistantChat', {
+        userMessage: userMessage
+      });
+      
+      // Pass insights as metadata for smarter responses
+      await base44.agents.addMessage(conversation, {
+        role: 'user',
+        content: userMessage,
+        metadata: insights.data?.context || {}
+      });
+    } catch (error) {
+      console.error('Error getting context:', error);
+      // Fallback: send message without context
+      await base44.agents.addMessage(conversation, {
+        role: 'user',
+        content: userMessage
+      });
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const handleKeyPress = (e) => {
