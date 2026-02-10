@@ -72,17 +72,7 @@ export default function Layout({ children, currentPageName }) {
       }
     }, [user, isLoading, currentPageName, navigate]);
 
-    useEffect(() => {
-      if (user?.nav_order) {
-        const ordered = user.nav_order
-          .map(name => defaultNavItems.find(item => item.name === name))
-          .filter(Boolean);
-        const newItems = defaultNavItems.filter(
-          item => !user.nav_order.includes(item.name)
-        );
-        setNavItems([...ordered, ...newItems]);
-      }
-    }, [user]);
+
 
     // Show nothing while checking auth or redirecting
     if (!isLoading && !user && currentPageName !== 'Landing') {
