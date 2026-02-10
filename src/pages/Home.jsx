@@ -17,6 +17,7 @@ import DailyReflection from '../components/dashboard/DailyReflection';
 import TamaiLogo from '../components/common/TamaiLogo';
 import BudgetOverviewWidget from '../components/finance/BudgetOverviewWidget';
 import TutorialOverlay from '../components/onboarding/TutorialOverlay';
+import CoachingDashboard from '../components/health/CoachingDashboard';
 
 export default function Home() {
     const [showForm, setShowForm] = useState(false);
