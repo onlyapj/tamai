@@ -102,6 +102,34 @@ export default function Investments() {
     }
   });
 
+  const createTransaction = useMutation({
+    mutationFn: (data) => base44.entities.InvestmentTransaction.create(data),
+    onSuccess: () => {
+      queryClient.invalidateQueries(['investment-transactions']);
+      setSelectedInvestmentForTransaction(null);
+      setEditingTransaction(null);
+      toast.success('Transaction added');
+    }
+  });
+
+  const updateTransaction = useMutation({
+    mutationFn: ({ id, data }) => base44.entities.InvestmentTransaction.update(id, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries(['investment-transactions']);
+      setSelectedInvestmentForTransaction(null);
+      setEditingTransaction(null);
+      toast.success('Transaction updated');
+    }
+  });
+
+  const deleteTransaction = useMutation({
+    mutationFn: (id) => base44.entities.InvestmentTransaction.delete(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries(['investment-transactions']);
+      toast.success('Transaction deleted');
+    }
+  });
+
   const handleSubmit = (data) => {
     if (editingInvestment) {
       updateMutation.mutate({ id: editingInvestment.id, data });
