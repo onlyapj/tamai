@@ -150,8 +150,8 @@ export default function Profile() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-slate-50 flex items-center justify-center">
-        <div className="text-slate-500">Loading...</div>
+      <div className={cn("min-h-screen flex items-center justify-center transition-colors duration-200", "bg-slate-50 text-slate-500")}>
+        <div>Loading...</div>
       </div>
     );
   }
