@@ -114,6 +114,9 @@ Focus on positive reinforcement, realistic goals, habit-mood connections, and ge
         type: 'object',
         properties: {
           encouragement: { type: 'string' },
+          focusArea: { type: 'string' },
+          successStory: { type: 'string' },
+          weeklyGoal: { type: 'string' },
           tips: {
             type: 'array',
             items: {
@@ -143,6 +146,9 @@ Focus on positive reinforcement, realistic goals, habit-mood connections, and ge
     return Response.json({
       success: true,
       encouragement: response.encouragement || '',
+      focusArea: response.focusArea || '',
+      successStory: response.successStory || '',
+      weeklyGoal: response.weeklyGoal || '',
       tips: response.tips || [],
       nudges: response.nudges || [],
       stats: {
@@ -151,7 +157,8 @@ Focus on positive reinforcement, realistic goals, habit-mood connections, and ge
         strugglingCount: struggling.length,
         moodAverage: moodAverage.toFixed(1),
         energyAverage: energyAverage.toFixed(1)
-      }
+      },
+      moodCorrelations: habitMoodCorrelations
     });
   } catch (error) {
     return Response.json({ error: error.message }, { status: 500 });
