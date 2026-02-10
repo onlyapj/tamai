@@ -11,6 +11,7 @@ import MoodTrendChart from '../components/analytics/MoodTrendChart';
 import BudgetAdherenceChart from '../components/analytics/BudgetAdherenceChart';
 import ActivityLevelChart from '../components/analytics/ActivityLevelChart';
 import InsightsPanel from '../components/analytics/InsightsPanel';
+import FinanceOverviewChart from '../components/analytics/FinanceOverviewChart';
 
 export default function Analytics() {
   const [dateRange, setDateRange] = useState('30days');
@@ -123,13 +124,19 @@ export default function Analytics() {
             <MoodTrendChart moods={moods} dateRange={{ start, end }} detailed />
           </TabsContent>
 
-          <TabsContent value="finance" className="mt-6">
-            <BudgetAdherenceChart 
-              transactions={transactions}
-              budgets={budgets}
-              dateRange={{ start, end }}
-              detailed
-            />
+          <TabsContent value="finance" className="mt-6 space-y-6">
+            <div className="grid lg:grid-cols-2 gap-6">
+              <BudgetAdherenceChart 
+                transactions={transactions}
+                budgets={budgets}
+                dateRange={{ start, end }}
+                detailed
+              />
+              <FinanceOverviewChart 
+                transactions={transactions}
+                dateRange={{ start, end }}
+              />
+            </div>
           </TabsContent>
 
           <TabsContent value="health" className="mt-6">

@@ -5,19 +5,37 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { format } from 'date-fns';
-import { X, ArrowUpRight, ArrowDownRight } from 'lucide-react';
+import { X, ArrowUpRight, ArrowDownRight, RefreshCw } from 'lucide-react';
+import { Checkbox } from "@/components/ui/checkbox";
 
 const categories = {
   expense: ['housing', 'food', 'transport', 'utilities', 'entertainment', 'health', 'shopping', 'other'],
   income: ['income', 'investment', 'savings', 'other']
 };
 
+const subCategories = {
+  housing: ['Rent', 'Mortgage', 'Insurance', 'Maintenance', 'Property Tax'],
+  food: ['Groceries', 'Dining Out', 'Coffee', 'Snacks', 'Meal Delivery'],
+  transport: ['Gas', 'Public Transit', 'Parking', 'Ride Share', 'Car Maintenance'],
+  utilities: ['Electric', 'Water', 'Gas', 'Internet', 'Phone', 'Streaming'],
+  entertainment: ['Movies', 'Concerts', 'Gaming', 'Sports', 'Hobbies'],
+  health: ['Medical', 'Dental', 'Pharmacy', 'Gym', 'Wellness'],
+  shopping: ['Clothing', 'Electronics', 'Home Goods', 'Gifts', 'Personal Care'],
+  income: ['Salary', 'Freelance', 'Bonus', 'Refund'],
+  investment: ['Stocks', 'Bonds', 'Crypto', 'Real Estate', 'Dividends'],
+  savings: ['Emergency Fund', 'Retirement', 'Goals'],
+  other: ['Miscellaneous']
+};
+
 export default function AddTransaction({ onSubmit, onCancel, isLoading }) {
   const [type, setType] = useState('expense');
   const [amount, setAmount] = useState('');
   const [category, setCategory] = useState('');
+  const [subCategory, setSubCategory] = useState('');
   const [description, setDescription] = useState('');
   const [date, setDate] = useState(format(new Date(), 'yyyy-MM-dd'));
+  const [recurring, setRecurring] = useState(false);
+  const [recurringPattern, setRecurringPattern] = useState('monthly');
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -26,8 +44,11 @@ export default function AddTransaction({ onSubmit, onCancel, isLoading }) {
       type,
       amount: parseFloat(amount),
       category,
+      sub_category: subCategory,
       description,
-      date
+      date,
+      recurring,
+      recurring_pattern: recurring ? recurringPattern : undefined
     });
   };
 
@@ -99,7 +120,7 @@ export default function AddTransaction({ onSubmit, onCancel, isLoading }) {
           {/* Category */}
           <div>
             <Label className="text-xs text-slate-500">Category</Label>
-            <Select value={category} onValueChange={setCategory} required>
+            <Select value={category} onValueChange={(val) => { setCategory(val); setSubCategory(''); }} required>
               <SelectTrigger className="mt-1">
                 <SelectValue placeholder="Select category" />
               </SelectTrigger>
@@ -112,6 +133,25 @@ export default function AddTransaction({ onSubmit, onCancel, isLoading }) {
               </SelectContent>
             </Select>
           </div>
+
+          {/* Sub-Category */}
+          {category && subCategories[category] && (
+            <div>
+              <Label className="text-xs text-slate-500">Sub-Category (optional)</Label>
+              <Select value={subCategory} onValueChange={setSubCategory}>
+                <SelectTrigger className="mt-1">
+                  <SelectValue placeholder="Select sub-category" />
+                </SelectTrigger>
+                <SelectContent>
+                  {subCategories[category].map(subCat => (
+                    <SelectItem key={subCat} value={subCat}>
+                      {subCat}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          )}
 
           {/* Description */}
           <div>
@@ -134,6 +174,40 @@ export default function AddTransaction({ onSubmit, onCancel, isLoading }) {
               className="mt-1"
             />
           </div>
+
+          {/* Recurring */}
+          <div className="flex items-center gap-3 p-3 bg-slate-50 rounded-xl">
+            <Checkbox 
+              id="recurring" 
+              checked={recurring}
+              onCheckedChange={setRecurring}
+            />
+            <div className="flex-1">
+              <Label htmlFor="recurring" className="text-sm font-medium text-slate-700 cursor-pointer flex items-center gap-2">
+                <RefreshCw className="h-3.5 w-3.5" />
+                Recurring Transaction
+              </Label>
+              <p className="text-xs text-slate-500">Auto-log this regularly</p>
+            </div>
+          </div>
+
+          {recurring && (
+            <div>
+              <Label className="text-xs text-slate-500">Frequency</Label>
+              <Select value={recurringPattern} onValueChange={setRecurringPattern}>
+                <SelectTrigger className="mt-1">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="weekly">Weekly</SelectItem>
+                  <SelectItem value="biweekly">Bi-weekly</SelectItem>
+                  <SelectItem value="monthly">Monthly</SelectItem>
+                  <SelectItem value="quarterly">Quarterly</SelectItem>
+                  <SelectItem value="yearly">Yearly</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          )}
 
           {/* Submit */}
           <div className="flex gap-3 pt-2">

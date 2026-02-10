@@ -2,7 +2,7 @@ import React from 'react';
 import { format } from 'date-fns';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from "@/components/ui/button";
-import { Trash2, ArrowUpRight, ArrowDownRight, Home, Car, Utensils, Zap, Film, Heart, ShoppingBag, PiggyBank, Briefcase, TrendingUp, MoreHorizontal } from 'lucide-react';
+import { Trash2, ArrowUpRight, ArrowDownRight, Home, Car, Utensils, Zap, Film, Heart, ShoppingBag, PiggyBank, Briefcase, TrendingUp, MoreHorizontal, RefreshCw } from 'lucide-react';
 
 const categoryIcons = {
   housing: Home,
@@ -65,10 +65,18 @@ export default function TransactionList({ transactions, onDelete }) {
                       <Icon className="h-4 w-4" />
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="font-medium text-slate-800 truncate">
-                        {transaction.description || transaction.category?.replace('_', ' ')}
+                      <div className="flex items-center gap-2">
+                        <p className="font-medium text-slate-800 truncate">
+                          {transaction.description || transaction.sub_category || transaction.category?.replace('_', ' ')}
+                        </p>
+                        {transaction.recurring && (
+                          <RefreshCw className="h-3 w-3 text-slate-400 flex-shrink-0" />
+                        )}
+                      </div>
+                      <p className="text-xs text-slate-500 capitalize">
+                        {transaction.category?.replace('_', ' ')}
+                        {transaction.sub_category && ` • ${transaction.sub_category}`}
                       </p>
-                      <p className="text-xs text-slate-500 capitalize">{transaction.category?.replace('_', ' ')}</p>
                     </div>
                     <div className="flex items-center gap-2">
                       <div className={`flex items-center gap-1 font-semibold ${isIncome ? 'text-emerald-600' : 'text-slate-800'}`}>
