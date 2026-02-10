@@ -48,6 +48,7 @@ export default function Health() {
   });
 
   const tabs = [
+    { id: 'coaching', label: 'Coach', icon: Sparkles },
     { id: 'today', label: 'Today', icon: Activity },
     { id: 'habits', label: 'Habits', icon: Target },
     { id: 'trends', label: 'Trends', icon: Flame },
