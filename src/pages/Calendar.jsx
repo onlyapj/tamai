@@ -17,6 +17,7 @@ export default function Calendar() {
   const [editingTask, setEditingTask] = useState(null);
   const [currentMonth, setCurrentMonth] = useState(new Date());
   const [showSyncSettings, setShowSyncSettings] = useState(false);
+  const [viewMode, setViewMode] = useState('month'); // 'month' or 'day'
   const queryClient = useQueryClient();
 
   const { data: tasks = [] } = useQuery({
