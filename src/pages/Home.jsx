@@ -5,7 +5,8 @@ import { Link } from 'react-router-dom';
 import { createPageUrl } from '../utils';
 import { motion, AnimatePresence } from 'framer-motion';
 import { format } from 'date-fns';
-import { Plus, Calendar, ListTodo, Sparkles, ChevronRight, Heart, Wallet, Activity, Target, ArrowRight, MessageCircle } from 'lucide-react';
+import { Plus, Calendar, ListTodo, Sparkles, ChevronRight, Heart, Wallet, Activity, Target, ArrowRight, MessageCircle, GripVertical } from 'lucide-react';
+import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import TaskList from '../components/tasks/TaskList';
@@ -31,6 +32,9 @@ export default function Home() {
     const [showFocusBooster, setShowFocusBooster] = useState(false);
     const [boosterTrigger, setBoosterTrigger] = useState(null);
     const queryClient = useQueryClient();
+
+    const defaultSectionOrder = ['reflection', 'coaching', 'insights', 'tasks'];
+    const [sectionOrder, setSectionOrder] = useState(defaultSectionOrder);
 
   const { data: tasks = [], isLoading } = useQuery({
     queryKey: ['tasks'],
@@ -126,6 +130,27 @@ export default function Home() {
     }
   }, [user]);
 
+  // Load saved section order
+  useEffect(() => {
+    if (user?.home_section_order) {
+      setSectionOrder(user.home_section_order);
+    }
+  }, [user]);
+
+  const saveSectionOrder = useMutation({
+    mutationFn: (order) => base44.auth.updateMe({ home_section_order: order }),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['current-user'] })
+  });
+
+  const handleDragEnd = (result) => {
+    if (!result.destination) return;
+    const items = Array.from(sectionOrder);
+    const [reorderedItem] = items.splice(result.source.index, 1);
+    items.splice(result.destination.index, 0, reorderedItem);
+    setSectionOrder(items);
+    saveSectionOrder.mutate(items);
+  };
+
   const { data: transactions = [] } = useQuery({
     queryKey: ['transactions-month'],
     queryFn: async () => {
@@ -217,143 +242,177 @@ export default function Home() {
           ))}
         </div>
 
-        {/* Daily Reflection - Mood Check-in */}
-        {!todayMood && (
-          <DailyReflection 
-            type={reflectionType}
-            existingEntry={todayMood}
-            onComplete={() => queryClient.invalidateQueries(['todayMood'])}
-          />
-        )}
+        <DragDropContext onDragEnd={handleDragEnd}>
+          <Droppable droppableId="home-sections" direction="vertical">
+            {(provided) => (
+              <div
+                ref={provided.innerRef}
+                {...provided.droppableProps}
+                className="space-y-6 mb-6"
+              >
+                {sectionOrder.map((section, index) => (
+                  <Draggable key={section} draggableId={section} index={index}>
+                    {(provided, snapshot) => (
+                      <div
+                        ref={provided.innerRef}
+                        {...provided.draggableProps}
+                        className={`group relative ${snapshot.isDragging ? 'opacity-50' : ''}`}
+                      >
+                        <div
+                          {...provided.dragHandleProps}
+                          className="absolute -left-8 top-4 opacity-0 group-hover:opacity-100 transition-opacity z-10"
+                        >
+                          <GripVertical className="h-5 w-5 text-slate-400" />
+                        </div>
 
-        {/* Coaching Insight Widget */}
-        <div className="mb-6">
-          <div className="bg-white rounded-3xl border border-slate-200/60 shadow-sm p-6">
-            <h3 className="font-semibold text-slate-800 mb-4">Weekly Coaching</h3>
-            <CoachingDashboard />
-          </div>
-        </div>
+                        {section === 'reflection' && !todayMood && (
+                          <DailyReflection 
+                            type={reflectionType}
+                            existingEntry={todayMood}
+                            onComplete={() => queryClient.invalidateQueries({ queryKey: ['todayMood'] })}
+                          />
+                        )}
 
-        {/* Quick Insights Row */}
-        <div className="grid lg:grid-cols-2 gap-6 mb-6">
-          <TopPriorities 
-            tasks={tasks.filter(t => t.due_date === todayStr)} 
-            onToggle={handleToggle}
-          />
-          <BudgetOverviewWidget 
-            budgets={budgets}
-            transactions={transactions}
-            currencySymbol="£"
-          />
-        </div>
+                        {section === 'coaching' && (
+                          <div className="bg-white rounded-3xl border border-slate-200/60 shadow-sm p-6">
+                            <h3 className="font-semibold text-slate-800 mb-4">Weekly Coaching</h3>
+                            <CoachingDashboard />
+                          </div>
+                        )}
 
-        {/* Main Content */}
-        <div className="grid lg:grid-cols-3 gap-6">
-          {/* Tasks Panel */}
-          <div className={showChat ? "lg:col-span-2" : "lg:col-span-3"}>
-            <div className="bg-white rounded-3xl border border-slate-200/60 shadow-sm overflow-hidden">
-              {/* Tabs */}
-              <div className="p-4 border-b border-slate-100">
-                <Tabs value={activeTab} onValueChange={setActiveTab}>
-                  <TabsList className="bg-slate-100/80 p-1">
-                    <TabsTrigger value="today" className="data-[state=active]:bg-white">
-                      <Calendar className="h-4 w-4 mr-2" />
-                      Today
-                    </TabsTrigger>
-                    <TabsTrigger value="upcoming" className="data-[state=active]:bg-white">
-                      <ChevronRight className="h-4 w-4 mr-2" />
-                      Upcoming
-                    </TabsTrigger>
-                    <TabsTrigger value="all" className="data-[state=active]:bg-white">
-                      <ListTodo className="h-4 w-4 mr-2" />
-                      All
-                    </TabsTrigger>
-                    <TabsTrigger value="completed" className="data-[state=active]:bg-white text-emerald-600">
-                      Completed
-                    </TabsTrigger>
-                  </TabsList>
-                </Tabs>
-              </div>
+                        {section === 'insights' && (
+                          <div className="grid lg:grid-cols-2 gap-6">
+                            <TopPriorities 
+                              tasks={tasks.filter(t => t.due_date === todayStr)} 
+                              onToggle={handleToggle}
+                            />
+                            <BudgetOverviewWidget 
+                              budgets={budgets}
+                              transactions={transactions}
+                              currencySymbol="£"
+                            />
+                          </div>
+                        )}
 
-              {/* Form */}
-              <AnimatePresence>
-                {showForm && (
-                  <div className="p-4 border-b border-slate-100">
-                    <TaskForm
-                      task={editingTask}
-                      onSubmit={handleSubmit}
-                      onCancel={() => { setShowForm(false); setEditingTask(null); }}
-                    />
-                  </div>
-                )}
-              </AnimatePresence>
+                        {section === 'tasks' && (
+                          <div className="grid lg:grid-cols-3 gap-6">
+                            {/* Tasks Panel */}
+                            <div className={showChat ? "lg:col-span-2" : "lg:col-span-3"}>
+                              <div className="bg-white rounded-3xl border border-slate-200/60 shadow-sm overflow-hidden">
+                                {/* Tabs */}
+                                <div className="p-4 border-b border-slate-100">
+                                  <Tabs value={activeTab} onValueChange={setActiveTab}>
+                                    <TabsList className="bg-slate-100/80 p-1">
+                                      <TabsTrigger value="today" className="data-[state=active]:bg-white">
+                                        <Calendar className="h-4 w-4 mr-2" />
+                                        Today
+                                      </TabsTrigger>
+                                      <TabsTrigger value="upcoming" className="data-[state=active]:bg-white">
+                                        <ChevronRight className="h-4 w-4 mr-2" />
+                                        Upcoming
+                                      </TabsTrigger>
+                                      <TabsTrigger value="all" className="data-[state=active]:bg-white">
+                                        <ListTodo className="h-4 w-4 mr-2" />
+                                        All
+                                      </TabsTrigger>
+                                      <TabsTrigger value="completed" className="data-[state=active]:bg-white text-emerald-600">
+                                        Completed
+                                      </TabsTrigger>
+                                    </TabsList>
+                                  </Tabs>
+                                </div>
 
-              {/* Task List */}
-              <div className="p-4">
-                {isLoading ? (
-                  <div className="flex items-center justify-center py-12">
-                    <div className="h-8 w-8 border-2 border-indigo-600 border-t-transparent rounded-full animate-spin" />
-                  </div>
-                ) : adhdProfile?.has_adhd ? (
-                  <div className="space-y-3">
-                    {filteredTasks.length > 0 ? (
-                      filteredTasks.map((task) => (
-                        <ADHDTaskView
-                          key={task.id}
-                          task={task}
-                          onToggle={handleToggle}
-                          onEdit={handleEdit}
-                        />
-                      ))
-                    ) : (
-                      <div className="text-center py-8 text-slate-500">
-                        {activeTab === 'today' ? "No tasks for today" :
-                        activeTab === 'upcoming' ? "No upcoming tasks" :
-                        activeTab === 'completed' ? "No completed tasks yet" :
-                        "No tasks yet"}
+                                {/* Form */}
+                                <AnimatePresence>
+                                  {showForm && (
+                                    <div className="p-4 border-b border-slate-100">
+                                      <TaskForm
+                                        task={editingTask}
+                                        onSubmit={handleSubmit}
+                                        onCancel={() => { setShowForm(false); setEditingTask(null); }}
+                                      />
+                                    </div>
+                                  )}
+                                </AnimatePresence>
+
+                                {/* Task List */}
+                                <div className="p-4">
+                                  {isLoading ? (
+                                    <div className="flex items-center justify-center py-12">
+                                      <div className="h-8 w-8 border-2 border-indigo-600 border-t-transparent rounded-full animate-spin" />
+                                    </div>
+                                  ) : adhdProfile?.has_adhd ? (
+                                    <div className="space-y-3">
+                                      {filteredTasks.length > 0 ? (
+                                        filteredTasks.map((task) => (
+                                          <ADHDTaskView
+                                            key={task.id}
+                                            task={task}
+                                            onToggle={handleToggle}
+                                            onEdit={handleEdit}
+                                          />
+                                        ))
+                                      ) : (
+                                        <div className="text-center py-8 text-slate-500">
+                                          {activeTab === 'today' ? "No tasks for today" :
+                                          activeTab === 'upcoming' ? "No upcoming tasks" :
+                                          activeTab === 'completed' ? "No completed tasks yet" :
+                                          "No tasks yet"}
+                                        </div>
+                                      )}
+                                    </div>
+                                  ) : (
+                                    <TaskList
+                                      tasks={filteredTasks}
+                                      onToggle={handleToggle}
+                                      onDelete={(task) => deleteMutation.mutate(task.id)}
+                                      onEdit={handleEdit}
+                                      emptyMessage={
+                                        activeTab === 'today' ? "No tasks for today" :
+                                        activeTab === 'upcoming' ? "No upcoming tasks" :
+                                        activeTab === 'completed' ? "No completed tasks yet" :
+                                        "No tasks yet"
+                                      }
+                                    />
+                                  )}
+                                </div>
+                              </div>
+
+                              {/* Timeline for Today */}
+                              {activeTab === 'today' && (
+                                <div className="mt-6 bg-white rounded-3xl border border-slate-200/60 shadow-sm p-6">
+                                  <h3 className="font-semibold text-slate-800 mb-4">Today's Schedule</h3>
+                                  <DayTimeline tasks={tasks.filter(t => t.due_date === todayStr)} />
+                                </div>
+                              )}
+                            </div>
+
+                            {/* Chat Panel */}
+                            <AnimatePresence>
+                              {showChat && (
+                                <motion.div
+                                  initial={{ opacity: 0, x: 20 }}
+                                  animate={{ opacity: 1, x: 0 }}
+                                  exit={{ opacity: 0, x: 20 }}
+                                  className="lg:col-span-1 h-[600px]"
+                                >
+                                  <ChatInterface onTasksUpdate={() => queryClient.invalidateQueries({ queryKey: ['tasks'] })} />
+                                </motion.div>
+                              )}
+                            </AnimatePresence>
+                          </div>
+                        )}
                       </div>
                     )}
-                  </div>
-                ) : (
-                  <TaskList
-                    tasks={filteredTasks}
-                    onToggle={handleToggle}
-                    onDelete={(task) => deleteMutation.mutate(task.id)}
-                    onEdit={handleEdit}
-                    emptyMessage={
-                      activeTab === 'today' ? "No tasks for today" :
-                      activeTab === 'upcoming' ? "No upcoming tasks" :
-                      activeTab === 'completed' ? "No completed tasks yet" :
-                      "No tasks yet"
-                    }
-                  />
-                )}
-              </div>
-            </div>
-
-            {/* Timeline for Today */}
-            {activeTab === 'today' && (
-              <div className="mt-6 bg-white rounded-3xl border border-slate-200/60 shadow-sm p-6">
-                <h3 className="font-semibold text-slate-800 mb-4">Today's Schedule</h3>
-                <DayTimeline tasks={tasks.filter(t => t.due_date === todayStr)} />
+                  </Draggable>
+                ))}
+                {provided.placeholder}
               </div>
             )}
-          </div>
+          </Droppable>
+        </DragDropContext>
 
-          {/* Chat Panel */}
-          <AnimatePresence>
-            {showChat && (
-              <motion.div
-                initial={{ opacity: 0, x: 20 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: 20 }}
-                className="lg:col-span-1 h-[600px]"
-              >
-                <ChatInterface onTasksUpdate={() => queryClient.invalidateQueries({ queryKey: ['tasks'] })} />
-              </motion.div>
-            )}
-          </AnimatePresence>
-        </div>
+
 
         {/* ADHD Quick Log Widget */}
         {adhdProfile?.has_adhd && <ADHDQuickLog />}
