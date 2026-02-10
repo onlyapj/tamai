@@ -313,10 +313,10 @@ export default function Profile() {
 
               {/* Currency */}
               <div>
-                <label className="text-sm font-medium text-slate-700 mb-2 flex items-center gap-2">
-                  <DollarSign className="h-4 w-4" />
-                  Currency
-                </label>
+                <label className={cn("text-sm font-medium mb-2 flex items-center gap-2", user?.theme === 'dark' ? 'text-slate-300' : 'text-slate-700')}>
+                    <DollarSign className="h-4 w-4" />
+                    Currency
+                  </label>
                 <Select
                   value={user?.currency || 'USD'}
                   onValueChange={(value) => updateCurrencyMutation.mutate(value)}
