@@ -54,14 +54,14 @@ import Finance from './pages/Finance';
 import Goals from './pages/Goals';
 import Health from './pages/Health';
 import Home from './pages/Home';
+import Investments from './pages/Investments';
 import Mindfulness from './pages/Mindfulness';
 import NotificationSettings from './pages/NotificationSettings';
 import Profile from './pages/Profile';
+import RecurringTransactions from './pages/RecurringTransactions';
 import TrueLayerCallback from './pages/TrueLayerCallback';
 import UserManagement from './pages/UserManagement';
 import Wearable from './pages/Wearable';
-import RecurringTransactions from './pages/RecurringTransactions';
-import Investments from './pages/Investments';
 import __Layout from './Layout.jsx';
 
 
@@ -73,14 +73,14 @@ export const PAGES = {
     "Goals": Goals,
     "Health": Health,
     "Home": Home,
+    "Investments": Investments,
     "Mindfulness": Mindfulness,
     "NotificationSettings": NotificationSettings,
     "Profile": Profile,
+    "RecurringTransactions": RecurringTransactions,
     "TrueLayerCallback": TrueLayerCallback,
     "UserManagement": UserManagement,
     "Wearable": Wearable,
-    "RecurringTransactions": RecurringTransactions,
-    "Investments": Investments,
 }
 
 export const pagesConfig = {

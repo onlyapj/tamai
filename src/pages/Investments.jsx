@@ -45,6 +45,18 @@ export default function Investments() {
     return unsubscribe;
   }, [queryClient]);
 
+  // Real-time price updates every second
+  useEffect(() => {
+    const interval = setInterval(async () => {
+      try {
+        await base44.functions.invoke('updateInvestmentValues', {});
+      } catch (error) {
+        // Silent fail on background updates
+      }
+    }, 1000);
+    return () => clearInterval(interval);
+  }, []);
+
   const currencySymbol = {
     USD: '$', EUR: '€', GBP: '£', JPY: '¥', CAD: '$', AUD: '$', CHF: 'Fr', CNY: '¥', INR: '₹'
   }[user?.currency || 'USD'] || '$';
