@@ -46,6 +46,9 @@ export default function Investments() {
     return unsubscribe;
   }, [queryClient]);
 
+  // Poll prices every 5 seconds
+  usePricePoller(investments, true, 5000);
+
   const currencySymbol = {
     USD: '$', EUR: '€', GBP: '£', JPY: '¥', CAD: '$', AUD: '$', CHF: 'Fr', CNY: '¥', INR: '₹'
   }[user?.currency || 'USD'] || '$';
