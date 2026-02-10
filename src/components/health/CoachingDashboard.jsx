@@ -1,14 +1,17 @@
 import React, { useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Sparkles, Target, Lightbulb, Zap, Heart, TrendingUp, RefreshCw, Award } from 'lucide-react';
+import { Sparkles, Target, Lightbulb, Zap, Heart, TrendingUp, RefreshCw, Award, Plus } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 export default function CoachingDashboard() {
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [expandedSection, setExpandedSection] = useState('focus');
+  const [showHabitForm, setShowHabitForm] = useState(false);
+  const [habitName, setHabitName] = useState('');
+  const queryClient = useQueryClient();
 
   const { data: coaching, isLoading, error, refetch } = useQuery({
     queryKey: ['habitCoach'],
@@ -23,6 +26,21 @@ export default function CoachingDashboard() {
     await refetch();
     setIsRefreshing(false);
   };
+
+  const createHabitMutation = useMutation({
+    mutationFn: (name) => base44.entities.Habit.create({
+      name,
+      category: 'health',
+      frequency: 'daily',
+      target_count: 1,
+      active: true
+    }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['habitCoach'] });
+      setShowHabitForm(false);
+      setHabitName('');
+    }
+  });
 
   if (isLoading) {
     return (
@@ -39,6 +57,51 @@ export default function CoachingDashboard() {
       <Card className="bg-gradient-to-br from-violet-50 to-purple-50 border-violet-200">
         <CardContent className="pt-6">
           <p className="text-slate-600 text-center py-4">{coaching?.message || error?.message || 'Create habits to unlock personalized coaching!'}</p>
+          
+          {!showHabitForm ? (
+            <div className="flex justify-center mt-4">
+              <Button
+                onClick={() => setShowHabitForm(true)}
+                className="bg-violet-600 hover:bg-violet-700 text-white"
+              >
+                <Plus className="h-4 w-4 mr-2" />
+                Create Your First Habit
+              </Button>
+            </div>
+          ) : (
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="mt-4 space-y-3"
+            >
+              <input
+                type="text"
+                placeholder="e.g., Morning meditation, 30-min workout..."
+                value={habitName}
+                onChange={(e) => setHabitName(e.target.value)}
+                className="w-full px-3 py-2 border border-violet-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-600"
+              />
+              <div className="flex gap-2">
+                <Button
+                  onClick={() => createHabitMutation.mutate(habitName)}
+                  disabled={!habitName.trim() || createHabitMutation.isPending}
+                  className="flex-1 bg-violet-600 hover:bg-violet-700"
+                >
+                  {createHabitMutation.isPending ? 'Creating...' : 'Create'}
+                </Button>
+                <Button
+                  onClick={() => {
+                    setShowHabitForm(false);
+                    setHabitName('');
+                  }}
+                  variant="outline"
+                  className="flex-1"
+                >
+                  Cancel
+                </Button>
+              </div>
+            </motion.div>
+          )}
         </CardContent>
       </Card>
     );
