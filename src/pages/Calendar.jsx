@@ -4,7 +4,7 @@ import { base44 } from '@/api/base44Client';
 import { format, startOfMonth, endOfMonth, isSameDay, parseISO, addMinutes, isBefore } from 'date-fns';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from "@/components/ui/button";
-import { Calendar as CalendarIcon, Plus, Bell, Clock, ChevronLeft, ChevronRight, Settings } from 'lucide-react';
+import { Calendar as CalendarIcon, Plus, Bell, Clock, ChevronLeft, ChevronRight, Settings, LayoutGrid, ListIcon } from 'lucide-react';
 import CalendarView from '../components/calendar/CalendarView.jsx';
 import EventForm from '../components/calendar/EventForm.jsx';
 import DaySchedule from '../components/calendar/DaySchedule.jsx';
