@@ -6,7 +6,6 @@ import { Button } from "@/components/ui/button";
 import { Plus, Target, CheckCircle2, Clock, Sparkles } from 'lucide-react';
 import GoalCard from '@/components/goals/GoalCard.jsx';
 import GoalForm from '@/components/goals/GoalForm.jsx';
-import CoachingDashboard from '@/components/health/CoachingDashboard.jsx';
 
 export default function Goals() {
   const [showForm, setShowForm] = useState(false);
@@ -69,12 +68,6 @@ export default function Goals() {
             <Plus className="h-4 w-4 mr-2" />
             New Goal
           </Button>
-        </div>
-
-        {/* Weekly Coaching */}
-        <div className="mb-8 bg-white rounded-3xl border border-slate-200/60 shadow-sm p-6">
-          <h2 className="font-semibold text-slate-800 mb-4">Weekly Coaching</h2>
-          <CoachingDashboard />
         </div>
 
         {/* Stats */}
