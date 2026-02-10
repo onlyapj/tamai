@@ -1,12 +1,14 @@
-import React, { useState } from 'react';
-import { motion } from 'framer-motion';
+import React, { useState, useEffect, useMemo } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { format } from 'date-fns';
-import { X, ArrowUpRight, ArrowDownRight, RefreshCw } from 'lucide-react';
+import { X, ArrowUpRight, ArrowDownRight, RefreshCw, Sparkles } from 'lucide-react';
 import { Checkbox } from "@/components/ui/checkbox";
+import { base44 } from '@/api/base44Client';
+import { useQuery } from '@tanstack/react-query';
 
 const categories = {
   expense: ['housing', 'food', 'transport', 'utilities', 'entertainment', 'health', 'shopping', 'other'],
@@ -36,6 +38,93 @@ export default function AddTransaction({ onSubmit, onCancel, isLoading }) {
   const [date, setDate] = useState(format(new Date(), 'yyyy-MM-dd'));
   const [recurring, setRecurring] = useState(false);
   const [recurringPattern, setRecurringPattern] = useState('monthly');
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const [aiSuggestion, setAiSuggestion] = useState(null);
+  const [loadingAI, setLoadingAI] = useState(false);
+
+  // Fetch past transactions for autocomplete
+  const { data: transactions = [] } = useQuery({
+    queryKey: ['transactions'],
+    queryFn: () => base44.entities.Transaction.list('-date', 100)
+  });
+
+  // Get unique descriptions/payees
+  const pastDescriptions = useMemo(() => {
+    const unique = [...new Set(transactions.map(t => t.description).filter(Boolean))];
+    return unique.sort();
+  }, [transactions]);
+
+  // Filter suggestions based on input
+  const filteredSuggestions = useMemo(() => {
+    if (!description || description.length < 2) return [];
+    return pastDescriptions
+      .filter(d => d.toLowerCase().includes(description.toLowerCase()))
+      .slice(0, 5);
+  }, [description, pastDescriptions]);
+
+  // Get AI suggestion when description changes
+  useEffect(() => {
+    if (description && description.length >= 3 && !category) {
+      const timer = setTimeout(async () => {
+        setLoadingAI(true);
+        try {
+          const { data } = await base44.integrations.Core.InvokeLLM({
+            prompt: `Based on this transaction description: "${description}", suggest the most likely category and sub-category from these options:
+
+Categories: housing, food, transport, utilities, entertainment, health, shopping, income, investment, savings, other
+
+Sub-categories by category:
+- housing: Rent, Mortgage, Insurance, Maintenance, Property Tax
+- food: Groceries, Dining Out, Coffee, Snacks, Meal Delivery
+- transport: Gas, Public Transit, Parking, Ride Share, Car Maintenance
+- utilities: Electric, Water, Gas, Internet, Phone, Streaming
+- entertainment: Movies, Concerts, Gaming, Sports, Hobbies
+- health: Medical, Dental, Pharmacy, Gym, Wellness
+- shopping: Clothing, Electronics, Home Goods, Gifts, Personal Care
+- income: Salary, Freelance, Bonus, Refund
+- investment: Stocks, Bonds, Crypto, Real Estate, Dividends
+- savings: Emergency Fund, Retirement, Goals
+- other: Miscellaneous
+
+Return only the category and sub-category.`,
+            response_json_schema: {
+              type: "object",
+              properties: {
+                category: { type: "string" },
+                sub_category: { type: "string" }
+              }
+            }
+          });
+          setAiSuggestion(data);
+        } catch (error) {
+          console.error('AI suggestion failed:', error);
+        }
+        setLoadingAI(false);
+      }, 800);
+      return () => clearTimeout(timer);
+    }
+  }, [description]);
+
+  const applySuggestion = () => {
+    if (aiSuggestion) {
+      setCategory(aiSuggestion.category);
+      setSubCategory(aiSuggestion.sub_category);
+      setAiSuggestion(null);
+    }
+  };
+
+  const selectSuggestion = (suggested) => {
+    setDescription(suggested);
+    setShowSuggestions(false);
+    
+    // Find matching transaction and auto-fill
+    const match = transactions.find(t => t.description === suggested);
+    if (match) {
+      setCategory(match.category);
+      setSubCategory(match.sub_category || '');
+      if (match.amount) setAmount(match.amount.toString());
+    }
+  };
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -153,15 +242,76 @@ export default function AddTransaction({ onSubmit, onCancel, isLoading }) {
             </div>
           )}
 
-          {/* Description */}
-          <div>
+          {/* Description with autocomplete */}
+          <div className="relative">
             <Label className="text-xs text-slate-500">Description (optional)</Label>
             <Input
               value={description}
-              onChange={(e) => setDescription(e.target.value)}
+              onChange={(e) => {
+                setDescription(e.target.value);
+                setShowSuggestions(true);
+              }}
+              onFocus={() => setShowSuggestions(true)}
               placeholder="What was this for?"
               className="mt-1"
             />
+            
+            {/* Autocomplete dropdown */}
+            <AnimatePresence>
+              {showSuggestions && filteredSuggestions.length > 0 && (
+                <motion.div
+                  initial={{ opacity: 0, y: -10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -10 }}
+                  className="absolute z-10 w-full mt-1 bg-white border border-slate-200 rounded-xl shadow-lg overflow-hidden"
+                >
+                  {filteredSuggestions.map((suggestion, idx) => (
+                    <button
+                      key={idx}
+                      type="button"
+                      onClick={() => selectSuggestion(suggestion)}
+                      className="w-full text-left px-3 py-2 text-sm hover:bg-slate-50 transition-colors"
+                    >
+                      {suggestion}
+                    </button>
+                  ))}
+                </motion.div>
+              )}
+            </AnimatePresence>
+
+            {/* AI Category Suggestion */}
+            <AnimatePresence>
+              {aiSuggestion && !category && (
+                <motion.button
+                  type="button"
+                  initial={{ opacity: 0, y: -10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0 }}
+                  onClick={applySuggestion}
+                  className="mt-2 w-full flex items-center gap-2 p-2.5 bg-gradient-to-r from-purple-50 to-blue-50 border border-purple-200 rounded-xl text-xs text-left hover:border-purple-300 transition-colors"
+                >
+                  <Sparkles className="h-3.5 w-3.5 text-purple-600 flex-shrink-0" />
+                  <div className="flex-1">
+                    <span className="text-slate-700">AI suggests: </span>
+                    <span className="font-medium text-purple-700">
+                      {aiSuggestion.category}
+                      {aiSuggestion.sub_category && ` → ${aiSuggestion.sub_category}`}
+                    </span>
+                  </div>
+                  <span className="text-purple-600 text-xs">Apply</span>
+                </motion.button>
+              )}
+              {loadingAI && !aiSuggestion && (
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  className="mt-2 flex items-center gap-2 text-xs text-slate-500"
+                >
+                  <Sparkles className="h-3.5 w-3.5 animate-pulse" />
+                  Getting smart suggestions...
+                </motion.div>
+              )}
+            </AnimatePresence>
           </div>
 
           {/* Date */}
