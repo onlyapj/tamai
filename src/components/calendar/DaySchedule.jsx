@@ -33,7 +33,7 @@ export default function DaySchedule({ date, tasks, onEdit, onDelete, onToggle, f
           <p className="text-slate-400">No events scheduled</p>
         </div>
       ) : (
-        <div className="space-y-3 max-h-[600px] overflow-y-auto">
+        <div className={cn("space-y-3", fullScreen ? "max-h-screen overflow-y-auto" : "max-h-[600px] overflow-y-auto")}>
           <AnimatePresence>
             {sortedTasks.map((task) => (
               <motion.div
