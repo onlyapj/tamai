@@ -287,6 +287,45 @@ export default function Landing() {
         </div>
       </footer>
 
+      {/* Account Type Selection Modal */}
+      <AnimatePresence>
+        {selectedAccountType && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4"
+            onClick={() => setSelectedAccountType(null)}
+          >
+            <motion.div
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.9, opacity: 0 }}
+              className="bg-white rounded-2xl max-w-md w-full p-8"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <h2 className="text-2xl font-bold text-slate-900 mb-2">
+                {selectedAccountType === 'individual' ? 'Welcome to TAMAI' : 'Business Account'}
+              </h2>
+              <p className="text-slate-600 mb-6">
+                {selectedAccountType === 'individual' 
+                  ? 'Get started with your personal productivity assistant.'
+                  : 'Transform your team\'s productivity with AI-powered collaboration.'}
+              </p>
+              
+              <Button 
+                size="lg" 
+                className="w-full bg-indigo-600 hover:bg-indigo-700"
+                onClick={() => base44.auth.redirectToLogin(createPageUrl('Home'))}
+              >
+                Continue to Sign Up
+                <ArrowRight className="ml-2 h-4 w-4" />
+              </Button>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       <style>{`
         @keyframes blob {
           0%, 100% { transform: translate(0, 0) scale(1); }
