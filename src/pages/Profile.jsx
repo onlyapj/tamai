@@ -53,6 +53,26 @@ export default function Profile() {
     }
   });
 
+  const [newOrgName, setNewOrgName] = useState('');
+  const [newOrgDescription, setNewOrgDescription] = useState('');
+  const [showCreateOrgForm, setShowCreateOrgForm] = useState(false);
+
+  const createOrganizationMutation = useMutation({
+    mutationFn: (orgData) => base44.entities.Organization.create({
+      ...orgData,
+      owner_email: user.email,
+      member_count: 1
+    }),
+    onSuccess: (newOrg) => {
+      queryClient.invalidateQueries(['user-organizations']);
+      selectOrganizationMutation.mutate(newOrg.id);
+      setNewOrgName('');
+      setNewOrgDescription('');
+      setShowCreateOrgForm(false);
+      toast.success('Organization created and selected');
+    }
+  });
+
   const updateThemeMutation = useMutation({
     mutationFn: (theme) => base44.auth.updateMe({ theme }),
     onSuccess: (_, theme) => {
