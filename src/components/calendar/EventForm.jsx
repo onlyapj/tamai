@@ -182,23 +182,30 @@ export default function EventForm({ task, defaultDate, onSubmit, onCancel, isLoa
           </div>
 
           {formData.recurring && (
-            <div>
-              <Label htmlFor="recurring_pattern">Repeat Pattern</Label>
-              <Select
-                value={formData.recurring_pattern}
-                onValueChange={(value) => setFormData({ ...formData, recurring_pattern: value })}
-              >
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="weekly">Weekly</SelectItem>
-                  <SelectItem value="biweekly">Bi-weekly</SelectItem>
-                  <SelectItem value="monthly">Monthly</SelectItem>
-                  <SelectItem value="quarterly">Quarterly</SelectItem>
-                  <SelectItem value="yearly">Yearly</SelectItem>
-                </SelectContent>
-              </Select>
+            <div className="space-y-3">
+              <div>
+                <Label htmlFor="recurring_pattern">Repeat Pattern</Label>
+                <Select
+                  value={formData.recurring_pattern}
+                  onValueChange={(value) => setFormData({ ...formData, recurring_pattern: value })}
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="weekly">Weekly</SelectItem>
+                    <SelectItem value="biweekly">Bi-weekly</SelectItem>
+                    <SelectItem value="monthly">Monthly</SelectItem>
+                    <SelectItem value="quarterly">Quarterly</SelectItem>
+                    <SelectItem value="yearly">Yearly</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+                <p className="text-xs text-blue-700">
+                  💡 This event will repeat {formData.recurring_pattern} starting from {format(parseISO(formData.due_date), 'MMM d, yyyy')}
+                </p>
+              </div>
             </div>
           )}
 
