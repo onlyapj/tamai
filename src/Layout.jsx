@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { createPageUrl } from './utils';
 import { LayoutDashboard, Heart, Wallet, Activity, Target, CalendarDays, Watch, User, BarChart3 } from 'lucide-react';
 import NotificationBell from './components/notifications/NotificationBell';
