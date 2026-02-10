@@ -140,6 +140,22 @@ export default function Finance() {
           </motion.div>
         </div>
 
+        {/* Quick Link to Recurring */}
+        <Link to={createPageUrl('RecurringTransactions')}>
+          <div className="bg-gradient-to-r from-emerald-500 to-teal-500 rounded-2xl p-4 mb-6 text-white flex items-center justify-between hover:shadow-lg transition-shadow">
+            <div className="flex items-center gap-3">
+              <div className="bg-white/20 rounded-xl p-2">
+                <RefreshCw className="h-5 w-5" />
+              </div>
+              <div>
+                <p className="font-semibold">Recurring Transactions</p>
+                <p className="text-xs text-emerald-50">Manage automatic payments</p>
+              </div>
+            </div>
+            <ArrowUpRight className="h-5 w-5" />
+          </div>
+        </Link>
+
         {/* Tabs */}
         <div className="flex gap-2 mb-6 bg-white/60 p-1.5 rounded-2xl border border-slate-200/60">
           {tabs.map(tab => (

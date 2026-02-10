@@ -2,9 +2,9 @@ import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, RefreshCw, Plus } from 'lucide-react';
+import { ArrowLeft, Plus, RefreshCw, Pause, Play } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import { createPageUrl } from '../utils';
+import { createPageUrl } from './utils';
 import RecurringTransactionCard from '@/components/finance/RecurringTransactionCard';
 import EditRecurringModal from '@/components/finance/EditRecurringModal';
 import { AnimatePresence } from 'framer-motion';
@@ -18,15 +18,7 @@ export default function RecurringTransactions() {
     queryFn: () => base44.auth.me()
   });
 
-  const { data: recurringTransactions = [] } = useQuery({
-    queryKey: ['recurring-transactions'],
-    queryFn: async () => {
-      const all = await base44.entities.Transaction.filter({ recurring: true });
-      return all.sort((a, b) => new Date(a.next_occurrence || a.date) - new Date(b.next_occurrence || b.date));
-    }
-  });
-
-  const { data: allTransactions = [] } = useQuery({
+  const { data: transactions = [] } = useQuery({
     queryKey: ['transactions'],
     queryFn: () => base44.entities.Transaction.list('-date', 500)
   });
@@ -35,85 +27,64 @@ export default function RecurringTransactions() {
     USD: '$', EUR: '€', GBP: '£', JPY: '¥', CAD: '$', AUD: '$', CHF: 'Fr', CNY: '¥', INR: '₹'
   }[user?.currency || 'USD'] || '$';
 
-  const togglePause = useMutation({
-    mutationFn: async ({ id, isPaused }) => {
-      await base44.entities.Transaction.update(id, { 
-        recurring_paused: !isPaused 
-      });
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries(['recurring-transactions']);
-      queryClient.invalidateQueries(['transactions']);
-    }
+  const recurringTransactions = transactions.filter(t => t.recurring);
+  const activeRecurring = recurringTransactions.filter(t => !t.paused);
+  const pausedRecurring = recurringTransactions.filter(t => t.paused);
+
+  const togglePauseMutation = useMutation({
+    mutationFn: ({ id, paused }) => base44.entities.Transaction.update(id, { paused: !paused }),
+    onSuccess: () => queryClient.invalidateQueries(['transactions'])
   });
 
-  const deleteRecurring = useMutation({
-    mutationFn: async ({ id, applyTo }) => {
-      if (applyTo === 'all') {
-        // Find all related transactions (same description, category, amount, recurring pattern)
-        const template = recurringTransactions.find(t => t.id === id);
-        const related = allTransactions.filter(t => 
-          t.description === template.description &&
-          t.category === template.category &&
-          t.amount === template.amount &&
-          t.recurring_pattern === template.recurring_pattern
-        );
-        
-        await Promise.all(related.map(t => base44.entities.Transaction.delete(t.id)));
-      } else if (applyTo === 'future') {
-        const template = recurringTransactions.find(t => t.id === id);
-        const related = allTransactions.filter(t => 
-          t.description === template.description &&
-          t.category === template.category &&
-          t.amount === template.amount &&
-          t.recurring_pattern === template.recurring_pattern &&
-          new Date(t.date) >= new Date()
-        );
-        
-        await Promise.all(related.map(t => base44.entities.Transaction.delete(t.id)));
-      } else {
-        await base44.entities.Transaction.delete(id);
-      }
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries(['recurring-transactions']);
-      queryClient.invalidateQueries(['transactions']);
-    }
+  const deleteMutation = useMutation({
+    mutationFn: (id) => base44.entities.Transaction.delete(id),
+    onSuccess: () => queryClient.invalidateQueries(['transactions'])
   });
-
-  const activeRecurring = recurringTransactions.filter(t => !t.recurring_paused);
-  const pausedRecurring = recurringTransactions.filter(t => t.recurring_paused);
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-emerald-50 to-white p-4 sm:p-6 lg:p-8">
       <div className="max-w-4xl mx-auto">
         {/* Header */}
-        <div className="flex items-center gap-4 mb-6">
-          <Link to={createPageUrl('Finance')}>
-            <Button variant="ghost" size="icon" className="rounded-full">
-              <ArrowLeft className="h-5 w-5" />
-            </Button>
-          </Link>
-          <div className="flex-1">
-            <h1 className="text-2xl font-bold text-slate-900">Recurring Transactions</h1>
-            <p className="text-slate-500 text-sm">Manage your automatic income & expenses</p>
+        <div className="flex items-center justify-between mb-6">
+          <div className="flex items-center gap-3">
+            <Link to={createPageUrl('Finance')}>
+              <Button variant="ghost" size="icon" className="rounded-full">
+                <ArrowLeft className="h-5 w-5" />
+              </Button>
+            </Link>
+            <div>
+              <h1 className="text-2xl font-bold text-slate-900">
+                <span className="bg-gradient-to-r from-emerald-600 to-teal-600 bg-clip-text text-transparent">
+                  Recurring Transactions
+                </span>
+              </h1>
+              <p className="text-sm text-slate-500">Manage automatic income & expenses</p>
+            </div>
           </div>
         </div>
 
-        {/* Active Recurring */}
-        <div className="mb-8">
-          <div className="flex items-center gap-2 mb-4">
-            <RefreshCw className="h-5 w-5 text-emerald-600" />
-            <h2 className="text-lg font-semibold text-slate-800">Active ({activeRecurring.length})</h2>
-          </div>
-          
-          {activeRecurring.length === 0 ? (
-            <div className="bg-white rounded-2xl border border-slate-200 p-8 text-center">
-              <RefreshCw className="h-12 w-12 text-slate-300 mx-auto mb-3" />
-              <p className="text-slate-500">No active recurring transactions</p>
-              <p className="text-xs text-slate-400 mt-1">Add recurring transactions from the Finance page</p>
+        {/* Stats */}
+        <div className="grid grid-cols-2 gap-3 mb-6">
+          <div className="bg-white rounded-2xl p-4 border border-slate-200">
+            <div className="flex items-center gap-2 mb-1">
+              <RefreshCw className="h-4 w-4 text-emerald-600" />
+              <span className="text-xs text-slate-500">Active</span>
             </div>
-          ) : (
+            <p className="text-2xl font-bold text-slate-900">{activeRecurring.length}</p>
+          </div>
+          <div className="bg-white rounded-2xl p-4 border border-slate-200">
+            <div className="flex items-center gap-2 mb-1">
+              <Pause className="h-4 w-4 text-slate-400" />
+              <span className="text-xs text-slate-500">Paused</span>
+            </div>
+            <p className="text-2xl font-bold text-slate-900">{pausedRecurring.length}</p>
+          </div>
+        </div>
+
+        {/* Active Recurring Transactions */}
+        {activeRecurring.length > 0 && (
+          <div className="mb-6">
+            <h3 className="text-sm font-semibold text-slate-700 mb-3">Active</h3>
             <div className="space-y-3">
               {activeRecurring.map(transaction => (
                 <RecurringTransactionCard
@@ -121,37 +92,44 @@ export default function RecurringTransactions() {
                   transaction={transaction}
                   currencySymbol={currencySymbol}
                   onEdit={() => setEditingTransaction(transaction)}
-                  onTogglePause={() => togglePause.mutate({ id: transaction.id, isPaused: false })}
-                  onDelete={(applyTo) => deleteRecurring.mutate({ id: transaction.id, applyTo })}
+                  onTogglePause={() => togglePauseMutation.mutate({ id: transaction.id, paused: transaction.paused })}
+                  onDelete={() => deleteMutation.mutate(transaction.id)}
                 />
               ))}
             </div>
-          )}
-        </div>
+          </div>
+        )}
 
-        {/* Paused Recurring */}
+        {/* Paused Recurring Transactions */}
         {pausedRecurring.length > 0 && (
-          <div>
-            <div className="flex items-center gap-2 mb-4">
-              <div className="h-5 w-5 rounded-full bg-slate-200 flex items-center justify-center">
-                <div className="h-2 w-2 bg-slate-400 rounded-full" />
-              </div>
-              <h2 className="text-lg font-semibold text-slate-800">Paused ({pausedRecurring.length})</h2>
-            </div>
-            
-            <div className="space-y-3">
+          <div className="mb-6">
+            <h3 className="text-sm font-semibold text-slate-700 mb-3">Paused</h3>
+            <div className="space-y-3 opacity-60">
               {pausedRecurring.map(transaction => (
                 <RecurringTransactionCard
                   key={transaction.id}
                   transaction={transaction}
                   currencySymbol={currencySymbol}
                   onEdit={() => setEditingTransaction(transaction)}
-                  onTogglePause={() => togglePause.mutate({ id: transaction.id, isPaused: true })}
-                  onDelete={(applyTo) => deleteRecurring.mutate({ id: transaction.id, applyTo })}
-                  isPaused
+                  onTogglePause={() => togglePauseMutation.mutate({ id: transaction.id, paused: transaction.paused })}
+                  onDelete={() => deleteMutation.mutate(transaction.id)}
                 />
               ))}
             </div>
+          </div>
+        )}
+
+        {/* Empty State */}
+        {recurringTransactions.length === 0 && (
+          <div className="text-center py-16">
+            <RefreshCw className="h-12 w-12 text-slate-300 mx-auto mb-4" />
+            <p className="text-slate-500 mb-4">No recurring transactions yet</p>
+            <Link to={createPageUrl('Finance')}>
+              <Button className="bg-emerald-600 hover:bg-emerald-700">
+                <Plus className="h-4 w-4 mr-2" />
+                Add Transaction
+              </Button>
+            </Link>
           </div>
         )}
 
@@ -160,9 +138,12 @@ export default function RecurringTransactions() {
           {editingTransaction && (
             <EditRecurringModal
               transaction={editingTransaction}
-              allTransactions={allTransactions}
               currencySymbol={currencySymbol}
               onClose={() => setEditingTransaction(null)}
+              onSave={() => {
+                queryClient.invalidateQueries(['transactions']);
+                setEditingTransaction(null);
+              }}
             />
           )}
         </AnimatePresence>
