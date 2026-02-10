@@ -59,6 +59,8 @@ export default function Home() {
       const taskData = { ...data };
       if (user?.current_mode === 'business' && user?.active_organization_id) {
         taskData.organization_id = user.active_organization_id;
+      } else {
+        taskData.organization_id = null;
       }
       return base44.entities.Task.create(taskData);
     },
