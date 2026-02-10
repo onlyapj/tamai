@@ -324,6 +324,33 @@ export default function Profile() {
                 </Select>
               </div>
 
+              {/* Business Organization Selection */}
+              {user?.account_type === 'business' && (
+                <div>
+                  <label className="text-sm font-medium text-slate-700 mb-2 block">
+                    Select Organization
+                  </label>
+                  <Select
+                    value={user?.active_organization_id || ''}
+                    onValueChange={(value) => selectOrganizationMutation.mutate(value)}
+                  >
+                    <SelectTrigger className="bg-slate-50">
+                      <SelectValue placeholder="Choose an organization" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {organizations.map((org) => (
+                        <SelectItem key={org.id} value={org.id}>
+                          {org.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <p className="text-xs text-slate-500 mt-2">
+                    {organizations.length === 0 ? 'No organizations yet' : `You have ${organizations.length} organization(s)`}
+                  </p>
+                </div>
+              )}
+
               {/* Currency */}
               <div>
                 <label className="text-sm font-medium text-slate-700 mb-2 flex items-center gap-2">
