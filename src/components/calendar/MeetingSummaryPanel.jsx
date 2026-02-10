@@ -3,9 +3,10 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
 import { Button } from "@/components/ui/button";
-import { Sparkles, Download, Trash2, ChevronDown } from 'lucide-react';
+import { Sparkles, Download, Trash2, ChevronDown, Zap } from 'lucide-react';
 import { format, parseISO } from 'date-fns';
 import { toast } from 'sonner';
+import { cn } from "@/lib/utils";
 
 export default function MeetingSummaryPanel({ taskId, onGenerateClick }) {
   const [expanded, setExpanded] = useState(false);
@@ -119,6 +120,34 @@ export default function MeetingSummaryPanel({ taskId, onGenerateClick }) {
                       </li>
                     ))}
                   </ul>
+                </div>
+              )}
+
+              {/* Sentiment Analysis */}
+              {summary.sentiment_analysis && (
+                <div>
+                  <h4 className="text-sm font-semibold text-slate-800 mb-2">💡 Meeting Sentiment</h4>
+                  <div className={cn(
+                    'rounded-lg p-3 border-2',
+                    summary.sentiment_analysis.overall === 'positive' ? 'border-green-200 bg-green-50' :
+                    summary.sentiment_analysis.overall === 'negative' ? 'border-red-200 bg-red-50' :
+                    'border-slate-200 bg-slate-50'
+                  )}>
+                    <div className="flex items-center gap-2 mb-1">
+                      <span className={cn(
+                        'text-xs font-semibold px-2 py-0.5 rounded-full',
+                        summary.sentiment_analysis.overall === 'positive' ? 'bg-green-200 text-green-800' :
+                        summary.sentiment_analysis.overall === 'negative' ? 'bg-red-200 text-red-800' :
+                        'bg-slate-200 text-slate-800'
+                      )}>
+                        {summary.sentiment_analysis.overall.charAt(0).toUpperCase() + summary.sentiment_analysis.overall.slice(1)}
+                      </span>
+                      <span className="text-xs text-slate-600">
+                        Confidence: {Math.round(summary.sentiment_analysis.confidence * 100)}%
+                      </span>
+                    </div>
+                    <p className="text-sm text-slate-600">{summary.sentiment_analysis.explanation}</p>
+                  </div>
                 </div>
               )}
 
