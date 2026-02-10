@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { createPageUrl } from './utils';
-import { LayoutDashboard, Heart, Wallet, Activity, Target, CalendarDays, Watch, User, BarChart3, Brain } from 'lucide-react';
+import { LayoutDashboard, Heart, Wallet, Activity, Target, CalendarDays, Watch, User, Users, BarChart3, Brain } from 'lucide-react';
 import NotificationBell from './components/notifications/NotificationBell';
 import { cn } from "@/lib/utils";
 import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
