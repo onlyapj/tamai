@@ -170,6 +170,14 @@ export default function Investments() {
     setIsRebalancing(false);
   };
 
+  const handleTransactionSubmit = (data) => {
+    if (editingTransaction) {
+      updateTransaction.mutate({ id: editingTransaction.id, data });
+    } else {
+      createTransaction.mutate(data);
+    }
+  };
+
   // Calculate portfolio stats
   const totalCostBasis = investments.reduce((sum, inv) => sum + (inv.cost_basis || 0), 0);
   const totalCurrentValue = investments.reduce((sum, inv) => sum + (inv.current_value || 0), 0);
