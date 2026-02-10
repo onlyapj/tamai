@@ -37,13 +37,30 @@ export default function Home() {
     const [sectionOrder, setSectionOrder] = useState(defaultSectionOrder);
     const [isRearrangeMode, setIsRearrangeMode] = useState(false);
 
+  const { data: user } = useQuery({
+    queryKey: ['current-user'],
+    queryFn: () => base44.auth.me(),
+  });
+
   const { data: tasks = [], isLoading } = useQuery({
-    queryKey: ['tasks'],
-    queryFn: () => base44.entities.Task.list('-created_date'),
+    queryKey: ['tasks', user?.active_organization_id, user?.current_mode],
+    queryFn: async () => {
+      const filter = user?.current_mode === 'business' && user?.active_organization_id
+        ? { organization_id: user.active_organization_id }
+        : { organization_id: null };
+      return base44.entities.Task.filter(filter, '-created_date');
+    },
+    enabled: !!user,
   });
 
   const createMutation = useMutation({
-    mutationFn: (data) => base44.entities.Task.create(data),
+    mutationFn: (data) => {
+      const taskData = { ...data };
+      if (user?.current_mode === 'business' && user?.active_organization_id) {
+        taskData.organization_id = user.active_organization_id;
+      }
+      return base44.entities.Task.create(taskData);
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['tasks'] });
       setShowForm(false);
