@@ -49,6 +49,8 @@
  */
 import AdminFeedback from './pages/AdminFeedback';
 import Analytics from './pages/Analytics';
+import BusinessDashboard from './pages/BusinessDashboard';
+import BusinessHome from './pages/BusinessHome';
 import Calendar from './pages/Calendar';
 import Finance from './pages/Finance';
 import Goals from './pages/Goals';
@@ -60,12 +62,10 @@ import Mindfulness from './pages/Mindfulness';
 import NotificationSettings from './pages/NotificationSettings';
 import Profile from './pages/Profile';
 import RecurringTransactions from './pages/RecurringTransactions';
+import SharedProjects from './pages/SharedProjects';
 import TrueLayerCallback from './pages/TrueLayerCallback';
 import UserManagement from './pages/UserManagement';
 import Wearable from './pages/Wearable';
-import BusinessHome from './pages/BusinessHome';
-import SharedProjects from './pages/SharedProjects';
-import BusinessDashboard from './pages/BusinessDashboard';
 import FinanceCFO from './pages/FinanceCFO';
 import TaskManager from './pages/TaskManager';
 import __Layout from './Layout.jsx';
@@ -74,6 +74,8 @@ import __Layout from './Layout.jsx';
 export const PAGES = {
     "AdminFeedback": AdminFeedback,
     "Analytics": Analytics,
+    "BusinessDashboard": BusinessDashboard,
+    "BusinessHome": BusinessHome,
     "Calendar": Calendar,
     "Finance": Finance,
     "Goals": Goals,
@@ -85,12 +87,10 @@ export const PAGES = {
     "NotificationSettings": NotificationSettings,
     "Profile": Profile,
     "RecurringTransactions": RecurringTransactions,
+    "SharedProjects": SharedProjects,
     "TrueLayerCallback": TrueLayerCallback,
     "UserManagement": UserManagement,
     "Wearable": Wearable,
-    "BusinessHome": BusinessHome,
-    "SharedProjects": SharedProjects,
-    "BusinessDashboard": BusinessDashboard,
     "FinanceCFO": FinanceCFO,
     "TaskManager": TaskManager,
 }

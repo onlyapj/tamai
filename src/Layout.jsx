@@ -24,9 +24,11 @@ export default function Layout({ children, currentPageName }) {
     ];
 
     const businessNavItems = [
-      { name: 'BusinessHome', icon: LayoutDashboard, label: 'Dashboard' },
+      { name: 'BusinessDashboard', icon: LayoutDashboard, label: 'Dashboard' },
+      { name: 'FinanceCFO', icon: Wallet, label: 'Finance' },
+      { name: 'TaskManager', icon: Activity, label: 'Tasks' },
+      { name: 'Goals', icon: Target, label: 'Goals' },
       { name: 'Calendar', icon: CalendarDays, label: 'Calendar' },
-      { name: 'Analytics', icon: BarChart3, label: 'Analytics' },
       { name: 'Profile', icon: User, label: 'Profile' },
     ];
 
