@@ -1,12 +1,13 @@
 import React, { useState } from 'react';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQueryClient, useQuery } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
 import { format } from 'date-fns';
 import { motion } from 'framer-motion';
 import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
 import { Textarea } from "@/components/ui/textarea";
-import { Smile, Meh, Frown, Zap, Battery, BrainCircuit, Check } from 'lucide-react';
+import { Input } from "@/components/ui/input";
+import { Smile, Meh, Frown, Zap, Battery, BrainCircuit, Check, Calendar } from 'lucide-react';
 
 const moodEmojis = [
   { value: 1, emoji: '😢', label: 'Very Low' },
@@ -19,32 +20,47 @@ const moodEmojis = [
 const moodTags = ['grateful', 'anxious', 'productive', 'tired', 'calm', 'stressed', 'happy', 'motivated', 'lonely', 'loved'];
 
 export default function MoodTracker({ todayMood, onUpdate }) {
-  const [mood, setMood] = useState(todayMood?.mood_score || 3);
-  const [energy, setEnergy] = useState(todayMood?.energy_level || 5);
-  const [stress, setStress] = useState(todayMood?.stress_level || 5);
-  const [notes, setNotes] = useState(todayMood?.notes || '');
-  const [selectedTags, setSelectedTags] = useState(todayMood?.tags || []);
+  const [selectedDate, setSelectedDate] = useState(format(new Date(), 'yyyy-MM-dd'));
+  const [mood, setMood] = useState(3);
+  const [energy, setEnergy] = useState(5);
+  const [stress, setStress] = useState(5);
+  const [notes, setNotes] = useState('');
+  const [selectedTags, setSelectedTags] = useState([]);
   const [saved, setSaved] = useState(false);
 
   const queryClient = useQueryClient();
 
-  // Sync state with todayMood prop when it changes
+  // Fetch mood entry for selected date
+  const { data: moodEntries = [] } = useQuery({
+    queryKey: ['moodEntries'],
+    queryFn: () => base44.entities.MoodEntry.list('-date', 100)
+  });
+
+  const selectedMood = moodEntries.find(m => m.date === selectedDate);
+
+  // Update form when date or mood changes
   React.useEffect(() => {
-    if (todayMood) {
-      setMood(todayMood.mood_score || 3);
-      setEnergy(todayMood.energy_level || 5);
-      setStress(todayMood.stress_level || 5);
-      setNotes(todayMood.notes || '');
-      setSelectedTags(todayMood.tags || []);
+    if (selectedMood) {
+      setMood(selectedMood.mood_score || 3);
+      setEnergy(selectedMood.energy_level || 5);
+      setStress(selectedMood.stress_level || 5);
+      setNotes(selectedMood.notes || '');
+      setSelectedTags(selectedMood.tags || []);
+    } else {
+      setMood(3);
+      setEnergy(5);
+      setStress(5);
+      setNotes('');
+      setSelectedTags([]);
     }
-  }, [todayMood?.id]);
+  }, [selectedDate, selectedMood?.id]);
 
   const saveMood = useMutation({
     mutationFn: async (data) => {
-      if (todayMood) {
-        return base44.entities.MoodEntry.update(todayMood.id, data);
+      if (selectedMood) {
+        return base44.entities.MoodEntry.update(selectedMood.id, data);
       }
-      return base44.entities.MoodEntry.create({ ...data, date: format(new Date(), 'yyyy-MM-dd') });
+      return base44.entities.MoodEntry.create({ ...data, date: selectedDate });
     },
     onSuccess: () => {
       queryClient.invalidateQueries(['moodEntries']);
@@ -72,6 +88,21 @@ export default function MoodTracker({ todayMood, onUpdate }) {
 
   return (
     <div className="space-y-6">
+      {/* Date Picker */}
+      <div className="bg-white rounded-3xl border border-slate-200 p-6">
+        <div className="flex items-center gap-3">
+          <Calendar className="h-5 w-5 text-violet-600" />
+          <h3 className="font-semibold text-slate-800">Select Date</h3>
+        </div>
+        <Input
+          type="date"
+          value={selectedDate}
+          onChange={(e) => setSelectedDate(e.target.value)}
+          max={format(new Date(), 'yyyy-MM-dd')}
+          className="mt-3"
+        />
+      </div>
+
       {/* Mood Selection */}
       <div className="bg-white rounded-3xl border border-slate-200 p-6">
         <h3 className="font-semibold text-slate-800 mb-4">How are you feeling?</h3>
@@ -171,7 +202,7 @@ export default function MoodTracker({ todayMood, onUpdate }) {
           <><Check className="h-5 w-5 mr-2" /> Saved!</>
         ) : saveMood.isPending ? (
           'Saving...'
-        ) : todayMood ? (
+        ) : selectedMood ? (
           'Update Check-in'
         ) : (
           'Save Check-in'
