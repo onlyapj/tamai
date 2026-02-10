@@ -71,10 +71,15 @@ export default function Home() {
     setShowForm(true);
   };
 
+  const handleTutorialComplete = async () => {
+    setShowTutorial(false);
+    await base44.auth.updateMe({ tutorial_completed: true });
+  };
+
   const todayStr = format(new Date(), 'yyyy-MM-dd');
-  const currentHour = new Date().getHours();
-  const reflectionType = currentHour < 12 ? 'morning' : 'evening';
-  const currentMonth = format(new Date(), 'yyyy-MM');
+    const currentHour = new Date().getHours();
+    const reflectionType = currentHour < 12 ? 'morning' : 'evening';
+    const currentMonth = format(new Date(), 'yyyy-MM');
   
   const { data: user } = useQuery({
     queryKey: ['current-user'],
