@@ -7,11 +7,11 @@ import { Link } from 'react-router-dom';
 import { createPageUrl } from '../utils';
 import { AnimatePresence, motion } from 'framer-motion';
 import { toast } from 'sonner';
-import InvestmentForm from '@/components/investments/InvestmentForm';
-import InvestmentCard from '@/components/investments/InvestmentCard';
-import PortfolioChart from '@/components/investments/PortfolioChart';
-import AutoContributionSetup from '@/components/investments/AutoContributionSetup';
-import RebalancingSettings from '@/components/investments/RebalancingSettings';
+import InvestmentForm from '@/components/investments/InvestmentForm.jsx';
+import InvestmentCard from '@/components/investments/InvestmentCard.jsx';
+import PortfolioChart from '@/components/investments/PortfolioChart.jsx';
+import AutoContributionSetup from '@/components/investments/AutoContributionSetup.jsx';
+import RebalancingSettings from '@/components/investments/RebalancingSettings.jsx';
 
 export default function Investments() {
   const [showForm, setShowForm] = useState(false);
