@@ -174,9 +174,9 @@ export default function Layout({ children, currentPageName }) {
                           className={cn(
                             "flex flex-col items-center gap-1 px-3 py-2 rounded-xl transition-all flex-shrink-0",
                             currentPageName === item.name
-                              ? "text-indigo-600 bg-indigo-50"
-                              : "text-slate-400 hover:text-slate-600",
-                            snapshot.isDragging && "shadow-lg bg-white"
+                              ? "text-indigo-600 bg-indigo-50 dark:bg-indigo-950 dark:text-indigo-400"
+                              : user?.theme === 'dark' ? "text-slate-500 hover:text-slate-300" : "text-slate-400 hover:text-slate-600",
+                            snapshot.isDragging && user?.theme === 'dark' ? "shadow-lg bg-slate-800" : snapshot.isDragging && "shadow-lg bg-white"
                           )}
                           style={provided.draggableProps.style}
                         >
