@@ -69,6 +69,25 @@ Deno.serve(async (req) => {
       
       if (stockData['Global Quote'] && stockData['Global Quote']['05. price']) {
         price = parseFloat(stockData['Global Quote']['05. price']);
+        
+        // Convert stock price from USD to user's currency if needed
+        if (userCurrency !== 'USD') {
+          try {
+            const exchangeUrl = `https://api.coingecko.com/api/v3/simple/price?ids=usd-coin&vs_currencies=usd,${currencyCode}`;
+            const exchangeRes = await fetch(exchangeUrl);
+            const exchangeData = await exchangeRes.json();
+            
+            if (exchangeData['usd-coin'] && exchangeData['usd-coin']['usd'] && exchangeData['usd-coin'][currencyCode]) {
+              const usdPrice = exchangeData['usd-coin']['usd'];
+              const targetPrice = exchangeData['usd-coin'][currencyCode];
+              const exchangeRate = targetPrice / usdPrice;
+              price = price * exchangeRate;
+            }
+          } catch (error) {
+            console.error('Exchange rate fetch error:', error.message);
+            // Return USD price if conversion fails
+          }
+        }
       }
     }
 
