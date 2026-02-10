@@ -76,6 +76,11 @@ export default function Home() {
   const reflectionType = currentHour < 12 ? 'morning' : 'evening';
   const currentMonth = format(new Date(), 'yyyy-MM');
   
+  const { data: user } = useQuery({
+    queryKey: ['current-user'],
+    queryFn: () => base44.auth.me(),
+  });
+
   const { data: todayMood } = useQuery({
     queryKey: ['todayMood'],
     queryFn: async () => {
@@ -83,6 +88,13 @@ export default function Home() {
       return entries[0] || null;
     }
   });
+
+  // Show tutorial on first login
+  useEffect(() => {
+    if (user && !user.tutorial_completed) {
+      setShowTutorial(true);
+    }
+  }, [user]);
 
   const { data: transactions = [] } = useQuery({
     queryKey: ['transactions-month'],
