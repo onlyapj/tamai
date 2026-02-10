@@ -5,7 +5,7 @@ import { createPageUrl } from '@/utils';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { User, Mail, LogOut, Save, Lock, Key, Sun, Moon, DollarSign } from 'lucide-react';
+import { User, Mail, LogOut, Save, Lock, Key, Sun, Moon, DollarSign, Building2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
