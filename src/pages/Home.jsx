@@ -140,6 +140,13 @@ export default function Home() {
     enabled: !!adhdProfile?.has_adhd
   });
 
+  // Redirect to BusinessDashboard if in business mode
+  useEffect(() => {
+    if (user && user.current_mode === 'business') {
+      navigate(createPageUrl('BusinessDashboard'));
+    }
+  }, [user?.current_mode, user?.id, navigate]);
+
   // Show tutorial on first login
   useEffect(() => {
     if (user && !user.tutorial_completed) {
