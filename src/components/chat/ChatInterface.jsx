@@ -121,10 +121,12 @@ export default function ChatInterface({ onTasksUpdate }) {
   };
 
   const suggestions = [
-    "What should I focus on today?",
-    "Add a task for tomorrow",
-    "Show my high priority tasks",
-    "Help me plan my afternoon"
+    "What should I prioritize today?",
+    "How's my mood this week?",
+    "Which habits boost my mood?",
+    "Give me a weekly outlook",
+    "Help optimize my schedule",
+    "What am I struggling with?"
   ];
 
   return (
