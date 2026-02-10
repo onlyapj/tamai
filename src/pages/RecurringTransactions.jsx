@@ -4,7 +4,7 @@ import { base44 } from '@/api/base44Client';
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, Plus, RefreshCw, Pause, Play } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import { createPageUrl } from './utils';
+import { createPageUrl } from '../utils';
 import RecurringTransactionCard from '@/components/finance/RecurringTransactionCard';
 import EditRecurringModal from '@/components/finance/EditRecurringModal';
 import { AnimatePresence } from 'framer-motion';
