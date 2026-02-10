@@ -387,8 +387,8 @@ export default function Profile() {
                     </div>
                   </div>
                 ) : (
-                  <div className="flex items-center justify-between p-3 bg-slate-50 rounded-lg">
-                    <span className="text-slate-500">••••••••</span>
+                  <div className={cn("flex items-center justify-between p-3 rounded-lg", user?.theme === 'dark' ? 'bg-slate-800' : 'bg-slate-50')}>
+                    <span className={user?.theme === 'dark' ? 'text-slate-400' : 'text-slate-500'}>••••••••</span>
                     <Button 
                       onClick={() => setIsChangingPassword(true)}
                       variant="ghost"
