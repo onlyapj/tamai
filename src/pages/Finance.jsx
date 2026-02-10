@@ -4,7 +4,9 @@ import { base44 } from '@/api/base44Client';
 import { format, startOfMonth, endOfMonth } from 'date-fns';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from "@/components/ui/button";
-import { Plus, TrendingUp, TrendingDown, Wallet, PieChart, ArrowUpRight, ArrowDownRight, Sparkles } from 'lucide-react';
+import { Plus, TrendingUp, TrendingDown, Wallet, PieChart, ArrowUpRight, ArrowDownRight, Sparkles, RefreshCw } from 'lucide-react';
+import { Link } from 'react-router-dom';
+import { createPageUrl } from '../utils';
 import TransactionList from '@/components/finance/TransactionList.jsx';
 import AddTransaction from '@/components/finance/AddTransaction.jsx';
 import FinanceOverview from '@/components/finance/FinanceOverview.jsx';
@@ -78,13 +80,21 @@ export default function Finance() {
             </h1>
             <p className="text-slate-500 mt-1">Track spending & build financial freedom</p>
           </div>
-          <Button 
-            onClick={() => setShowAddTransaction(true)}
-            className="bg-emerald-600 hover:bg-emerald-700"
-          >
-            <Plus className="h-4 w-4 mr-2" />
-            Add
-          </Button>
+          <div className="flex items-center gap-2">
+            <Link to={createPageUrl('RecurringTransactions')}>
+              <Button variant="outline" size="sm">
+                <RefreshCw className="h-4 w-4 mr-2" />
+                Recurring
+              </Button>
+            </Link>
+            <Button 
+              onClick={() => setShowAddTransaction(true)}
+              className="bg-emerald-600 hover:bg-emerald-700"
+            >
+              <Plus className="h-4 w-4 mr-2" />
+              Add
+            </Button>
+          </div>
         </div>
 
 
