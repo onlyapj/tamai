@@ -159,29 +159,72 @@ export default function Calendar() {
         {/* Month Navigation */}
         <div className="flex items-center justify-between mb-6">
           <h2 className="text-xl font-semibold text-slate-800">
-            {format(currentMonth, 'MMMM yyyy')}
+            {viewMode === 'month' ? format(currentMonth, 'MMMM yyyy') : format(selectedDate, 'EEEE, MMMM d, yyyy')}
           </h2>
           <div className="flex gap-2">
+            {viewMode === 'month' && (
+              <>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setCurrentMonth(new Date(currentMonth.setMonth(currentMonth.getMonth() - 1)))}
+                >
+                  <ChevronLeft className="h-4 w-4" />
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setCurrentMonth(new Date())}
+                >
+                  Today
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setCurrentMonth(new Date(currentMonth.setMonth(currentMonth.getMonth() + 1)))}
+                >
+                  <ChevronRight className="h-4 w-4" />
+                </Button>
+              </>
+            )}
+            {viewMode === 'day' && (
+              <>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setSelectedDate(new Date(selectedDate.setDate(selectedDate.getDate() - 1)))}
+                >
+                  <ChevronLeft className="h-4 w-4" />
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setSelectedDate(new Date())}
+                >
+                  Today
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setSelectedDate(new Date(selectedDate.setDate(selectedDate.getDate() + 1)))}
+                >
+                  <ChevronRight className="h-4 w-4" />
+                </Button>
+              </>
+            )}
             <Button
-              variant="outline"
+              variant={viewMode === 'month' ? 'default' : 'outline'}
               size="sm"
-              onClick={() => setCurrentMonth(new Date(currentMonth.setMonth(currentMonth.getMonth() - 1)))}
+              onClick={() => setViewMode('month')}
             >
-              <ChevronLeft className="h-4 w-4" />
+              <LayoutGrid className="h-4 w-4" />
             </Button>
             <Button
-              variant="outline"
+              variant={viewMode === 'day' ? 'default' : 'outline'}
               size="sm"
-              onClick={() => setCurrentMonth(new Date())}
+              onClick={() => setViewMode('day')}
             >
-              Today
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setCurrentMonth(new Date(currentMonth.setMonth(currentMonth.getMonth() + 1)))}
-            >
-              <ChevronRight className="h-4 w-4" />
+              <ListIcon className="h-4 w-4" />
             </Button>
           </div>
         </div>
