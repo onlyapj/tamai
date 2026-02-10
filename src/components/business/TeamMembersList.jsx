@@ -110,8 +110,9 @@ export default function TeamMembersList({ teamId, isAdmin }) {
             <Loader2 className="h-6 w-6 animate-spin text-slate-400" />
           </div>
         ) : activeMembers.length === 0 ? (
-          <div className="p-8 text-center text-slate-500">
-            No team members yet
+          <div className="p-8 text-center">
+            <div className="text-slate-400 mb-2 text-sm font-medium">It's quiet in here… let's invite your team.</div>
+            <p className="text-xs text-slate-500">No teammates yet. Let's fix that.</p>
           </div>
         ) : (
           activeMembers.map((member) => (

@@ -54,9 +54,12 @@ export default function TaskForm({ task, onSubmit, onCancel }) {
       className="bg-white rounded-3xl border border-slate-200 shadow-xl p-6"
     >
       <div className="flex items-center justify-between mb-6">
-        <h3 className="text-lg font-semibold text-slate-800">
-          {task ? 'Edit Task' : 'New Task'}
-        </h3>
+        <div>
+          <h3 className="text-lg font-semibold text-slate-800">
+            {task ? 'Edit Task' : 'What needs to get done?'}
+          </h3>
+          {!task && <p className="text-xs text-slate-500 mt-1">Add a task and assign an owner.</p>}
+        </div>
         <Button variant="ghost" size="icon" onClick={onCancel} className="h-8 w-8">
           <X className="h-4 w-4" />
         </Button>
