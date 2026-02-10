@@ -391,29 +391,28 @@ export default function InvestmentForm({ investment, currencySymbol, onSubmit, o
           )}
 
           {/* Current Value */}
-          <div>
-            <Label className="text-xs text-slate-500">Current Value *</Label>
-            <div className="relative mt-1">
-              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">
-                {currencySymbol}
-              </span>
-              <Input
-                type="number"
-                value={currentValue}
-                onChange={(e) => setCurrentValue(e.target.value)}
-                placeholder="0.00"
-                step="0.01"
-                min="0"
-                className="pl-7 text-lg font-semibold"
-                required
-              />
-            </div>
-            {livePrice && quantity && (
-              <p className="text-xs text-slate-500 mt-1">
-                Auto-calculated from live price × quantity
+          {currentValue && (
+            <div className="bg-gradient-to-r from-emerald-50 to-teal-50 rounded-xl p-4 border border-emerald-100">
+              <Label className="text-xs text-emerald-600 font-medium">Current Value</Label>
+              <p className="text-3xl font-bold text-emerald-900 mt-1">
+                {currencySymbol}{parseFloat(currentValue).toLocaleString()}
               </p>
-            )}
-          </div>
+              {costBasis && (
+                <div className="flex items-center gap-2 mt-2">
+                  <span className={`text-xs font-medium ${
+                    parseFloat(currentValue) >= parseFloat(costBasis) 
+                      ? 'text-emerald-600' 
+                      : 'text-red-600'
+                  }`}>
+                    {parseFloat(currentValue) >= parseFloat(costBasis) ? '↑' : '↓'} 
+                    {currencySymbol}{Math.abs(parseFloat(currentValue) - parseFloat(costBasis)).toLocaleString()} 
+                    ({((parseFloat(currentValue) - parseFloat(costBasis)) / parseFloat(costBasis) * 100).toFixed(2)}%)
+                  </span>
+                </div>
+              )}
+              <p className="text-xs text-emerald-600 mt-1">Updates in real-time</p>
+            </div>
+          )}
 
           {/* Purchase Date */}
           <div>
