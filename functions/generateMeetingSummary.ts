@@ -16,17 +16,19 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Notes and meeting title required' }, { status: 400 });
     }
 
-    // Use AI to generate structured summary
-    const { key_decisions, action_items, discussion_points, summary } = await base44.integrations.Core.InvokeLLM({
-      prompt: `You are a professional meeting summarizer. Analyze the following meeting notes and extract:
+    // Use AI to generate structured summary with attendee detection and sentiment analysis
+    const aiResult = await base44.integrations.Core.InvokeLLM({
+      prompt: `You are a professional meeting analyzer. Analyze the following meeting notes and extract:
 1. A concise 2-3 sentence summary
 2. Key decisions made
 3. Action items with owners and due dates (if mentioned)
 4. Main discussion points
+5. Detect attendees mentioned in the notes (names, roles)
+6. Sentiment analysis of the meeting (positive, neutral, negative) with a brief explanation
 
 Meeting Title: ${meeting_title}
 Meeting Date: ${meeting_date}
-Attendees: ${attendees.length > 0 ? attendees.join(', ') : 'Not specified'}
+Provided Attendees: ${attendees.length > 0 ? attendees.join(', ') : 'None provided'}
 
 MEETING NOTES:
 ${notes}
@@ -42,7 +44,13 @@ Respond in JSON format with this structure:
       "owner": "...",
       "due_date": "YYYY-MM-DD or null"
     }
-  ]
+  ],
+  "detected_attendees": ["...", "..."],
+  "sentiment": {
+    "overall": "positive|neutral|negative",
+    "confidence": 0.0-1.0,
+    "explanation": "..."
+  }
 }`,
       response_json_schema: {
         type: 'object',
@@ -60,10 +68,27 @@ Respond in JSON format with this structure:
                 due_date: { type: 'string' }
               }
             }
+          },
+          detected_attendees: { type: 'array', items: { type: 'string' } },
+          sentiment: {
+            type: 'object',
+            properties: {
+              overall: { type: 'string' },
+              confidence: { type: 'number' },
+              explanation: { type: 'string' }
+            }
           }
         }
       }
     });
+
+    const { key_decisions, action_items, discussion_points, summary, detected_attendees, sentiment } = aiResult;
+    
+    // Merge provided attendees with detected ones
+    const finalAttendees = Array.from(new Set([
+      ...attendees,
+      ...(detected_attendees || [])
+    ])).filter(Boolean);
 
     // Save summary to database
     const meetingSummary = await base44.entities.MeetingSummary.create({
