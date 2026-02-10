@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
+import { usePricePoller } from '@/components/investments/usePricePoller';
 import { Button } from "@/components/ui/button";
 import { Plus, ArrowLeft, TrendingUp, TrendingDown, Wallet, RefreshCw, Scale, Calendar } from 'lucide-react';
 import { Link } from 'react-router-dom';
