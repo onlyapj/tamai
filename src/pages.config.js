@@ -68,6 +68,8 @@ import UserManagement from './pages/UserManagement';
 import Wearable from './pages/Wearable';
 import FinanceCFO from './pages/FinanceCFO';
 import TaskManager from './pages/TaskManager';
+import GoalsOKR from './pages/GoalsOKR';
+import AIAssistant from './pages/AIAssistant';
 import __Layout from './Layout.jsx';
 
 
@@ -93,6 +95,8 @@ export const PAGES = {
     "Wearable": Wearable,
     "FinanceCFO": FinanceCFO,
     "TaskManager": TaskManager,
+    "GoalsOKR": GoalsOKR,
+    "AIAssistant": AIAssistant,
 }
 
 export const pagesConfig = {
