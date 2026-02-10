@@ -81,7 +81,7 @@ export default function TransactionList({ transactions, currencySymbol = '$', on
                     <div className="flex items-center gap-2">
                       <div className={`flex items-center gap-1 font-semibold ${isIncome ? 'text-emerald-600' : 'text-slate-800'}`}>
                         {isIncome ? <ArrowUpRight className="h-3.5 w-3.5" /> : <ArrowDownRight className="h-3.5 w-3.5 text-slate-400" />}
-                        ${transaction.amount?.toLocaleString()}
+                        {currencySymbol}{transaction.amount?.toLocaleString()}
                       </div>
                       <Button
                         variant="ghost"
