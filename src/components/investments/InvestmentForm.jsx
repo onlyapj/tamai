@@ -67,10 +67,17 @@ export default function InvestmentForm({ investment, currencySymbol, onSubmit, o
       
       setLivePrice(data.price);
       
-      // Auto-calculate current value if quantity is set
-      if (quantity && parseFloat(quantity) > 0) {
-        const calculatedValue = data.price * parseFloat(quantity);
-        setCurrentValue(calculatedValue.toFixed(2));
+      // If quantity is filled, calculate cost basis and current value
+      if (quantity && !isNaN(parseFloat(quantity)) && parseFloat(quantity) > 0) {
+        const calculatedCostBasis = data.price * parseFloat(quantity);
+        setCostBasis(calculatedCostBasis.toFixed(2));
+        setCurrentValue(calculatedCostBasis.toFixed(2));
+      }
+      // If cost basis is filled instead, calculate quantity and current value
+      else if (costBasis && !isNaN(parseFloat(costBasis)) && parseFloat(costBasis) > 0) {
+        const calculatedQuantity = parseFloat(costBasis) / data.price;
+        setQuantity(calculatedQuantity.toFixed(8));
+        setCurrentValue(costBasis);
       }
       
       toast.success(`Live price: ${currencySymbol}${data.price.toLocaleString()}`);
