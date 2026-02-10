@@ -138,7 +138,7 @@ export default function Layout({ children, currentPageName }) {
 
       {/* Desktop Sidebar */}
       {user && (
-        <nav className="hidden lg:fixed lg:left-0 lg:top-0 lg:h-screen lg:w-20 lg:bg-white lg:border-r lg:border-slate-200 lg:flex lg:flex-col lg:items-center lg:py-8 lg:gap-4 z-50">
+        <nav className="hidden lg:fixed lg:left-0 lg:top-20 lg:h-[calc(100vh-80px)] lg:w-20 lg:bg-white lg:border-r lg:border-slate-200 lg:flex lg:flex-col lg:items-center lg:py-8 lg:gap-4 z-40">
           <DragDropContext onDragEnd={handleDragEnd}>
             <Droppable droppableId="nav-desktop" direction="vertical">
               {(provided) => (
