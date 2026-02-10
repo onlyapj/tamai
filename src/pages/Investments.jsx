@@ -23,6 +23,8 @@ export default function Investments() {
   const [showRebalancing, setShowRebalancing] = useState(null);
   const [isUpdatingPrices, setIsUpdatingPrices] = useState(false);
   const [isRebalancing, setIsRebalancing] = useState(false);
+  const [selectedInvestmentForTransaction, setSelectedInvestmentForTransaction] = useState(null);
+  const [editingTransaction, setEditingTransaction] = useState(null);
   const queryClient = useQueryClient();
 
   const { data: user } = useQuery({
