@@ -104,11 +104,17 @@ export default function Landing() {
           </p>
 
           <div className="flex flex-col sm:flex-row gap-4 justify-center mb-12">
-            <Button size="lg" className="bg-indigo-600 hover:bg-indigo-700 w-full sm:w-auto" onClick={() => setSelectedAccountType('individual')}>
+            <Button size="lg" className="bg-indigo-600 hover:bg-indigo-700 w-full sm:w-auto" onClick={() => {
+              localStorage.setItem('signupAccountType', 'individual');
+              base44.auth.redirectToLogin(createPageUrl('Home'));
+            }}>
               I'm an Individual
               <ArrowRight className="ml-2 h-4 w-4" />
             </Button>
-            <Button size="lg" variant="outline" className="w-full sm:w-auto" onClick={() => setSelectedAccountType('business')}>
+            <Button size="lg" variant="outline" className="w-full sm:w-auto" onClick={() => {
+              localStorage.setItem('signupAccountType', 'business');
+              base44.auth.redirectToLogin(createPageUrl('Home'));
+            }}>
               I'm a Business
             </Button>
           </div>
