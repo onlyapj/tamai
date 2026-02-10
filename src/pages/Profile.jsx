@@ -293,10 +293,10 @@ export default function Profile() {
 
               {/* Account Type */}
               <div>
-                <label className="text-sm font-medium text-slate-700 mb-2 flex items-center gap-2">
-                  <Building2 className="h-4 w-4" />
-                  Account Type
-                </label>
+                <label className={cn("text-sm font-medium mb-2 flex items-center gap-2", user?.theme === 'dark' ? 'text-slate-300' : 'text-slate-700')}>
+                    <Building2 className="h-4 w-4" />
+                    Account Type
+                  </label>
                 <Select
                   value={user?.account_type || 'individual'}
                   onValueChange={(value) => updateAccountTypeMutation.mutate(value)}
