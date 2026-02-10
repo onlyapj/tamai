@@ -248,7 +248,7 @@ export default function Landing() {
           <p className="text-xl text-indigo-100 mb-8">Join 500K+ users who've taken control of their time, health, and goals.</p>
           
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Button size="lg" className="bg-white text-indigo-600 hover:bg-slate-50 w-full sm:w-auto" onClick={() => base44.auth.redirectToLogin()}>
+            <Button size="lg" className="bg-white text-indigo-600 hover:bg-slate-50 w-full sm:w-auto" onClick={() => base44.auth.redirectToLogin(createPageUrl('Home'))}>
               Start Your Free Trial
               <ArrowRight className="ml-2 h-4 w-4" />
             </Button>
