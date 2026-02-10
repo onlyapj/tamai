@@ -275,10 +275,10 @@ export default function Profile() {
                   {user?.theme === 'dark' ? <Moon className="h-4 w-4" /> : <Sun className="h-4 w-4" />}
                   Appearance
                 </label>
-                <div className="flex items-center justify-between p-3 bg-slate-50 rounded-lg">
+                <div className={cn("flex items-center justify-between p-3 rounded-lg", user?.theme === 'dark' ? 'bg-slate-800' : 'bg-slate-50')}>
                   <div className="flex items-center gap-3">
-                    <Sun className="h-4 w-4 text-slate-600" />
-                    <span className="text-slate-900">Light Mode</span>
+                    <Sun className={cn("h-4 w-4", user?.theme === 'dark' ? 'text-slate-400' : 'text-slate-600')} />
+                    <span className={user?.theme === 'dark' ? 'text-slate-100' : 'text-slate-900'}>Light Mode</span>
                   </div>
                   <Switch
                     checked={user?.theme === 'dark'}
