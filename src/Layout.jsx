@@ -44,10 +44,10 @@ export default function Layout({ children, currentPageName }) {
       retry: false
     });
 
-    // Update nav items based on account type
+    // Update nav items based on current mode
     useEffect(() => {
       if (user) {
-        const baseItems = user.account_type === 'business' ? businessNavItems : individualNavItems;
+        const baseItems = user.current_mode === 'business' ? businessNavItems : individualNavItems;
 
         if (user?.nav_order) {
           const ordered = user.nav_order
@@ -61,7 +61,7 @@ export default function Layout({ children, currentPageName }) {
           setNavItems(baseItems);
         }
       }
-    }, [user?.account_type, user?.nav_order]);
+    }, [user?.current_mode, user?.nav_order]);
 
     // Redirect based on auth status
     useEffect(() => {
