@@ -11,8 +11,9 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 export default function Layout({ children, currentPageName }) {
   const queryClient = useQueryClient();
   const defaultNavItems = [
-    { name: 'Home', icon: LayoutDashboard, label: 'Home' },
-    { name: 'Calendar', icon: CalendarDays, label: 'Calendar' },
+    { name: 'Landing', icon: LayoutDashboard, label: 'Landing' },
+      { name: 'Home', icon: LayoutDashboard, label: 'Home' },
+      { name: 'Calendar', icon: CalendarDays, label: 'Calendar' },
     { name: 'Analytics', icon: BarChart3, label: 'Analytics' },
     { name: 'Mindfulness', icon: Heart, label: 'Mind' },
     { name: 'Finance', icon: Wallet, label: 'Money' },
