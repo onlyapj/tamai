@@ -9,25 +9,33 @@ import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 
 export default function Layout({ children, currentPageName }) {
-  const queryClient = useQueryClient();
-  const defaultNavItems = [
-    { name: 'Home', icon: LayoutDashboard, label: 'Home' },
-      { name: 'Calendar', icon: CalendarDays, label: 'Calendar' },
-    { name: 'Analytics', icon: BarChart3, label: 'Analytics' },
-    { name: 'Mindfulness', icon: Heart, label: 'Mind' },
-    { name: 'Finance', icon: Wallet, label: 'Money' },
-    { name: 'Health', icon: Activity, label: 'Health' },
-    { name: 'Goals', icon: Target, label: 'Goals' },
-    { name: 'Profile', icon: User, label: 'Profile' },
-  ];
+    const navigate = useNavigate();
+    const queryClient = useQueryClient();
+    const defaultNavItems = [
+      { name: 'Home', icon: LayoutDashboard, label: 'Home' },
+        { name: 'Calendar', icon: CalendarDays, label: 'Calendar' },
+      { name: 'Analytics', icon: BarChart3, label: 'Analytics' },
+      { name: 'Mindfulness', icon: Heart, label: 'Mind' },
+      { name: 'Finance', icon: Wallet, label: 'Money' },
+      { name: 'Health', icon: Activity, label: 'Health' },
+      { name: 'Goals', icon: Target, label: 'Goals' },
+      { name: 'Profile', icon: User, label: 'Profile' },
+    ];
 
-  const [navItems, setNavItems] = useState(defaultNavItems);
+    const [navItems, setNavItems] = useState(defaultNavItems);
 
-  const { data: user } = useQuery({
-    queryKey: ['current-user'],
-    queryFn: () => base44.auth.me(),
-    retry: false
-  });
+    const { data: user, isLoading } = useQuery({
+      queryKey: ['current-user'],
+      queryFn: () => base44.auth.me(),
+      retry: false
+    });
+
+    // Redirect to Landing page if not authenticated and not on Landing page
+    useEffect(() => {
+      if (!isLoading && !user && currentPageName !== 'Landing') {
+        navigate(createPageUrl('Landing'));
+      }
+    }, [user, isLoading, currentPageName, navigate]);
 
   useEffect(() => {
     if (user?.nav_order) {
