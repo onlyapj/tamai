@@ -67,6 +67,7 @@ import BusinessHome from './pages/BusinessHome';
 import SharedProjects from './pages/SharedProjects';
 import BusinessDashboard from './pages/BusinessDashboard';
 import FinanceCFO from './pages/FinanceCFO';
+import TaskManager from './pages/TaskManager';
 import __Layout from './Layout.jsx';
 
 
@@ -91,6 +92,7 @@ export const PAGES = {
     "SharedProjects": SharedProjects,
     "BusinessDashboard": BusinessDashboard,
     "FinanceCFO": FinanceCFO,
+    "TaskManager": TaskManager,
 }
 
 export const pagesConfig = {
