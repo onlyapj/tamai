@@ -9,6 +9,7 @@ import { User, Mail, LogOut, Save, Lock, Key, Sun, Moon, DollarSign, Building2 }
 import { toast } from 'sonner';
 import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { cn } from "@/lib/utils";
 
 export default function Profile() {
   const queryClient = useQueryClient();
