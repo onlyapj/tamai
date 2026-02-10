@@ -204,6 +204,13 @@ export default function InvestmentForm({ investment, currencySymbol, onSubmit, o
 
   const handleSubmit = (e) => {
     e.preventDefault();
+    
+    // Validate required fields
+    if (!quantity || !currentValue) {
+      toast.error('Please enter investment amount to calculate tokens');
+      return;
+    }
+    
     onSubmit({
       name,
       type,
