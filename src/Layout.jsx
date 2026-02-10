@@ -40,6 +40,25 @@ export default function Layout({ children, currentPageName }) {
       retry: false
     });
 
+    // Update nav items based on account type
+    useEffect(() => {
+      if (user) {
+        const baseItems = user.account_type === 'business' ? businessNavItems : individualNavItems;
+
+        if (user?.nav_order) {
+          const ordered = user.nav_order
+            .map(name => baseItems.find(item => item.name === name))
+            .filter(Boolean);
+          const newItems = baseItems.filter(
+            item => !user.nav_order.includes(item.name)
+          );
+          setNavItems([...ordered, ...newItems]);
+        } else {
+          setNavItems(baseItems);
+        }
+      }
+    }, [user?.account_type, user?.nav_order]);
+
     // Redirect based on auth status
     useEffect(() => {
       if (!isLoading) {
