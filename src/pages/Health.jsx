@@ -114,6 +114,11 @@ export default function Health() {
           ))}
         </div>
 
+        {/* AI Coach - Always visible */}
+        <div className="mb-6">
+          <AIHabitCoach />
+        </div>
+
         {/* Content */}
         <AnimatePresence mode="wait">
           {activeTab === 'today' && (
