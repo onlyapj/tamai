@@ -55,12 +55,10 @@ import Calendar from './pages/Calendar';
 import Finance from './pages/Finance';
 import Goals from './pages/Goals';
 import Health from './pages/Health';
-import Home from './pages/Home';
 import Investments from './pages/Investments';
 import Landing from './pages/Landing';
 import Mindfulness from './pages/Mindfulness';
 import NotificationSettings from './pages/NotificationSettings';
-import Profile from './pages/Profile';
 import RecurringTransactions from './pages/RecurringTransactions';
 import SharedProjects from './pages/SharedProjects';
 import TrueLayerCallback from './pages/TrueLayerCallback';
@@ -71,6 +69,9 @@ import TaskManager from './pages/TaskManager';
 import GoalsOKR from './pages/GoalsOKR';
 import AIAssistant from './pages/AIAssistant';
 import TeamManagement from './pages/TeamManagement';
+import Home from './pages/Home';
+import Profile from './pages/Profile';
+import Organizations from './pages/Organizations';
 import __Layout from './Layout.jsx';
 
 
@@ -83,12 +84,10 @@ export const PAGES = {
     "Finance": Finance,
     "Goals": Goals,
     "Health": Health,
-    "Home": Home,
     "Investments": Investments,
     "Landing": Landing,
     "Mindfulness": Mindfulness,
     "NotificationSettings": NotificationSettings,
-    "Profile": Profile,
     "RecurringTransactions": RecurringTransactions,
     "SharedProjects": SharedProjects,
     "TrueLayerCallback": TrueLayerCallback,
@@ -99,6 +98,9 @@ export const PAGES = {
     "GoalsOKR": GoalsOKR,
     "AIAssistant": AIAssistant,
     "TeamManagement": TeamManagement,
+    "Home": Home,
+    "Profile": Profile,
+    "Organizations": Organizations,
 }
 
 export const pagesConfig = {
