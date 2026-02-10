@@ -428,27 +428,45 @@ export default function InvestmentForm({ investment, currencySymbol, onSubmit, o
             </div>
           )}
 
-          {/* Current Value */}
-          {currentValue && (
-            <div className="bg-gradient-to-r from-emerald-50 to-teal-50 rounded-xl p-4 border border-emerald-100">
-              <Label className="text-xs text-emerald-600 font-medium">Current Value</Label>
-              <p className="text-3xl font-bold text-emerald-900 mt-1">
-                {currencySymbol}{parseFloat(currentValue).toLocaleString()}
+          {/* Cost Basis & Current Value Summary */}
+          {costBasis && currentValue && (
+            <div className="grid grid-cols-2 gap-3">
+              <div className="bg-slate-50 rounded-xl p-3 border border-slate-200">
+                <Label className="text-xs text-slate-600 font-medium">Cost Basis</Label>
+                <p className="text-lg font-bold text-slate-900 mt-1">
+                  {currencySymbol}{parseFloat(costBasis).toLocaleString()}
+                </p>
+              </div>
+              <div className="bg-gradient-to-r from-emerald-50 to-teal-50 rounded-xl p-3 border border-emerald-100">
+                <Label className="text-xs text-emerald-600 font-medium">Current Value</Label>
+                <p className="text-lg font-bold text-emerald-900 mt-1">
+                  {currencySymbol}{parseFloat(currentValue).toLocaleString()}
+                </p>
+              </div>
+            </div>
+          )}
+
+          {/* Gain/Loss */}
+          {costBasis && currentValue && (
+            <div className={`rounded-xl p-4 border ${
+              parseFloat(currentValue) >= parseFloat(costBasis)
+                ? 'bg-emerald-50 border-emerald-200'
+                : 'bg-red-50 border-red-200'
+            }`}>
+              <p className={`text-sm font-medium ${
+                parseFloat(currentValue) >= parseFloat(costBasis)
+                  ? 'text-emerald-700'
+                  : 'text-red-700'
+              }`}>
+                {parseFloat(currentValue) >= parseFloat(costBasis) ? 'Gain' : 'Loss'}: {currencySymbol}{Math.abs(parseFloat(currentValue) - parseFloat(costBasis)).toLocaleString()}
               </p>
-              {costBasis && (
-                <div className="flex items-center gap-2 mt-2">
-                  <span className={`text-xs font-medium ${
-                    parseFloat(currentValue) >= parseFloat(costBasis) 
-                      ? 'text-emerald-600' 
-                      : 'text-red-600'
-                  }`}>
-                    {parseFloat(currentValue) >= parseFloat(costBasis) ? '↑' : '↓'} 
-                    {currencySymbol}{Math.abs(parseFloat(currentValue) - parseFloat(costBasis)).toLocaleString()} 
-                    ({((parseFloat(currentValue) - parseFloat(costBasis)) / parseFloat(costBasis) * 100).toFixed(2)}%)
-                  </span>
-                </div>
-              )}
-              <p className="text-xs text-emerald-600 mt-1">Updates in real-time</p>
+              <p className={`text-xs mt-1 ${
+                parseFloat(currentValue) >= parseFloat(costBasis)
+                  ? 'text-emerald-600'
+                  : 'text-red-600'
+              }`}>
+                {((parseFloat(currentValue) - parseFloat(costBasis)) / parseFloat(costBasis) * 100).toFixed(2)}% return
+              </p>
             </div>
           )}
 
