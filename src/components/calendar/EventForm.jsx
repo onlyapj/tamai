@@ -18,7 +18,9 @@ export default function EventForm({ task, defaultDate, onSubmit, onCancel, isLoa
     priority: task?.priority || 'medium',
     list_name: task?.list_name || 'General',
     reminder_minutes: task?.reminder_minutes || 15,
-    status: task?.status || 'pending'
+    status: task?.status || 'pending',
+    recurring: task?.recurring || false,
+    recurring_pattern: task?.recurring_pattern || 'weekly'
   });
 
   const handleSubmit = (e) => {
