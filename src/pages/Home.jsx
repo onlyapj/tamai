@@ -40,6 +40,7 @@ export default function Home() {
   const { data: user } = useQuery({
     queryKey: ['current-user'],
     queryFn: () => base44.auth.me(),
+    retry: false
   });
 
   const { data: tasks = [], isLoading } = useQuery({
