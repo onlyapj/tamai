@@ -65,6 +65,7 @@ import UserManagement from './pages/UserManagement';
 import Wearable from './pages/Wearable';
 import BusinessHome from './pages/BusinessHome';
 import SharedProjects from './pages/SharedProjects';
+import BusinessDashboard from './pages/BusinessDashboard';
 import __Layout from './Layout.jsx';
 
 
@@ -87,6 +88,7 @@ export const PAGES = {
     "Wearable": Wearable,
     "BusinessHome": BusinessHome,
     "SharedProjects": SharedProjects,
+    "BusinessDashboard": BusinessDashboard,
 }
 
 export const pagesConfig = {
