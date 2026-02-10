@@ -47,60 +47,60 @@
  *
  * The mainPage value must match a key in the PAGES object exactly.
  */
+import AIAssistant from './pages/AIAssistant';
 import AdminFeedback from './pages/AdminFeedback';
 import Analytics from './pages/Analytics';
 import BusinessDashboard from './pages/BusinessDashboard';
 import BusinessHome from './pages/BusinessHome';
 import Calendar from './pages/Calendar';
 import Finance from './pages/Finance';
+import FinanceCFO from './pages/FinanceCFO';
 import Goals from './pages/Goals';
+import GoalsOKR from './pages/GoalsOKR';
 import Health from './pages/Health';
+import Home from './pages/Home';
 import Investments from './pages/Investments';
 import Landing from './pages/Landing';
 import Mindfulness from './pages/Mindfulness';
 import NotificationSettings from './pages/NotificationSettings';
+import Organizations from './pages/Organizations';
+import Profile from './pages/Profile';
 import RecurringTransactions from './pages/RecurringTransactions';
 import SharedProjects from './pages/SharedProjects';
+import TaskManager from './pages/TaskManager';
+import TeamManagement from './pages/TeamManagement';
 import TrueLayerCallback from './pages/TrueLayerCallback';
 import UserManagement from './pages/UserManagement';
 import Wearable from './pages/Wearable';
-import FinanceCFO from './pages/FinanceCFO';
-import TaskManager from './pages/TaskManager';
-import GoalsOKR from './pages/GoalsOKR';
-import AIAssistant from './pages/AIAssistant';
-import TeamManagement from './pages/TeamManagement';
-import Home from './pages/Home';
-import Profile from './pages/Profile';
-import Organizations from './pages/Organizations';
 import __Layout from './Layout.jsx';
 
 
 export const PAGES = {
+    "AIAssistant": AIAssistant,
     "AdminFeedback": AdminFeedback,
     "Analytics": Analytics,
     "BusinessDashboard": BusinessDashboard,
     "BusinessHome": BusinessHome,
     "Calendar": Calendar,
     "Finance": Finance,
+    "FinanceCFO": FinanceCFO,
     "Goals": Goals,
+    "GoalsOKR": GoalsOKR,
     "Health": Health,
+    "Home": Home,
     "Investments": Investments,
     "Landing": Landing,
     "Mindfulness": Mindfulness,
     "NotificationSettings": NotificationSettings,
+    "Organizations": Organizations,
+    "Profile": Profile,
     "RecurringTransactions": RecurringTransactions,
     "SharedProjects": SharedProjects,
+    "TaskManager": TaskManager,
+    "TeamManagement": TeamManagement,
     "TrueLayerCallback": TrueLayerCallback,
     "UserManagement": UserManagement,
     "Wearable": Wearable,
-    "FinanceCFO": FinanceCFO,
-    "TaskManager": TaskManager,
-    "GoalsOKR": GoalsOKR,
-    "AIAssistant": AIAssistant,
-    "TeamManagement": TeamManagement,
-    "Home": Home,
-    "Profile": Profile,
-    "Organizations": Organizations,
 }
 
 export const pagesConfig = {
