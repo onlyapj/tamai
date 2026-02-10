@@ -70,6 +70,7 @@ import FinanceCFO from './pages/FinanceCFO';
 import TaskManager from './pages/TaskManager';
 import GoalsOKR from './pages/GoalsOKR';
 import AIAssistant from './pages/AIAssistant';
+import TeamManagement from './pages/TeamManagement';
 import __Layout from './Layout.jsx';
 
 
@@ -97,6 +98,7 @@ export const PAGES = {
     "TaskManager": TaskManager,
     "GoalsOKR": GoalsOKR,
     "AIAssistant": AIAssistant,
+    "TeamManagement": TeamManagement,
 }
 
 export const pagesConfig = {
