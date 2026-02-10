@@ -97,7 +97,7 @@ export default function Finance() {
               <ArrowUpRight className="h-4 w-4" />
               <span className="text-xs font-medium">Income</span>
             </div>
-            <p className="text-lg font-bold text-slate-900">${totalIncome.toLocaleString()}</p>
+            <p className="text-lg font-bold text-slate-900">{currencySymbol}{totalIncome.toLocaleString()}</p>
           </motion.div>
           <motion.div 
             initial={{ opacity: 0, y: 10 }}
@@ -109,7 +109,7 @@ export default function Finance() {
               <ArrowDownRight className="h-4 w-4" />
               <span className="text-xs font-medium">Expenses</span>
             </div>
-            <p className="text-lg font-bold text-slate-900">${totalExpenses.toLocaleString()}</p>
+            <p className="text-lg font-bold text-slate-900">{currencySymbol}{totalExpenses.toLocaleString()}</p>
           </motion.div>
           <motion.div 
             initial={{ opacity: 0, y: 10 }}
@@ -122,7 +122,7 @@ export default function Finance() {
               <span className="text-xs font-medium">Balance</span>
             </div>
             <p className={`text-lg font-bold ${balance >= 0 ? 'text-emerald-600' : 'text-red-500'}`}>
-              ${Math.abs(balance).toLocaleString()}
+              {currencySymbol}{Math.abs(balance).toLocaleString()}
             </p>
           </motion.div>
         </div>
