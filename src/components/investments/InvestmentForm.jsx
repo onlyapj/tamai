@@ -1,0 +1,206 @@
+import React, { useState } from 'react';
+import { motion } from 'framer-motion';
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { X } from 'lucide-react';
+import { format } from 'date-fns';
+
+const investmentTypes = [
+  { value: 'stock', label: 'Stock' },
+  { value: 'bond', label: 'Bond' },
+  { value: 'crypto', label: 'Cryptocurrency' },
+  { value: 'etf', label: 'ETF' },
+  { value: 'mutual_fund', label: 'Mutual Fund' },
+  { value: 'real_estate', label: 'Real Estate' },
+  { value: 'other', label: 'Other' }
+];
+
+export default function InvestmentForm({ investment, currencySymbol, onSubmit, onCancel, isLoading }) {
+  const [name, setName] = useState(investment?.name || '');
+  const [type, setType] = useState(investment?.type || 'stock');
+  const [ticker, setTicker] = useState(investment?.ticker || '');
+  const [quantity, setQuantity] = useState(investment?.quantity?.toString() || '');
+  const [costBasis, setCostBasis] = useState(investment?.cost_basis?.toString() || '');
+  const [currentValue, setCurrentValue] = useState(investment?.current_value?.toString() || '');
+  const [purchaseDate, setPurchaseDate] = useState(
+    investment?.purchase_date || format(new Date(), 'yyyy-MM-dd')
+  );
+  const [notes, setNotes] = useState(investment?.notes || '');
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    onSubmit({
+      name,
+      type,
+      ticker: ticker || undefined,
+      quantity: parseFloat(quantity),
+      cost_basis: parseFloat(costBasis),
+      current_value: parseFloat(currentValue),
+      purchase_date: purchaseDate,
+      notes: notes || undefined
+    });
+  };
+
+  return (
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      className="fixed inset-0 bg-black/50 flex items-end sm:items-center justify-center z-50 p-4"
+      onClick={onCancel}
+    >
+      <motion.div
+        initial={{ y: 100, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        exit={{ y: 100, opacity: 0 }}
+        className="bg-white rounded-3xl w-full max-w-md max-h-[90vh] overflow-y-auto p-6"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="flex items-center justify-between mb-6">
+          <h3 className="text-lg font-semibold text-slate-800">
+            {investment ? 'Edit Investment' : 'Add Investment'}
+          </h3>
+          <Button variant="ghost" size="icon" onClick={onCancel}>
+            <X className="h-4 w-4" />
+          </Button>
+        </div>
+
+        <form onSubmit={handleSubmit} className="space-y-4">
+          {/* Name */}
+          <div>
+            <Label className="text-xs text-slate-500">Investment Name *</Label>
+            <Input
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              placeholder="e.g., Apple Stock, Bitcoin"
+              className="mt-1"
+              required
+            />
+          </div>
+
+          {/* Type */}
+          <div>
+            <Label className="text-xs text-slate-500">Type *</Label>
+            <Select value={type} onValueChange={setType}>
+              <SelectTrigger className="mt-1">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {investmentTypes.map(t => (
+                  <SelectItem key={t.value} value={t.value}>
+                    {t.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          {/* Ticker */}
+          <div>
+            <Label className="text-xs text-slate-500">Ticker/Symbol</Label>
+            <Input
+              value={ticker}
+              onChange={(e) => setTicker(e.target.value.toUpperCase())}
+              placeholder="e.g., AAPL, BTC"
+              className="mt-1"
+            />
+          </div>
+
+          {/* Quantity & Cost Basis */}
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <Label className="text-xs text-slate-500">Quantity *</Label>
+              <Input
+                type="number"
+                value={quantity}
+                onChange={(e) => setQuantity(e.target.value)}
+                placeholder="0"
+                step="0.00000001"
+                min="0"
+                className="mt-1"
+                required
+              />
+            </div>
+            <div>
+              <Label className="text-xs text-slate-500">Cost Basis *</Label>
+              <div className="relative mt-1">
+                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm">
+                  {currencySymbol}
+                </span>
+                <Input
+                  type="number"
+                  value={costBasis}
+                  onChange={(e) => setCostBasis(e.target.value)}
+                  placeholder="0.00"
+                  step="0.01"
+                  min="0"
+                  className="pl-7"
+                  required
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* Current Value */}
+          <div>
+            <Label className="text-xs text-slate-500">Current Value *</Label>
+            <div className="relative mt-1">
+              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">
+                {currencySymbol}
+              </span>
+              <Input
+                type="number"
+                value={currentValue}
+                onChange={(e) => setCurrentValue(e.target.value)}
+                placeholder="0.00"
+                step="0.01"
+                min="0"
+                className="pl-7 text-lg font-semibold"
+                required
+              />
+            </div>
+          </div>
+
+          {/* Purchase Date */}
+          <div>
+            <Label className="text-xs text-slate-500">Purchase Date</Label>
+            <Input
+              type="date"
+              value={purchaseDate}
+              onChange={(e) => setPurchaseDate(e.target.value)}
+              className="mt-1"
+            />
+          </div>
+
+          {/* Notes */}
+          <div>
+            <Label className="text-xs text-slate-500">Notes (optional)</Label>
+            <Textarea
+              value={notes}
+              onChange={(e) => setNotes(e.target.value)}
+              placeholder="Any additional information..."
+              className="mt-1 h-20"
+            />
+          </div>
+
+          {/* Submit */}
+          <div className="flex gap-3 pt-2">
+            <Button type="button" variant="outline" onClick={onCancel} className="flex-1">
+              Cancel
+            </Button>
+            <Button 
+              type="submit" 
+              disabled={isLoading}
+              className="flex-1 bg-indigo-600 hover:bg-indigo-700"
+            >
+              {isLoading ? 'Saving...' : investment ? 'Update' : 'Add'}
+            </Button>
+          </div>
+        </form>
+      </motion.div>
+    </motion.div>
+  );
+}

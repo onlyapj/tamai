@@ -61,6 +61,7 @@ import TrueLayerCallback from './pages/TrueLayerCallback';
 import UserManagement from './pages/UserManagement';
 import Wearable from './pages/Wearable';
 import RecurringTransactions from './pages/RecurringTransactions';
+import Investments from './pages/Investments';
 import __Layout from './Layout.jsx';
 
 
@@ -79,6 +80,7 @@ export const PAGES = {
     "UserManagement": UserManagement,
     "Wearable": Wearable,
     "RecurringTransactions": RecurringTransactions,
+    "Investments": Investments,
 }
 
 export const pagesConfig = {
