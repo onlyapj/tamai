@@ -339,30 +339,56 @@ export default function InvestmentForm({ investment, currencySymbol, onSubmit, o
                 )}
               </div>
             ) : (
-              <div className="flex gap-2 mt-1">
-                <Input
-                  value={ticker}
-                  onChange={(e) => setTicker(e.target.value.toUpperCase())}
-                  placeholder="e.g., AAPL, SPY"
-                  className="flex-1"
-                />
-                <Button
-                  type="button"
-                  onClick={fetchLivePrice}
-                  disabled={fetchingPrice || !ticker}
-                  variant="outline"
-                  size="sm"
-                  className="whitespace-nowrap"
-                >
-                  {fetchingPrice ? (
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                  ) : (
-                    <>
-                      <TrendingUp className="h-4 w-4 mr-1" />
-                      Live Price
-                    </>
-                  )}
-                </Button>
+              <div className="space-y-2">
+                <div className="flex gap-2">
+                  <Select value={ticker} onValueChange={(value) => {
+                    setTicker(value);
+                    setName(`${stockOptions.find(s => s.symbol === value)?.name || value}`);
+                    setLivePrice(null);
+                    setQuantity('');
+                    setCurrentValue('');
+                  }}>
+                    <SelectTrigger className="mt-1 flex-1">
+                      <SelectValue placeholder="Select stock or ETF" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {stockOptions.map(stock => (
+                        <SelectItem key={stock.symbol} value={stock.symbol}>
+                          {stock.symbol} - {stock.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <Button
+                    type="button"
+                    onClick={fetchLivePrice}
+                    disabled={fetchingPrice || !ticker}
+                    variant="outline"
+                    size="sm"
+                    className="mt-1 whitespace-nowrap"
+                  >
+                    {fetchingPrice ? (
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                    ) : (
+                      <>
+                        <TrendingUp className="h-4 w-4 mr-1" />
+                        Get Price
+                      </>
+                    )}
+                  </Button>
+                </div>
+                {livePrice && (
+                  <div className="bg-emerald-50 rounded-lg p-3 space-y-1">
+                    <p className="text-xs text-emerald-600 font-medium">
+                      Live Price: {currencySymbol}{livePrice.toLocaleString()}
+                    </p>
+                    {quantity && (
+                      <p className="text-xs text-slate-600">
+                        You own: {parseFloat(quantity).toFixed(2)} shares
+                      </p>
+                    )}
+                  </div>
+                )}
               </div>
             )}
             {type !== 'crypto' && livePrice && (
