@@ -42,6 +42,11 @@ export default function Investments() {
     queryFn: () => base44.entities.InvestmentContribution.filter({ is_active: true })
   });
 
+  const { data: transactions = [] } = useQuery({
+    queryKey: ['investment-transactions'],
+    queryFn: () => base44.entities.InvestmentTransaction.list('-date')
+  });
+
   // Real-time subscription for investment updates
   useEffect(() => {
     const unsubscribe = base44.entities.Investment.subscribe((event) => {
