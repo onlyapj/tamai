@@ -2,8 +2,9 @@ import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
 import { motion, AnimatePresence } from 'framer-motion';
+import { format, isThisWeek, addDays } from 'date-fns';
 import { Button } from "@/components/ui/button";
-import { Plus, Target, CheckCircle2, Clock, Sparkles } from 'lucide-react';
+import { Plus, Target, CheckCircle2, Clock, Sparkles, X, ChevronRight } from 'lucide-react';
 import GoalCard from '@/components/goals/GoalCard.jsx';
 import GoalForm from '@/components/goals/GoalForm.jsx';
 
@@ -41,6 +42,12 @@ export default function Goals() {
   });
 
   const filteredGoals = goals.filter(g => filter === 'all' || g.status === filter);
+  
+  const weeklyGoals = goals.filter(g => {
+    if (!g.target_date || g.status === 'completed') return false;
+    const dueDate = new Date(g.target_date);
+    return isThisWeek(dueDate, { weekStartsOn: 1 });
+  });
   
   const categoryColors = {
     productivity: 'from-indigo-500 to-blue-500',
@@ -92,6 +99,64 @@ export default function Goals() {
             </motion.div>
           ))}
         </div>
+
+        {/* This Week's Goals */}
+        {weeklyGoals.length > 0 && (
+          <div className="mb-8 bg-gradient-to-r from-indigo-50 to-blue-50 rounded-3xl border border-indigo-200 p-6">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="font-semibold text-slate-800 flex items-center gap-2">
+                <Clock className="h-5 w-5 text-indigo-600" />
+                This Week's Goals
+              </h2>
+              <Button 
+                onClick={() => { setEditingGoal(null); setShowForm(true); }}
+                size="sm"
+                variant="outline"
+                className="bg-white border-indigo-200"
+              >
+                <Plus className="h-3.5 w-3.5 mr-1" />
+                Add
+              </Button>
+            </div>
+            <div className="space-y-2">
+              {weeklyGoals.map(goal => (
+                <motion.div
+                  key={goal.id}
+                  initial={{ opacity: 0, x: -10 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  className="flex items-center justify-between p-3 bg-white rounded-lg border border-indigo-100 hover:shadow-sm transition-all group"
+                >
+                  <div className="flex-1 flex items-center gap-3">
+                    <div className={`w-1 h-1 rounded-full bg-gradient-to-r ${categoryColors[goal.category] || categoryColors.personal}`} />
+                    <div className="flex-1">
+                      <p className="text-sm font-medium text-slate-800">{goal.title}</p>
+                      <p className="text-xs text-slate-500">Due {format(new Date(goal.target_date), 'EEE, MMM d')}</p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <div className="h-1.5 w-24 bg-slate-100 rounded-full overflow-hidden">
+                      <motion.div
+                        initial={{ width: 0 }}
+                        animate={{ width: `${goal.progress || 0}%` }}
+                        transition={{ duration: 0.5 }}
+                        className={`h-full bg-gradient-to-r ${categoryColors[goal.category] || categoryColors.personal}`}
+                      />
+                    </div>
+                    <span className="text-xs font-medium text-slate-600 w-8 text-right">{goal.progress || 0}%</span>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-7 w-7 text-slate-400 hover:text-red-600 hover:bg-red-50 opacity-0 group-hover:opacity-100 transition-all"
+                      onClick={() => deleteGoal.mutate(goal.id)}
+                    >
+                      <X className="h-3.5 w-3.5" />
+                    </Button>
+                  </div>
+                </motion.div>
+              ))}
+            </div>
+          </div>
+        )}
 
         {/* Filter */}
         <div className="flex gap-2 mb-6">
