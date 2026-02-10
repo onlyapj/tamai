@@ -6,8 +6,10 @@ import { motion } from 'framer-motion';
 import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
 import { Textarea } from "@/components/ui/textarea";
-import { Input } from "@/components/ui/input";
-import { Smile, Meh, Frown, Zap, Battery, BrainCircuit, Check, Calendar } from 'lucide-react';
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Calendar as CalendarUI } from "@/components/ui/calendar";
+import { Smile, Meh, Frown, Zap, Battery, BrainCircuit, Check, Calendar, ChevronLeft, ChevronRight } from 'lucide-react';
+import { cn } from "@/lib/utils";
 
 const moodEmojis = [
   { value: 1, emoji: '😢', label: 'Very Low' },
@@ -90,17 +92,68 @@ export default function MoodTracker({ todayMood, onUpdate }) {
     <div className="space-y-6">
       {/* Date Picker */}
       <div className="bg-white rounded-3xl border border-slate-200 p-6">
-        <div className="flex items-center gap-3">
-          <Calendar className="h-5 w-5 text-violet-600" />
-          <h3 className="font-semibold text-slate-800">Select Date</h3>
+        <div className="flex items-center justify-between mb-3">
+          <div className="flex items-center gap-3">
+            <Calendar className="h-5 w-5 text-violet-600" />
+            <h3 className="font-semibold text-slate-800">Select Date</h3>
+          </div>
+          <div className="flex items-center gap-2">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => {
+                const date = new Date(selectedDate);
+                date.setDate(date.getDate() - 1);
+                setSelectedDate(format(date, 'yyyy-MM-dd'));
+              }}
+            >
+              <ChevronLeft className="h-4 w-4" />
+            </Button>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => {
+                const date = new Date(selectedDate);
+                date.setDate(date.getDate() + 1);
+                const today = format(new Date(), 'yyyy-MM-dd');
+                const newDate = format(date, 'yyyy-MM-dd');
+                if (newDate <= today) {
+                  setSelectedDate(newDate);
+                }
+              }}
+              disabled={selectedDate === format(new Date(), 'yyyy-MM-dd')}
+            >
+              <ChevronRight className="h-4 w-4" />
+            </Button>
+          </div>
         </div>
-        <Input
-          type="date"
-          value={selectedDate}
-          onChange={(e) => setSelectedDate(e.target.value)}
-          max={format(new Date(), 'yyyy-MM-dd')}
-          className="mt-3"
-        />
+        <Popover>
+          <PopoverTrigger asChild>
+            <Button
+              variant="outline"
+              className={cn(
+                "w-full justify-start text-left font-normal",
+                !selectedDate && "text-muted-foreground"
+              )}
+            >
+              <Calendar className="mr-2 h-4 w-4" />
+              {selectedDate ? format(new Date(selectedDate), 'PPP') : <span>Pick a date</span>}
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent className="w-auto p-0" align="start">
+            <CalendarUI
+              mode="single"
+              selected={new Date(selectedDate)}
+              onSelect={(date) => {
+                if (date) {
+                  setSelectedDate(format(date, 'yyyy-MM-dd'));
+                }
+              }}
+              disabled={(date) => date > new Date()}
+              initialFocus
+            />
+          </PopoverContent>
+        </Popover>
       </div>
 
       {/* Mood Selection */}
