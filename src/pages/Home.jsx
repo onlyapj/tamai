@@ -276,14 +276,12 @@ export default function Home() {
                         {...provided.draggableProps}
                         className={`group relative ${snapshot.isDragging ? 'opacity-50' : ''}`}
                       >
-                        {isRearrangeMode && (
-                          <div
-                            {...provided.dragHandleProps}
-                            className="absolute -left-8 top-4 opacity-100 transition-opacity z-10"
-                          >
-                            <GripVertical className="h-5 w-5 text-amber-600" />
-                          </div>
-                        )}
+                        <div
+                          {...provided.dragHandleProps}
+                          className={`absolute -left-8 top-4 transition-opacity z-10 ${isRearrangeMode ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}
+                        >
+                          <GripVertical className={`h-5 w-5 ${isRearrangeMode ? 'text-amber-600' : 'text-slate-400'}`} />
+                        </div>
 
                         {section === 'reflection' && !todayMood && (
                           <DailyReflection 
