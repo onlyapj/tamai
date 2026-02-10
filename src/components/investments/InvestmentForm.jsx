@@ -82,20 +82,22 @@ export default function InvestmentForm({ investment, currencySymbol, onSubmit, o
     }
   };
 
-  // Auto-calculate cost basis and current value when quantity changes
+  // When quantity is entered, calculate cost basis from live price
   const handleQuantityChange = (value) => {
     setQuantity(value);
-    if (livePrice && value && parseFloat(value) > 0) {
+    // Only auto-calculate if we have a live price AND the user has entered a quantity
+    if (livePrice && value && !isNaN(parseFloat(value)) && parseFloat(value) > 0) {
       const calculatedCostBasis = livePrice * parseFloat(value);
       setCostBasis(calculatedCostBasis.toFixed(2));
       setCurrentValue(calculatedCostBasis.toFixed(2));
     }
   };
 
-  // Auto-calculate quantity and current value when cost basis changes
+  // When cost basis is entered, calculate quantity from live price
   const handleCostBasisChange = (value) => {
     setCostBasis(value);
-    if (livePrice && value && parseFloat(value) > 0) {
+    // Only auto-calculate if we have a live price AND the user has entered a cost basis
+    if (livePrice && value && !isNaN(parseFloat(value)) && parseFloat(value) > 0) {
       const calculatedQuantity = parseFloat(value) / livePrice;
       setQuantity(calculatedQuantity.toFixed(8));
       setCurrentValue(value);
@@ -282,9 +284,9 @@ export default function InvestmentForm({ investment, currencySymbol, onSubmit, o
                 className="mt-1"
                 required
               />
-              {livePrice && costBasis && (
-                <p className="text-xs text-emerald-600 mt-1">
-                  Auto-calculated
+              {livePrice && (
+                <p className="text-xs text-slate-500 mt-1">
+                  {type === 'crypto' ? 'Number of coins' : 'Number of shares'}
                 </p>
               )}
             </div>
