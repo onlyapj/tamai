@@ -152,42 +152,53 @@ export default function InvestmentForm({ investment, currencySymbol, onSubmit, o
     setCostBasis(value);
     
     // Clear fields if value is empty
-    if (!value) {
+    if (!value || value === '') {
       setQuantity('');
       setCurrentValue('');
       return;
     }
     
     const costAmount = parseFloat(value);
-    if (isNaN(costAmount) || costAmount <= 0) return;
+    if (isNaN(costAmount) || costAmount <= 0) {
+      setQuantity('');
+      setCurrentValue('');
+      return;
+    }
+    
+    // Must have a ticker selected
+    if (!ticker || !ticker.trim()) {
+      toast.error('Select a cryptocurrency first');
+      return;
+    }
     
     // If we have live price, calculate immediately
     if (livePrice) {
       const calculatedQuantity = costAmount / livePrice;
       setQuantity(calculatedQuantity.toFixed(8));
       setCurrentValue(costAmount.toFixed(2));
+      toast.success(`${calculatedQuantity.toFixed(8)} ${ticker} @ ${currencySymbol}${livePrice.toLocaleString()}`);
       return;
     }
     
-    // Fetch price if ticker exists
-    if (ticker && ticker.trim()) {
-      setFetchingPrice(true);
-      try {
-        const { data } = await base44.functions.invoke('fetchLivePrice', { 
-          ticker: ticker.trim(),
-          type 
-        });
-        setLivePrice(data.price);
-        
-        const calculatedQuantity = costAmount / data.price;
-        setQuantity(calculatedQuantity.toFixed(8));
-        setCurrentValue(costAmount.toFixed(2));
-        toast.success(`Price: ${currencySymbol}${data.price.toLocaleString()} • ${calculatedQuantity.toFixed(8)} ${ticker}`);
-      } catch (error) {
-        toast.error('Failed to fetch price - check ticker symbol');
-      } finally {
-        setFetchingPrice(false);
-      }
+    // Fetch price if we don't have it
+    setFetchingPrice(true);
+    try {
+      const { data } = await base44.functions.invoke('fetchLivePrice', { 
+        ticker: ticker.trim(),
+        type 
+      });
+      setLivePrice(data.price);
+      
+      const calculatedQuantity = costAmount / data.price;
+      setQuantity(calculatedQuantity.toFixed(8));
+      setCurrentValue(costAmount.toFixed(2));
+      toast.success(`${calculatedQuantity.toFixed(8)} ${ticker} @ ${currencySymbol}${data.price.toLocaleString()}`);
+    } catch (error) {
+      toast.error('Failed to fetch price - check ticker symbol');
+      setQuantity('');
+      setCurrentValue('');
+    } finally {
+      setFetchingPrice(false);
     }
   };
 
