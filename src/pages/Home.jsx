@@ -354,32 +354,34 @@ export default function Home() {
             )}
           </AnimatePresence>
         </div>
-      {/* ADHD Quick Log Widget */}
-      {adhdProfile?.has_adhd && <ADHDQuickLog />}
 
-      {/* Show Focus Booster if energy/symptoms are concerning */}
-      {adhdProfile?.has_adhd && todayADHDLog && !showFocusBooster && (
-        todayADHDLog.energy_level <= 3 || todayADHDLog.symptom_severity >= 8
-      ) && (
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="fixed bottom-28 lg:bottom-6 right-4 lg:right-72 z-40 max-w-sm"
-        >
-          <button
-            onClick={() => {
-              setBoosterTrigger({
-                energy_level: todayADHDLog.energy_level,
-                symptom_severity: todayADHDLog.symptom_severity
-              });
-              setShowFocusBooster(true);
-            }}
-            className="w-full bg-gradient-to-r from-rose-500 to-red-500 text-white px-4 py-3 rounded-full shadow-lg hover:shadow-xl transition-all font-medium text-sm"
+        {/* ADHD Quick Log Widget */}
+        {adhdProfile?.has_adhd && <ADHDQuickLog />}
+
+        {/* Show Focus Booster if energy/symptoms are concerning */}
+        {adhdProfile?.has_adhd && todayADHDLog && !showFocusBooster && (
+          (todayADHDLog.energy_level <= 3 || todayADHDLog.symptom_severity >= 8)
+        ) && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="fixed bottom-28 lg:bottom-6 right-4 lg:right-72 z-40 max-w-sm"
           >
-            🆘 Need Help? Try a Break
-          </button>
-        </motion.div>
-      )}
+            <button
+              onClick={() => {
+                setBoosterTrigger({
+                  energy_level: todayADHDLog.energy_level,
+                  symptom_severity: todayADHDLog.symptom_severity
+                });
+                setShowFocusBooster(true);
+              }}
+              className="w-full bg-gradient-to-r from-rose-500 to-red-500 text-white px-4 py-3 rounded-full shadow-lg hover:shadow-xl transition-all font-medium text-sm"
+            >
+              🆘 Need Help? Try a Break
+            </button>
+          </motion.div>
+        )}
       </div>
-      );
+    </div>
+        );
       }
