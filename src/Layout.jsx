@@ -128,45 +128,47 @@ export default function Layout({ children, currentPageName }) {
       )}
 
       {/* Top Navigation - Mobile */}
-      <nav className="lg:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 z-50">
-        <DragDropContext onDragEnd={handleDragEnd}>
-          <Droppable droppableId="nav" direction="horizontal">
-            {(provided) => (
-              <div
-                ref={provided.innerRef}
-                {...provided.droppableProps}
-                className="flex overflow-x-auto scrollbar-hide px-2 py-2 gap-1"
-                style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
-              >
-                {navItems.map((item, index) => (
-                  <Draggable key={item.name} draggableId={item.name} index={index}>
-                    {(provided, snapshot) => (
-                      <Link
-                        ref={provided.innerRef}
-                        {...provided.draggableProps}
-                        {...provided.dragHandleProps}
-                        to={createPageUrl(item.name)}
-                        className={cn(
-                          "flex flex-col items-center gap-1 px-3 py-2 rounded-xl transition-all flex-shrink-0",
-                          currentPageName === item.name
-                            ? "text-indigo-600 bg-indigo-50"
-                            : "text-slate-400 hover:text-slate-600",
-                          snapshot.isDragging && "shadow-lg bg-white"
-                        )}
-                        style={provided.draggableProps.style}
-                      >
-                        <item.icon className="h-5 w-5" />
-                        <span className="text-xs font-medium">{item.label}</span>
-                      </Link>
-                    )}
-                  </Draggable>
-                ))}
-                {provided.placeholder}
-              </div>
-            )}
-          </Droppable>
-        </DragDropContext>
-      </nav>
+      {user && (
+        <nav className="lg:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 z-50">
+          <DragDropContext onDragEnd={handleDragEnd}>
+            <Droppable droppableId="nav" direction="horizontal">
+              {(provided) => (
+                <div
+                  ref={provided.innerRef}
+                  {...provided.droppableProps}
+                  className="flex overflow-x-auto scrollbar-hide px-2 py-2 gap-1"
+                  style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+                >
+                  {navItems.map((item, index) => (
+                    <Draggable key={item.name} draggableId={item.name} index={index}>
+                      {(provided, snapshot) => (
+                        <Link
+                          ref={provided.innerRef}
+                          {...provided.draggableProps}
+                          {...provided.dragHandleProps}
+                          to={createPageUrl(item.name)}
+                          className={cn(
+                            "flex flex-col items-center gap-1 px-3 py-2 rounded-xl transition-all flex-shrink-0",
+                            currentPageName === item.name
+                              ? "text-indigo-600 bg-indigo-50"
+                              : "text-slate-400 hover:text-slate-600",
+                            snapshot.isDragging && "shadow-lg bg-white"
+                          )}
+                          style={provided.draggableProps.style}
+                        >
+                          <item.icon className="h-5 w-5" />
+                          <span className="text-xs font-medium">{item.label}</span>
+                        </Link>
+                      )}
+                    </Draggable>
+                  ))}
+                  {provided.placeholder}
+                </div>
+              )}
+            </Droppable>
+          </DragDropContext>
+        </nav>
+      )}
 
       {/* Main Content */}
       <main className={cn("pb-20", user && "lg:ml-20 lg:pb-0")}>
