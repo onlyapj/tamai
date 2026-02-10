@@ -321,7 +321,7 @@ export default function Profile() {
                   value={user?.currency || 'USD'}
                   onValueChange={(value) => updateCurrencyMutation.mutate(value)}
                 >
-                  <SelectTrigger className="bg-slate-50">
+                  <SelectTrigger className={user?.theme === 'dark' ? 'bg-slate-800' : 'bg-slate-50'}>
                     <SelectValue placeholder="Select currency" />
                   </SelectTrigger>
                   <SelectContent>
