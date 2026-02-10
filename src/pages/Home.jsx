@@ -5,7 +5,7 @@ import { Link } from 'react-router-dom';
 import { createPageUrl } from '../utils';
 import { motion, AnimatePresence } from 'framer-motion';
 import { format } from 'date-fns';
-import { Plus, Calendar, ListTodo, Sparkles, ChevronRight, Heart, Wallet, Activity, Target, ArrowRight, MessageCircle, GripVertical } from 'lucide-react';
+import { Plus, Calendar, ListTodo, Sparkles, ChevronRight, Heart, Wallet, Activity, Target, ArrowRight, MessageCircle, GripVertical, Edit2, Check } from 'lucide-react';
 import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -35,6 +35,7 @@ export default function Home() {
 
     const defaultSectionOrder = ['reflection', 'coaching', 'insights', 'tasks'];
     const [sectionOrder, setSectionOrder] = useState(defaultSectionOrder);
+    const [isRearrangeMode, setIsRearrangeMode] = useState(false);
 
   const { data: tasks = [], isLoading } = useQuery({
     queryKey: ['tasks'],
@@ -193,6 +194,23 @@ export default function Home() {
             </p>
           </div>
           <div className="flex gap-3">
+            <Button
+              onClick={() => setIsRearrangeMode(!isRearrangeMode)}
+              variant={isRearrangeMode ? "default" : "outline"}
+              className={isRearrangeMode ? "bg-amber-600 hover:bg-amber-700" : ""}
+            >
+              {isRearrangeMode ? (
+                <>
+                  <Check className="h-4 w-4 mr-2" />
+                  Done
+                </>
+              ) : (
+                <>
+                  <Edit2 className="h-4 w-4 mr-2" />
+                  Rearrange
+                </>
+              )}
+            </Button>
             <a 
               href={base44.agents.getWhatsAppConnectURL('TAMAI')} 
               target="_blank"
@@ -258,12 +276,14 @@ export default function Home() {
                         {...provided.draggableProps}
                         className={`group relative ${snapshot.isDragging ? 'opacity-50' : ''}`}
                       >
-                        <div
-                          {...provided.dragHandleProps}
-                          className="absolute -left-8 top-4 opacity-0 group-hover:opacity-100 transition-opacity z-10"
-                        >
-                          <GripVertical className="h-5 w-5 text-slate-400" />
-                        </div>
+                        {isRearrangeMode && (
+                          <div
+                            {...provided.dragHandleProps}
+                            className="absolute -left-8 top-4 opacity-100 transition-opacity z-10"
+                          >
+                            <GripVertical className="h-5 w-5 text-amber-600" />
+                          </div>
+                        )}
 
                         {section === 'reflection' && !todayMood && (
                           <DailyReflection 
