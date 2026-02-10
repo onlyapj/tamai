@@ -169,6 +169,39 @@ export default function EventForm({ task, defaultDate, onSubmit, onCancel, isLoa
             </div>
           </div>
 
+          <div>
+            <Label className="flex items-center gap-2 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={formData.recurring}
+                onChange={(e) => setFormData({ ...formData, recurring: e.target.checked })}
+                className="rounded"
+              />
+              <span className="text-sm">Repeat this event</span>
+            </Label>
+          </div>
+
+          {formData.recurring && (
+            <div>
+              <Label htmlFor="recurring_pattern">Repeat Pattern</Label>
+              <Select
+                value={formData.recurring_pattern}
+                onValueChange={(value) => setFormData({ ...formData, recurring_pattern: value })}
+              >
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="weekly">Weekly</SelectItem>
+                  <SelectItem value="biweekly">Bi-weekly</SelectItem>
+                  <SelectItem value="monthly">Monthly</SelectItem>
+                  <SelectItem value="quarterly">Quarterly</SelectItem>
+                  <SelectItem value="yearly">Yearly</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          )}
+
           <div className="flex gap-3 pt-4">
             <Button type="button" variant="outline" onClick={onCancel} className="flex-1">
               Cancel
