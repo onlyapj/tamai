@@ -24,6 +24,7 @@ import ADHDTaskView from '../components/adhd/ADHDTaskView';
 import ADHDFocusBooster from '../components/adhd/ADHDFocusBooster';
 
 export default function Home() {
+    const navigate = useNavigate();
     const [showForm, setShowForm] = useState(false);
     const [editingTask, setEditingTask] = useState(null);
     const [activeTab, setActiveTab] = useState('today');
