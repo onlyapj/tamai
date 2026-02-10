@@ -11,33 +11,33 @@ export default function Landing() {
   const features = [
     {
       icon: Brain,
-      title: 'AI-Powered Task Planning',
-      description: 'Automatically prioritizes and schedules your tasks based on deadlines and workload'
-    },
-    {
-      icon: Calendar,
-      title: 'Smart Calendar',
-      description: 'Never miss a deadline with AI-driven scheduling that adapts to your capacity'
-    },
-    {
-      icon: Sparkles,
-      title: 'Meeting Summaries',
-      description: 'AI generates summaries, action items, and sentiment analysis from your meetings'
+      title: 'AI CFO',
+      description: 'Smart finance tracking, cash flow forecasting, and automated expense categorization'
     },
     {
       icon: Workflow,
-      title: 'Habit & Goal Tracking',
-      description: 'Build momentum with intelligent habit tracking and goal progression analytics'
+      title: 'AI Project Manager',
+      description: 'Break goals into tasks, auto-assign owners, detect bottlenecks, smart follow-ups'
     },
     {
       icon: TrendingUp,
-      title: 'Financial Insights',
-      description: 'Track investments, budgets, and spending with AI-powered insights'
+      title: 'AI Strategist',
+      description: 'Turn business vision into OKRs, track progress, flag risks, suggest next steps'
     },
     {
       icon: Users,
-      title: 'Mindfulness & Wellness',
-      description: 'Mood tracking, journaling, and health logs for a balanced life'
+      title: 'Team & Roles',
+      description: 'Invite team members, manage permissions, detect overload, suggest redistribution'
+    },
+    {
+      icon: Sparkles,
+      title: 'AI Assistant',
+      description: 'Ask questions about your business data. Get answers backed by your actual numbers'
+    },
+    {
+      icon: Calendar,
+      title: 'Connected Integrations',
+      description: 'Stripe, PayPal, bank connections, Slack, Google Calendar—all in one workspace'
     }
   ];
 
@@ -91,29 +91,29 @@ export default function Landing() {
           </div>
 
           <h1 className="text-5xl sm:text-6xl lg:text-7xl font-bold text-slate-900 mb-6 leading-tight">
-            Reclaim Your Time with
-            <span className="block bg-gradient-to-r from-indigo-600 via-violet-600 to-purple-600 bg-clip-text text-transparent">
-              AI-Powered Living
-            </span>
+           Run Your Business
+           <span className="block bg-gradient-to-r from-indigo-600 via-violet-600 to-purple-600 bg-clip-text text-transparent">
+             With AI as Your CFO
+           </span>
           </h1>
 
           <p className="text-xl text-slate-600 mb-8 max-w-2xl mx-auto">
-            Meet TAMAI—your personal AI assistant for productivity, wellness, and growth. Manage tasks, meetings, finances, health, and goals in one intelligent platform.
+           TAMAI is your AI business assistant. Connect your finances, automate task management, track goals, and lead your team—all in one place.
           </p>
 
           <div className="flex flex-col sm:flex-row gap-4 justify-center mb-12">
             <Button size="lg" className="bg-indigo-600 hover:bg-indigo-700 w-full sm:w-auto" onClick={() => {
-              localStorage.setItem('signupAccountType', 'individual');
-              base44.auth.redirectToLogin(createPageUrl('Home'));
+              localStorage.setItem('signupAccountType', 'business');
+              base44.auth.redirectToLogin(createPageUrl('BusinessDashboard'));
             }}>
-              I'm an Individual
+              Start Building
               <ArrowRight className="ml-2 h-4 w-4" />
             </Button>
             <Button size="lg" variant="outline" className="w-full sm:w-auto" onClick={() => {
               localStorage.setItem('signupAccountType', 'business');
-              base44.auth.redirectToLogin(createPageUrl('Home'));
+              base44.auth.redirectToLogin(createPageUrl('BusinessDashboard'));
             }}>
-              I'm a Business
+              Watch Demo
             </Button>
           </div>
 
@@ -139,8 +139,8 @@ export default function Landing() {
       <section id="features" className="py-20 sm:py-32 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
-            <h2 className="text-4xl sm:text-5xl font-bold text-slate-900 mb-4">Everything you need to thrive</h2>
-            <p className="text-xl text-slate-600">All-in-one platform for productivity, wellness, and financial management</p>
+            <h2 className="text-4xl sm:text-5xl font-bold text-slate-900 mb-4">One AI for your entire business</h2>
+            <p className="text-xl text-slate-600">Replace 5-6 tools with a single AI-powered platform</p>
           </div>
 
           <div className="grid md:grid-cols-3 gap-8">
@@ -164,17 +164,17 @@ export default function Landing() {
       <section className="py-20 sm:py-32 bg-gradient-to-br from-slate-50 to-slate-100">
         <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
-            <h2 className="text-4xl sm:text-5xl font-bold text-slate-900 mb-4">Why choose TAMAI?</h2>
+            <h2 className="text-4xl sm:text-5xl font-bold text-slate-900 mb-4">Why TAMAI wins</h2>
           </div>
 
           <div className="grid md:grid-cols-2 gap-8">
             <div className="space-y-4">
               {[
-                'AI-powered task prioritization',
-                'Smart meeting summaries with sentiment analysis',
-                'Integrated calendar & scheduling',
-                'Financial tracking & insights',
-                'Mood & habit tracking'
+                'AI is not a gimmick—it\'s the core',
+                'Connects money + work + people',
+                'Bank integrations (Stripe, PayPal, Plaid)',
+                'Auto-categorize expenses & detect waste',
+                'Cash flow forecasting & runway predictions'
               ].map((item, idx) => (
                 <div key={idx} className="flex gap-3">
                   <Check className="h-5 w-5 text-emerald-600 flex-shrink-0 mt-0.5" />
@@ -185,11 +185,11 @@ export default function Landing() {
 
             <div className="space-y-4">
               {[
-                'Privacy-first & secure',
-                'Google Calendar integration',
-                'Team collaboration features',
-                'AI-generated follow-up tasks',
-                'Real-time analytics dashboard'
+                'Helps owners think, not just track',
+                'Smart task assignment & bottleneck detection',
+                'Real-time team health & capacity insights',
+                'OKR tracking with progress automation',
+                'Replace 4-6 tools with one unified platform'
               ].map((item, idx) => (
                 <div key={idx} className="flex gap-3">
                   <Check className="h-5 w-5 text-emerald-600 flex-shrink-0 mt-0.5" />
@@ -233,8 +233,8 @@ export default function Landing() {
       {/* CTA Section */}
       <section id="pricing" className="py-20 sm:py-32 bg-gradient-to-r from-indigo-600 to-violet-600">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <h2 className="text-4xl sm:text-5xl font-bold text-white mb-6">Ready to transform your life?</h2>
-          <p className="text-xl text-indigo-100 mb-8">Join 500K+ users who've taken control of their time, health, and goals.</p>
+          <h2 className="text-4xl sm:text-5xl font-bold text-white mb-6">Stop managing. Start building.</h2>
+          <p className="text-xl text-indigo-100 mb-8">Let AI handle the operations. You focus on growth.</p>
           
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Button size="lg" className="bg-white text-indigo-600 hover:bg-slate-50 w-full sm:w-auto" onClick={() => base44.auth.redirectToLogin(createPageUrl('Home'))}>
