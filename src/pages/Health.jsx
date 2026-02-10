@@ -9,6 +9,7 @@ import HealthStats from '@/components/health/HealthStats.jsx';
 import HabitTracker from '@/components/health/HabitTracker.jsx';
 import HealthLogForm from '@/components/health/HealthLogForm.jsx';
 import HealthTrends from '@/components/health/HealthTrends.jsx';
+import HabitAnalyticsDashboard from '@/components/health/HabitAnalyticsDashboard.jsx';
 
 export default function Health() {
   const [showLogForm, setShowLogForm] = useState(false);
