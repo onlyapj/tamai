@@ -1,11 +1,12 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
 import { motion } from 'framer-motion';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Plus, AlertTriangle, CheckCircle2 } from 'lucide-react';
+import { Plus, AlertTriangle, CheckCircle2, Trash2 } from 'lucide-react';
+import { toast } from 'sonner';
 
 const categories = ['housing', 'food', 'transport', 'utilities', 'entertainment', 'health', 'shopping', 'other'];
 
@@ -56,6 +57,36 @@ export default function BudgetSection({ budgets, transactions, currentMonth, cur
     }, {});
 
   const existingCategories = budgets.map(b => b.category);
+
+  const deleteBudget = useMutation({
+    mutationFn: (id) => base44.entities.Budget.delete(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries(['budgets']);
+      toast.success('Budget removed');
+    }
+  });
+
+  // Check for budget alerts and show notifications
+  useEffect(() => {
+    budgets.forEach(budget => {
+      const spent = spendingByCategory[budget.category] || 0;
+      const percentage = (spent / budget.monthly_limit) * 100;
+      
+      if (spent > budget.monthly_limit) {
+        const overage = spent - budget.monthly_limit;
+        toast.error(`Budget Alert: ${budget.category}`, {
+          description: `You've exceeded your budget by ${currencySymbol}${overage.toLocaleString()}`,
+          duration: 5000
+        });
+      } else if (percentage >= 90) {
+        const remaining = budget.monthly_limit - spent;
+        toast.warning(`Budget Warning: ${budget.category}`, {
+          description: `Only ${currencySymbol}${remaining.toLocaleString()} remaining (${Math.round(100 - percentage)}% left)`,
+          duration: 5000
+        });
+      }
+    });
+  }, [transactions.length]); // Re-check when transactions change
 
   return (
     <div className="space-y-6">
@@ -133,13 +164,33 @@ export default function BudgetSection({ budgets, transactions, currentMonth, cur
                 <div className="flex items-center gap-2">
                   <div className={`w-3 h-3 rounded-full ${categoryColors[budget.category] || categoryColors.other}`} />
                   <span className="font-medium text-slate-800 capitalize">{budget.category}</span>
+                  {isOver && (
+                    <span className="px-2 py-0.5 bg-red-100 text-red-700 text-xs rounded-full font-medium">
+                      Over
+                    </span>
+                  )}
+                  {isNear && (
+                    <span className="px-2 py-0.5 bg-amber-100 text-amber-700 text-xs rounded-full font-medium">
+                      Near Limit
+                    </span>
+                  )}
                 </div>
-                <div className="flex items-center gap-2">
-                  {isOver && <AlertTriangle className="h-4 w-4 text-red-500" />}
-                  {!isOver && !isNear && <CheckCircle2 className="h-4 w-4 text-emerald-500" />}
-                  <span className={`text-sm font-semibold ${isOver ? 'text-red-500' : 'text-slate-700'}`}>
-                    {currencySymbol}{spent.toLocaleString()} / {currencySymbol}{budget.monthly_limit.toLocaleString()}
-                  </span>
+                <div className="flex items-center gap-3">
+                  <div className="flex items-center gap-2">
+                    {isOver && <AlertTriangle className="h-4 w-4 text-red-500" />}
+                    {!isOver && !isNear && <CheckCircle2 className="h-4 w-4 text-emerald-500" />}
+                    <span className={`text-sm font-semibold ${isOver ? 'text-red-500' : 'text-slate-700'}`}>
+                      {currencySymbol}{spent.toLocaleString()} / {currencySymbol}{budget.monthly_limit.toLocaleString()}
+                    </span>
+                  </div>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-7 w-7 text-slate-400 hover:text-red-500"
+                    onClick={() => deleteBudget.mutate(budget.id)}
+                  >
+                    <Trash2 className="h-3.5 w-3.5" />
+                  </Button>
                 </div>
               </div>
               <div className="h-2 bg-slate-100 rounded-full overflow-hidden">
@@ -152,12 +203,17 @@ export default function BudgetSection({ budgets, transactions, currentMonth, cur
                   }`}
                 />
               </div>
-              <p className="text-xs text-slate-500 mt-2">
-                {isOver 
-                  ? `${currencySymbol}${(spent - budget.monthly_limit).toLocaleString()} over budget`
-                  : `${currencySymbol}${(budget.monthly_limit - spent).toLocaleString()} remaining`
-                }
-              </p>
+              <div className="flex items-center justify-between mt-2">
+                <p className="text-xs text-slate-500">
+                  {isOver 
+                    ? `${currencySymbol}${(spent - budget.monthly_limit).toLocaleString()} over budget`
+                    : `${currencySymbol}${(budget.monthly_limit - spent).toLocaleString()} remaining`
+                  }
+                </p>
+                <p className="text-xs font-medium text-slate-600">
+                  {Math.round(percentage)}%
+                </p>
+              </div>
             </motion.div>
           );
         })}

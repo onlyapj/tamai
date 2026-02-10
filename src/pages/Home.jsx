@@ -15,6 +15,7 @@ import DayTimeline from '../components/dashboard/DayTimeline';
 import TopPriorities from '../components/dashboard/TopPriorities';
 import DailyReflection from '../components/dashboard/DailyReflection';
 import TamaiLogo from '../components/common/TamaiLogo';
+import BudgetOverviewWidget from '../components/finance/BudgetOverviewWidget';
 
 export default function Home() {
   const [showForm, setShowForm] = useState(false);
@@ -71,6 +72,7 @@ export default function Home() {
   const todayStr = format(new Date(), 'yyyy-MM-dd');
   const currentHour = new Date().getHours();
   const reflectionType = currentHour < 12 ? 'morning' : 'evening';
+  const currentMonth = format(new Date(), 'yyyy-MM');
   
   const { data: todayMood } = useQuery({
     queryKey: ['todayMood'],
@@ -78,6 +80,19 @@ export default function Home() {
       const entries = await base44.entities.MoodEntry.filter({ date: todayStr });
       return entries[0] || null;
     }
+  });
+
+  const { data: transactions = [] } = useQuery({
+    queryKey: ['transactions-month'],
+    queryFn: async () => {
+      const all = await base44.entities.Transaction.list('-date', 100);
+      return all.filter(t => t.date?.startsWith(currentMonth));
+    }
+  });
+
+  const { data: budgets = [] } = useQuery({
+    queryKey: ['budgets-month'],
+    queryFn: () => base44.entities.Budget.filter({ month: currentMonth })
   });
   
   const filteredTasks = {
@@ -157,11 +172,16 @@ export default function Home() {
           />
         )}
 
-        {/* Top 3 Priorities */}
-        <div className="mb-6">
+        {/* Quick Insights Row */}
+        <div className="grid lg:grid-cols-2 gap-6 mb-6">
           <TopPriorities 
             tasks={tasks.filter(t => t.due_date === todayStr)} 
             onToggle={handleToggle}
+          />
+          <BudgetOverviewWidget 
+            budgets={budgets}
+            transactions={transactions}
+            currencySymbol="£"
           />
         </div>
 
