@@ -391,11 +391,7 @@ export default function InvestmentForm({ investment, currencySymbol, onSubmit, o
                 )}
               </div>
             )}
-            {type !== 'crypto' && livePrice && (
-              <p className="text-xs text-emerald-600 mt-1 font-medium">
-                Current: {currencySymbol}{livePrice.toLocaleString()}
-              </p>
-            )}
+
           </div>
 
           {/* Cost Basis */}
