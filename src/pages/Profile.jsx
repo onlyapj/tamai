@@ -285,8 +285,8 @@ export default function Profile() {
                     onCheckedChange={(checked) => updateThemeMutation.mutate(checked ? 'dark' : 'light')}
                   />
                   <div className="flex items-center gap-3">
-                    <span className="text-slate-900">Dark Mode</span>
-                    <Moon className="h-4 w-4 text-slate-600" />
+                    <span className={user?.theme === 'dark' ? 'text-slate-100' : 'text-slate-900'}>Dark Mode</span>
+                    <Moon className={cn("h-4 w-4", user?.theme === 'dark' ? 'text-slate-400' : 'text-slate-600')} />
                   </div>
                 </div>
               </div>
