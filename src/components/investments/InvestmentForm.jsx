@@ -79,7 +79,7 @@ export default function InvestmentForm({ investment, currencySymbol, onSubmit, o
 
   const fetchLivePrice = async () => {
     if (!ticker || !ticker.trim()) {
-      toast.error('Enter a ticker symbol first');
+      toast.error('Select a crypto first');
       return;
     }
 
@@ -91,23 +91,9 @@ export default function InvestmentForm({ investment, currencySymbol, onSubmit, o
       });
       
       setLivePrice(data.price);
-      
-      // If quantity is filled, calculate cost basis and current value
-      if (quantity && !isNaN(parseFloat(quantity)) && parseFloat(quantity) > 0) {
-        const calculatedCostBasis = data.price * parseFloat(quantity);
-        setCostBasis(calculatedCostBasis.toFixed(2));
-        setCurrentValue(calculatedCostBasis.toFixed(2));
-      }
-      // If cost basis is filled instead, calculate quantity and current value
-      else if (costBasis && !isNaN(parseFloat(costBasis)) && parseFloat(costBasis) > 0) {
-        const calculatedQuantity = parseFloat(costBasis) / data.price;
-        setQuantity(calculatedQuantity.toFixed(8));
-        setCurrentValue(costBasis);
-      }
-      
-      toast.success(`Live price: ${currencySymbol}${data.price.toLocaleString()}`);
+      toast.success(`${ticker} price: ${currencySymbol}${data.price.toLocaleString()}`);
     } catch (error) {
-      toast.error(error.response?.data?.error || 'Failed to fetch live price');
+      toast.error('Failed to fetch price');
       setLivePrice(null);
     } finally {
       setFetchingPrice(false);
