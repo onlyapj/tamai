@@ -203,7 +203,7 @@ export default function Layout({ children, currentPageName }) {
       {showWearableLink && (
         <Link
           to={createPageUrl('Wearable')}
-          className="fixed bottom-24 lg:bottom-6 right-4 lg:right-6 bg-slate-900 text-white px-4 py-2.5 rounded-full shadow-lg flex items-center gap-2 hover:bg-slate-800 transition-colors z-40"
+          className={cn("fixed bottom-24 lg:bottom-6 right-4 lg:right-6 px-4 py-2.5 rounded-full shadow-lg flex items-center gap-2 transition-colors z-40", user?.theme === 'dark' ? 'bg-slate-700 text-white hover:bg-slate-600' : 'bg-slate-900 text-white hover:bg-slate-800')}
         >
           <Watch className="h-4 w-4" />
           <span className="text-sm font-medium">Wearable</span>
