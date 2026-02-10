@@ -290,6 +290,26 @@ export default function Profile() {
                 </div>
               </div>
 
+              {/* Account Type */}
+              <div>
+                <label className="text-sm font-medium text-slate-700 mb-2 flex items-center gap-2">
+                  <Building2 className="h-4 w-4" />
+                  Account Type
+                </label>
+                <Select
+                  value={user?.account_type || 'individual'}
+                  onValueChange={(value) => updateAccountTypeMutation.mutate(value)}
+                >
+                  <SelectTrigger className="bg-slate-50">
+                    <SelectValue placeholder="Select account type" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="individual">Personal Account</SelectItem>
+                    <SelectItem value="business">Business Account</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
               {/* Currency */}
               <div>
                 <label className="text-sm font-medium text-slate-700 mb-2 flex items-center gap-2">
