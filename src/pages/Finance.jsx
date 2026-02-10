@@ -98,7 +98,37 @@ export default function Finance() {
           </div>
         </div>
 
-
+        {/* Quick Links */}
+        <div className="grid sm:grid-cols-2 gap-3 mb-6">
+          <Link to={createPageUrl('RecurringTransactions')}>
+            <div className="bg-gradient-to-r from-emerald-500 to-teal-500 rounded-2xl p-4 text-white flex items-center justify-between hover:shadow-lg transition-shadow">
+              <div className="flex items-center gap-3">
+                <div className="bg-white/20 rounded-xl p-2">
+                  <RefreshCw className="h-5 w-5" />
+                </div>
+                <div>
+                  <p className="font-semibold">Recurring</p>
+                  <p className="text-xs text-emerald-50">Automatic payments</p>
+                </div>
+              </div>
+              <ArrowUpRight className="h-5 w-5" />
+            </div>
+          </Link>
+          <Link to={createPageUrl('Investments')}>
+            <div className="bg-gradient-to-r from-indigo-500 to-purple-500 rounded-2xl p-4 text-white flex items-center justify-between hover:shadow-lg transition-shadow">
+              <div className="flex items-center gap-3">
+                <div className="bg-white/20 rounded-xl p-2">
+                  <TrendingUp className="h-5 w-5" />
+                </div>
+                <div>
+                  <p className="font-semibold">Investments</p>
+                  <p className="text-xs text-indigo-50">Track portfolio</p>
+                </div>
+              </div>
+              <ArrowUpRight className="h-5 w-5" />
+            </div>
+          </Link>
+        </div>
 
         {/* Quick Stats */}
         <div className="grid grid-cols-3 gap-3 mb-6">
