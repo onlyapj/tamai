@@ -193,6 +193,14 @@ export default function Home() {
           />
         )}
 
+        {/* Coaching Insight Widget */}
+        <div className="mb-6">
+          <div className="bg-white rounded-3xl border border-slate-200/60 shadow-sm p-6">
+            <h3 className="font-semibold text-slate-800 mb-4">Weekly Coaching</h3>
+            <CoachingDashboard />
+          </div>
+        </div>
+
         {/* Quick Insights Row */}
         <div className="grid lg:grid-cols-2 gap-6 mb-6">
           <TopPriorities 
