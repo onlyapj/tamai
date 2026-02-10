@@ -38,6 +38,24 @@ const cryptoOptions = [
   { symbol: 'MATIC', name: 'Polygon' }
 ];
 
+const stockOptions = [
+  { symbol: 'AAPL', name: 'Apple' },
+  { symbol: 'MSFT', name: 'Microsoft' },
+  { symbol: 'GOOGL', name: 'Google' },
+  { symbol: 'AMZN', name: 'Amazon' },
+  { symbol: 'TSLA', name: 'Tesla' },
+  { symbol: 'META', name: 'Meta' },
+  { symbol: 'NVDA', name: 'NVIDIA' },
+  { symbol: 'JPM', name: 'JPMorgan Chase' },
+  { symbol: 'V', name: 'Visa' },
+  { symbol: 'JNJ', name: 'Johnson & Johnson' },
+  { symbol: 'WMT', name: 'Walmart' },
+  { symbol: 'PG', name: 'Procter & Gamble' },
+  { symbol: 'KO', name: 'Coca-Cola' },
+  { symbol: 'DIS', name: 'Disney' },
+  { symbol: 'SPY', name: 'S&P 500 ETF' }
+];
+
 export default function InvestmentForm({ investment, currencySymbol, onSubmit, onCancel, isLoading }) {
   const [name, setName] = useState(investment?.name || '');
   const [type, setType] = useState(investment?.type || 'stock');
