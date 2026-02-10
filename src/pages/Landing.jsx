@@ -1,13 +1,15 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { base44 } from '@/api/base44Client';
 import { createPageUrl } from '@/utils';
 import { Button } from '@/components/ui/button';
 import { 
   ArrowRight, Check, Zap, Brain, Calendar, Sparkles, 
-  TrendingUp, Users, Star, Shield, Workflow
+  TrendingUp, Users, Star, Shield, Workflow, Building2, User as UserIcon
 } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 
 export default function Landing() {
+  const [selectedAccountType, setSelectedAccountType] = useState(null);
   const features = [
     {
       icon: Brain,
