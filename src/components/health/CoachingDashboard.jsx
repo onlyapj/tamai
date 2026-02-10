@@ -37,8 +37,12 @@ export default function CoachingDashboard() {
     }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['habitCoach'] });
+      queryClient.invalidateQueries({ queryKey: ['habits'] });
       setShowHabitForm(false);
       setHabitName('');
+    },
+    onError: (error) => {
+      console.error('Failed to create habit:', error);
     }
   });
 
