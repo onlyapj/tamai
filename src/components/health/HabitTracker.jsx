@@ -37,7 +37,7 @@ export default function HabitTracker({ habits, habitLogs, todayLogs, onUpdate })
   const createHabit = useMutation({
     mutationFn: (data) => base44.entities.Habit.create(data),
     onSuccess: () => {
-      queryClient.invalidateQueries(['habits']);
+      queryClient.invalidateQueries({ queryKey: ['habits'] });
       setShowForm(false);
       setNewHabit({ name: '', category: 'health' });
     }
@@ -53,7 +53,7 @@ export default function HabitTracker({ habits, habitLogs, todayLogs, onUpdate })
       }
     },
     onSuccess: () => {
-      queryClient.invalidateQueries(['habitLogs']);
+      queryClient.invalidateQueries({ queryKey: ['habitLogs'] });
       onUpdate?.();
     }
   });

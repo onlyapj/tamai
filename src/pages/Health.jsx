@@ -42,7 +42,7 @@ export default function Health() {
       ? base44.entities.HealthLog.update(todayLog.id, data)
       : base44.entities.HealthLog.create({ ...data, date: today }),
     onSuccess: () => {
-      queryClient.invalidateQueries(['healthLogs']);
+      queryClient.invalidateQueries({ queryKey: ['healthLogs'] });
       setShowLogForm(false);
     }
   });
@@ -133,7 +133,7 @@ export default function Health() {
                 habits={habits} 
                 habitLogs={habitLogs}
                 todayLogs={todayHabitLogs}
-                onUpdate={() => queryClient.invalidateQueries(['habitLogs', 'habits'])}
+                onUpdate={() => queryClient.invalidateQueries({ queryKey: ['habitLogs', 'habits'] })}
               />
             </motion.div>
           )}

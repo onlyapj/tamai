@@ -23,7 +23,7 @@ Deno.serve(async (req) => {
       base44.entities.Task.list('-due_date'),
       base44.entities.Transaction.list('-date', 30),
       base44.entities.Budget.list(),
-      base44.asServiceRole.entities.ADHDProfile.list(),
+      base44.asServiceRole.entities.ADHDProfile.filter({ created_by: user.email }),
       base44.asServiceRole.entities.ADHDLog.list('-date', 30)
     ]);
 
@@ -56,7 +56,7 @@ Deno.serve(async (req) => {
       .reduce((sum, t) => sum + t.amount, 0);
 
     // Check for ADHD profile
-    const adhdProfile = adhdProfiles.find(p => p.created_by === user.email);
+    const adhdProfile = adhdProfiles[0];
     let adhdContext = '';
 
     if (adhdProfile?.has_adhd && adhdLogs.length > 0) {
