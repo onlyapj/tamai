@@ -356,46 +356,39 @@ export default function InvestmentForm({ investment, currencySymbol, onSubmit, o
             )}
           </div>
 
-          {/* Cost Basis & Quantity */}
-          <div className="grid grid-cols-2 gap-3">
-            <div>
-              <Label className="text-xs text-slate-500">Cost Basis *</Label>
-              <div className="relative mt-1">
-                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm">
-                  {currencySymbol}
-                </span>
-                <Input
-                  type="number"
-                  value={costBasis}
-                  onChange={(e) => handleCostBasisChange(e.target.value)}
-                  placeholder="0.00"
-                  step="0.01"
-                  min="0"
-                  className="pl-7"
-                  required
-                />
-              </div>
-              <p className="text-xs text-slate-500 mt-1">Total amount paid</p>
-            </div>
-            <div>
-              <Label className="text-xs text-slate-500">Quantity *</Label>
+          {/* Cost Basis */}
+          <div>
+            <Label className="text-xs text-slate-500">Amount Invested *</Label>
+            <div className="relative mt-1">
+              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm">
+                {currencySymbol}
+              </span>
               <Input
                 type="number"
-                value={quantity}
-                onChange={(e) => handleQuantityChange(e.target.value)}
-                placeholder="0"
-                step="0.00000001"
+                value={costBasis}
+                onChange={(e) => handleCostBasisChange(e.target.value)}
+                placeholder="0.00"
+                step="0.01"
                 min="0"
-                className="mt-1"
+                className="pl-7 text-lg font-semibold"
                 required
               />
-              {livePrice && (
-                <p className="text-xs text-slate-500 mt-1">
-                  {type === 'crypto' ? 'Number of coins' : 'Number of shares'}
-                </p>
-              )}
             </div>
+            <p className="text-xs text-slate-500 mt-1">How much money you invested</p>
           </div>
+
+          {/* Quantity - Auto-calculated */}
+          {quantity && livePrice && (
+            <div className="bg-indigo-50 rounded-xl p-4 border border-indigo-100">
+              <Label className="text-xs text-indigo-600 font-medium">Tokens Owned</Label>
+              <p className="text-2xl font-bold text-indigo-900 mt-1">
+                {parseFloat(quantity).toFixed(8)} {ticker}
+              </p>
+              <p className="text-xs text-indigo-600 mt-1">
+                @ {currencySymbol}{livePrice.toLocaleString()} per token
+              </p>
+            </div>
+          )}
 
           {/* Current Value */}
           <div>
