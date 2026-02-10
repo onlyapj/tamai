@@ -308,7 +308,8 @@ export default function Investments() {
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-xl font-bold text-slate-900">Transaction History</h2>
             <Button 
-              onClick={() => setSelectedInvestmentForTransaction({} as any)}
+              onClick={() => setSelectedInvestmentForTransaction(investments[0] || null)}
+              disabled={investments.length === 0}
               className="bg-indigo-600 hover:bg-indigo-700"
               size="sm"
             >
