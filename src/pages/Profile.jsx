@@ -135,7 +135,7 @@ export default function Profile() {
   };
 
   const handleSignOut = () => {
-    base44.auth.logout();
+    base44.auth.logout(createPageUrl('Landing'));
   };
 
   if (isLoading) {
