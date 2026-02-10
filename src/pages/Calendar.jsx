@@ -10,6 +10,7 @@ import EventForm from '../components/calendar/EventForm.jsx';
 import DaySchedule from '../components/calendar/DaySchedule.jsx';
 import WeeklyView from '../components/calendar/WeeklyView.jsx';
 import GoogleCalendarSync from '../components/calendar/GoogleCalendarSync.jsx';
+import EventTemplateManager from '../components/calendar/EventTemplateManager.jsx';
 import { toast } from 'sonner';
 
 export default function Calendar() {
@@ -18,6 +19,7 @@ export default function Calendar() {
   const [editingTask, setEditingTask] = useState(null);
   const [currentMonth, setCurrentMonth] = useState(new Date());
   const [showSyncSettings, setShowSyncSettings] = useState(false);
+  const [showTemplates, setShowTemplates] = useState(false);
   const [viewMode, setViewMode] = useState('month'); // 'month', 'week', or 'day'
   const queryClient = useQueryClient();
 
@@ -140,6 +142,13 @@ export default function Calendar() {
             <p className="text-slate-500 mt-1">Schedule your time with intention</p>
           </div>
           <div className="flex gap-2">
+            <Button 
+              onClick={() => setShowTemplates(true)}
+              variant="outline"
+              title="Quick event templates"
+            >
+              ⚡ Templates
+            </Button>
             <Button 
               onClick={() => setShowSyncSettings(!showSyncSettings)}
               variant="outline"
@@ -343,6 +352,29 @@ export default function Calendar() {
               onSubmit={handleSubmit}
               onCancel={() => { setShowEventForm(false); setEditingTask(null); }}
               isLoading={createMutation.isPending || updateMutation.isPending}
+            />
+          )}
+          {showTemplates && (
+            <EventTemplateManager
+              onSelectTemplate={(template) => {
+                setEditingTask(null);
+                setShowEventForm(true);
+                setShowTemplates(false);
+                setEditingTask({
+                  title: template.title,
+                  description: template.description,
+                  duration_minutes: template.duration_minutes,
+                  scheduled_time: template.scheduled_time,
+                  priority: template.priority,
+                  list_name: template.list_name,
+                  recurring: true,
+                  recurring_pattern: template.recurring_pattern,
+                  reminder_minutes: template.reminder_minutes,
+                  due_date: format(selectedDate, 'yyyy-MM-dd'),
+                  status: 'pending'
+                });
+              }}
+              onCancel={() => setShowTemplates(false)}
             />
           )}
         </AnimatePresence>
