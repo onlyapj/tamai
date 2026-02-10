@@ -82,22 +82,22 @@ export default function InvestmentForm({ investment, currencySymbol, onSubmit, o
     }
   };
 
-  // Auto-update current value when quantity or live price changes
+  // Auto-calculate cost basis and current value when quantity changes
   const handleQuantityChange = (value) => {
     setQuantity(value);
     if (livePrice && value && parseFloat(value) > 0) {
-      const calculatedValue = livePrice * parseFloat(value);
-      setCurrentValue(calculatedValue.toFixed(2));
+      const calculatedCostBasis = livePrice * parseFloat(value);
+      setCostBasis(calculatedCostBasis.toFixed(2));
+      setCurrentValue(calculatedCostBasis.toFixed(2));
     }
   };
 
-  // Auto-calculate quantity when cost basis changes and live price is available
+  // Auto-calculate quantity and current value when cost basis changes
   const handleCostBasisChange = (value) => {
     setCostBasis(value);
     if (livePrice && value && parseFloat(value) > 0) {
       const calculatedQuantity = parseFloat(value) / livePrice;
       setQuantity(calculatedQuantity.toFixed(8));
-      // Also update current value
       setCurrentValue(value);
     }
   };
