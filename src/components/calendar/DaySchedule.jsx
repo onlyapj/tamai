@@ -2,7 +2,7 @@ import React from 'react';
 import { format } from 'date-fns';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from "@/components/ui/button";
-import { Calendar, Clock, Bell, Trash2, Edit2, CheckCircle2, Circle, ChevronDown, Sparkles } from 'lucide-react';
+import { Calendar, Clock, Bell, Trash2, Edit2, CheckCircle2, Circle, ChevronDown } from 'lucide-react';
 import { useState } from 'react';
 import SummaryGenerator from './SummaryGenerator';
 import MeetingSummaryPanel from './MeetingSummaryPanel';
@@ -61,7 +61,7 @@ export default function DaySchedule({ date, tasks, onEdit, onDelete, onToggle, f
                 animate={{ opacity: 1, x: 0 }}
                 exit={{ opacity: 0, x: 10 }}
                 className={cn(
-                  "border rounded-2xl p-4 transition-all",
+                  "border rounded-2xl p-4 transition-all space-y-3",
                   task.status === 'completed' 
                     ? "bg-slate-50 border-slate-200 opacity-60" 
                     : "bg-white border-slate-200 hover:border-indigo-300"
@@ -119,61 +119,62 @@ export default function DaySchedule({ date, tasks, onEdit, onDelete, onToggle, f
                   </div>
                   
                   <div className="flex gap-1">
-                   <Button
-                     variant="ghost"
-                     size="sm"
-                     onClick={() => setExpandedTask(expandedTask === task.id ? null : task.id)}
-                     className="h-8 w-8 p-0"
-                     title="View meeting summary"
-                   >
-                     <ChevronDown className={`h-3.5 w-3.5 transition-transform ${expandedTask === task.id ? 'rotate-180' : ''}`} />
-                   </Button>
-                   <Button
-                     variant="ghost"
-                     size="sm"
-                     onClick={() => onEdit(task)}
-                     className="h-8 w-8 p-0"
-                   >
-                     <Edit2 className="h-3.5 w-3.5" />
-                   </Button>
-                   <Button
-                     variant="ghost"
-                     size="sm"
-                     onClick={() => onDelete(task)}
-                     className="h-8 w-8 p-0 text-red-500 hover:text-red-600"
-                   >
-                     <Trash2 className="h-3.5 w-3.5" />
-                   </Button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => setExpandedTask(expandedTask === task.id ? null : task.id)}
+                      className="h-8 w-8 p-0"
+                      title="View meeting summary"
+                    >
+                      <ChevronDown className={`h-3.5 w-3.5 transition-transform ${expandedTask === task.id ? 'rotate-180' : ''}`} />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => onEdit(task)}
+                      className="h-8 w-8 p-0"
+                    >
+                      <Edit2 className="h-3.5 w-3.5" />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => onDelete(task)}
+                      className="h-8 w-8 p-0 text-red-500 hover:text-red-600"
+                    >
+                      <Trash2 className="h-3.5 w-3.5" />
+                    </Button>
                   </div>
                 </div>
+                
                 {expandedTask === task.id && (
                   <motion.div
                     initial={{ opacity: 0, height: 0 }}
                     animate={{ opacity: 1, height: 'auto' }}
                     exit={{ opacity: 0, height: 0 }}
-                    className="mt-3 pt-3 border-t border-slate-200"
+                    className="pt-3 border-t border-slate-200"
                   >
                     <MeetingSummaryPanel taskId={task.id} onGenerateClick={() => setShowSummaryGenerator(task)} />
                   </motion.div>
                 )}
-                </motion.div>
-                ))}
-                </AnimatePresence>
-                </div>
-                )}
-
-                <AnimatePresence>
-                {showSummaryGenerator && (
-                <SummaryGenerator
-                task={showSummaryGenerator}
-                onClose={() => setShowSummaryGenerator(null)}
-                onSummaryGenerated={() => {
-                setShowSummaryGenerator(null);
-                setExpandedTask(showSummaryGenerator.id);
-                }}
-                />
-                )}
-                </AnimatePresence>
-                </div>
-                );
-                }
+              </motion.div>
+            ))}
+          </AnimatePresence>
+        </div>
+      )}
+      
+      <AnimatePresence>
+        {showSummaryGenerator && (
+          <SummaryGenerator
+            task={showSummaryGenerator}
+            onClose={() => setShowSummaryGenerator(null)}
+            onSummaryGenerated={() => {
+              setShowSummaryGenerator(null);
+              setExpandedTask(showSummaryGenerator.id);
+            }}
+          />
+        )}
+      </AnimatePresence>
+    </div>
+  );
+}
