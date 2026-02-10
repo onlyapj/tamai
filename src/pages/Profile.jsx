@@ -160,10 +160,10 @@ export default function Profile() {
     <div className={cn("min-h-screen p-4 sm:p-6 lg:p-8 transition-colors duration-200", user?.theme === 'dark' ? 'bg-slate-950' : 'bg-slate-50')}>
       <div className="max-w-2xl mx-auto">
         <div className="mb-6">
-          <h1 className="text-2xl sm:text-3xl font-bold text-slate-900">
+          <h1 className={cn("text-2xl sm:text-3xl font-bold", user?.theme === 'dark' ? 'text-white' : 'text-slate-900')}>
             <span className="bg-gradient-to-r from-indigo-600 to-violet-600 bg-clip-text text-transparent">Profile</span>
           </h1>
-          <p className="text-slate-500 mt-1">Manage your account settings</p>
+          <p className={user?.theme === 'dark' ? 'text-slate-400' : 'text-slate-500'}>Manage your account settings</p>
         </div>
 
         <div className="space-y-4">
