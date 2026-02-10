@@ -18,6 +18,11 @@ export default function Finance() {
 
   const currentMonth = format(new Date(), 'yyyy-MM');
 
+  const { data: user } = useQuery({
+    queryKey: ['current-user'],
+    queryFn: () => base44.auth.me()
+  });
+
   const { data: transactions = [] } = useQuery({
     queryKey: ['transactions'],
     queryFn: () => base44.entities.Transaction.list('-date', 100)
@@ -27,6 +32,18 @@ export default function Finance() {
     queryKey: ['budgets', currentMonth],
     queryFn: () => base44.entities.Budget.filter({ month: currentMonth })
   });
+
+  const currencySymbol = {
+    USD: '$',
+    EUR: '€',
+    GBP: '£',
+    JPY: '¥',
+    CAD: '$',
+    AUD: '$',
+    CHF: 'Fr',
+    CNY: '¥',
+    INR: '₹'
+  }[user?.currency || 'USD'] || '$';
 
   const createTransaction = useMutation({
     mutationFn: (data) => base44.entities.Transaction.create(data),
@@ -132,25 +149,26 @@ export default function Finance() {
         <AnimatePresence mode="wait">
           {activeTab === 'overview' && (
             <motion.div key="overview" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
-              <FinanceOverview transactions={monthTransactions} />
+              <FinanceOverview transactions={monthTransactions} currencySymbol={currencySymbol} />
             </motion.div>
           )}
           {activeTab === 'insights' && (
             <motion.div key="insights" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
-              <AIInsights transactions={monthTransactions} budgets={budgets} />
+              <AIInsights transactions={monthTransactions} budgets={budgets} currencySymbol={currencySymbol} />
             </motion.div>
           )}
           {activeTab === 'transactions' && (
             <motion.div key="transactions" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
               <TransactionList 
                 transactions={transactions}
+                currencySymbol={currencySymbol}
                 onDelete={(id) => base44.entities.Transaction.delete(id).then(() => queryClient.invalidateQueries(['transactions']))}
               />
             </motion.div>
           )}
           {activeTab === 'budget' && (
             <motion.div key="budget" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
-              <BudgetSection budgets={budgets} transactions={monthTransactions} currentMonth={currentMonth} />
+              <BudgetSection budgets={budgets} transactions={monthTransactions} currentMonth={currentMonth} currencySymbol={currencySymbol} />
             </motion.div>
           )}
         </AnimatePresence>
