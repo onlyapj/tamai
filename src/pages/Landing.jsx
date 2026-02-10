@@ -77,24 +77,6 @@ export default function Landing() {
 
   return (
     <div className="min-h-screen bg-white">
-      {/* Navigation */}
-      <nav className="sticky top-0 bg-white/80 backdrop-blur-md border-b border-slate-100 z-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex items-center justify-between">
-          <div className="text-2xl font-bold bg-gradient-to-r from-indigo-600 to-violet-600 bg-clip-text text-transparent">
-            ✨ TAMAI
-          </div>
-          <div className="hidden md:flex gap-8">
-            <a href="#features" className="text-slate-600 hover:text-slate-900 font-medium">Features</a>
-            <a href="#testimonials" className="text-slate-600 hover:text-slate-900 font-medium">Testimonials</a>
-            <a href="#pricing" className="text-slate-600 hover:text-slate-900 font-medium">Pricing</a>
-          </div>
-          <div className="flex gap-3">
-            <Button variant="outline" onClick={() => base44.auth.redirectToLogin(createPageUrl('Home'))}>Login</Button>
-            <Button className="bg-indigo-600 hover:bg-indigo-700" onClick={() => base44.auth.redirectToLogin(createPageUrl('Home'))}>Get Started Free</Button>
-          </div>
-        </div>
-      </nav>
-
       {/* Hero Section */}
       <section className="relative overflow-hidden bg-gradient-to-b from-slate-50 to-white py-20 sm:py-32">
         <div className="absolute inset-0 overflow-hidden">
