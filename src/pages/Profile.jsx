@@ -78,6 +78,7 @@ export default function Profile() {
     mutationFn: (accountType) => base44.auth.updateMe({ account_type: accountType }),
     onSuccess: (_, accountType) => {
       queryClient.invalidateQueries(['current-user']);
+      queryClient.invalidateQueries(['user-organizations']);
       toast.success(`Switched to ${accountType === 'business' ? 'business' : 'personal'} account`);
     }
   });
