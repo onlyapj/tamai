@@ -65,18 +65,18 @@ export default function WeeklyView({ date, tasks, onEdit, onDelete, onToggle }) 
                 </div>
               </div>
 
-              <div className="space-y-2">
+              <div className="space-y-1.5 flex-1">
                 <AnimatePresence>
                   {dayTasks.map((task) => (
                     <motion.div
                       key={task.id}
-                      initial={{ opacity: 0, y: -10 }}
+                      initial={{ opacity: 0, y: -6 }}
                       animate={{ opacity: 1, y: 0 }}
-                      exit={{ opacity: 0, y: 10 }}
+                      exit={{ opacity: 0, y: 6 }}
                       className={cn(
-                        "rounded-lg p-2 text-xs group hover:shadow-md transition-all",
+                        "rounded-lg p-2 text-xs group hover:shadow-sm transition-all cursor-pointer",
                         priorityColors[task.priority] || priorityColors.medium,
-                        task.status === 'completed' && "opacity-50"
+                        task.status === 'completed' && "opacity-40"
                       )}
                     >
                       <div className="flex items-start gap-2">
