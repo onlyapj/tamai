@@ -88,12 +88,12 @@ export default function DaySchedule({ date, tasks, onEdit, onDelete, onToggle, f
                 <div className="flex items-start gap-3">
                   <button
                     onClick={() => onToggle(task)}
-                    className="mt-0.5"
+                    className="mt-0.5 flex-shrink-0 transition-transform hover:scale-110"
                   >
                     {task.status === 'completed' ? (
                       <CheckCircle2 className="h-5 w-5 text-emerald-500" />
                     ) : (
-                      <Circle className="h-5 w-5 text-slate-400" />
+                      <Circle className="h-5 w-5 text-slate-300 hover:text-indigo-400" />
                     )}
                   </button>
                   
