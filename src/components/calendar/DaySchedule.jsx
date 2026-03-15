@@ -76,13 +76,13 @@ export default function DaySchedule({ date, tasks, onEdit, onDelete, onToggle, f
                 animate={{ opacity: 1, x: 0 }}
                 exit={{ opacity: 0, x: 10 }}
                 className={cn(
-                  "border rounded-xl p-3.5 transition-all space-y-2",
+                  "border rounded-xl p-3.5 transition-all",
                   task.status === 'completed' 
-                    ? "bg-slate-50/60 border-slate-100 opacity-60" 
+                    ? "bg-slate-50/60 border-slate-100 opacity-50" 
                     : "bg-white border-slate-100 hover:border-indigo-200 hover:shadow-sm",
-                  task.priority === 'high' && task.status !== 'completed' && "border-l-4 border-l-rose-400",
-                  task.priority === 'medium' && task.status !== 'completed' && "border-l-4 border-l-amber-400",
-                  task.priority === 'low' && task.status !== 'completed' && "border-l-4 border-l-emerald-400",
+                  task.priority === 'high' && task.status !== 'completed' && "border-l-[3px] border-l-rose-400",
+                  task.priority === 'medium' && task.status !== 'completed' && "border-l-[3px] border-l-amber-400",
+                  task.priority === 'low' && task.status !== 'completed' && "border-l-[3px] border-l-emerald-400",
                 )}
               >
                 <div className="flex items-start gap-3">
