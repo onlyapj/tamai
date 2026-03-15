@@ -131,52 +131,52 @@ export default function Calendar() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-indigo-50/30 p-4 sm:p-6 lg:p-8">
+    <div className="min-h-screen bg-slate-50/50 p-4 sm:p-6 lg:p-8">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
-        <div className="flex items-center justify-between mb-8">
+        <div className="flex items-center justify-between mb-6">
           <div>
             <h1 className="text-2xl sm:text-3xl font-bold">
               <span className="bg-gradient-to-r from-indigo-600 to-violet-600 bg-clip-text text-transparent">Calendar</span>
             </h1>
-            <p className="text-slate-400 mt-1 text-sm">Schedule your time with intention</p>
+            <p className="text-slate-400 mt-0.5 text-sm">Schedule your time with intention</p>
           </div>
           <div className="flex items-center gap-2">
             <Button 
               onClick={() => setShowTemplates(true)}
               variant="outline"
               size="sm"
-              className="hidden sm:flex border-slate-200 text-slate-600 hover:bg-indigo-50 hover:border-indigo-300 hover:text-indigo-600"
+              className="hidden sm:flex h-9 border-slate-200 text-slate-600 hover:bg-indigo-50 hover:border-indigo-300 hover:text-indigo-600 gap-1.5"
             >
-              ⚡ Templates
+              <span>⚡</span> Templates
             </Button>
             <Button 
               onClick={() => setShowSyncSettings(!showSyncSettings)}
               variant="outline"
               size="sm"
-              className="border-slate-200 text-slate-600 hover:bg-slate-100"
+              className="h-9 border-slate-200 text-slate-600 hover:bg-slate-100"
             >
-              <Settings className="h-4 w-4 sm:mr-2" />
+              <Settings className="h-4 w-4 sm:mr-1.5" />
               <span className="hidden sm:inline">Sync</span>
             </Button>
             <Button 
               onClick={() => { setEditingTask(null); setShowEventForm(true); }}
               size="sm"
-              className="bg-indigo-600 hover:bg-indigo-700 shadow-md shadow-indigo-200"
+              className="h-9 bg-indigo-600 hover:bg-indigo-700 shadow-sm shadow-indigo-200 gap-1.5"
             >
-              <Plus className="h-4 w-4 sm:mr-2" />
+              <Plus className="h-4 w-4" />
               <span className="hidden sm:inline">Add Event</span>
             </Button>
           </div>
         </div>
 
         {/* Navigation Bar */}
-        <div className="flex items-center justify-between mb-6 bg-white rounded-2xl border border-slate-200/80 shadow-sm px-4 py-3">
-          <div className="flex items-center gap-3">
+        <div className="flex items-center justify-between mb-5 bg-white rounded-2xl border border-slate-200/80 shadow-sm px-4 py-2.5">
+          <div className="flex items-center gap-2">
             <Button
               variant="ghost"
               size="sm"
-              className="h-8 w-8 p-0 text-slate-500 hover:text-indigo-600 hover:bg-indigo-50"
+              className="h-8 w-8 p-0 rounded-lg text-slate-400 hover:text-indigo-600 hover:bg-indigo-50"
               onClick={() => {
                 if (viewMode === 'month') setCurrentMonth(new Date(currentMonth.setMonth(currentMonth.getMonth() - 1)));
                 else if (viewMode === 'week') setSelectedDate(new Date(selectedDate.setDate(selectedDate.getDate() - 7)));
@@ -185,13 +185,13 @@ export default function Calendar() {
             >
               <ChevronLeft className="h-4 w-4" />
             </Button>
-            <h2 className="text-base font-semibold text-slate-800 min-w-[180px] text-center">
+            <h2 className="text-sm font-semibold text-slate-800 min-w-[160px] text-center">
               {viewMode === 'month' ? format(currentMonth, 'MMMM yyyy') : format(selectedDate, viewMode === 'week' ? "'Week of' MMM d" : 'EEEE, MMM d')}
             </h2>
             <Button
               variant="ghost"
               size="sm"
-              className="h-8 w-8 p-0 text-slate-500 hover:text-indigo-600 hover:bg-indigo-50"
+              className="h-8 w-8 p-0 rounded-lg text-slate-400 hover:text-indigo-600 hover:bg-indigo-50"
               onClick={() => {
                 if (viewMode === 'month') setCurrentMonth(new Date(currentMonth.setMonth(currentMonth.getMonth() + 1)));
                 else if (viewMode === 'week') setSelectedDate(new Date(selectedDate.setDate(selectedDate.getDate() + 7)));
@@ -200,18 +200,16 @@ export default function Calendar() {
             >
               <ChevronRight className="h-4 w-4" />
             </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              className="text-xs h-7 px-3 border-slate-200 text-slate-600 hover:bg-indigo-50 hover:border-indigo-300 hover:text-indigo-600"
+            <button
+              className="text-xs font-medium h-7 px-3 rounded-lg border border-slate-200 text-slate-500 hover:bg-indigo-50 hover:border-indigo-300 hover:text-indigo-600 transition-colors"
               onClick={() => { setCurrentMonth(new Date()); setSelectedDate(new Date()); }}
             >
               Today
-            </Button>
+            </button>
           </div>
 
           {/* View toggle */}
-          <div className="flex items-center bg-slate-100 rounded-xl p-1 gap-1">
+          <div className="flex items-center bg-slate-100/80 rounded-xl p-1 gap-0.5">
             {[
               { mode: 'month', icon: LayoutGrid, label: 'Month' },
               { mode: 'week', icon: CalendarIcon, label: 'Week' },
@@ -222,7 +220,7 @@ export default function Calendar() {
                 onClick={() => setViewMode(mode)}
                 className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
                   viewMode === mode
-                    ? 'bg-white text-indigo-600 shadow-sm'
+                    ? 'bg-white text-indigo-600 shadow-sm ring-1 ring-slate-200/60'
                     : 'text-slate-500 hover:text-slate-700'
                 }`}
               >
