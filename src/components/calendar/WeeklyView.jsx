@@ -134,8 +134,9 @@ export default function WeeklyView({ date, tasks, onEdit, onDelete, onToggle }) 
                 </AnimatePresence>
                 
                 {dayTasks.length === 0 && (
-                  <div className="text-center py-8 text-slate-400 text-xs">
-                    No events
+                  <div className="text-center py-8 text-slate-300 text-xs flex flex-col items-center gap-1">
+                    <div className="w-6 h-6 rounded-full border-2 border-dashed border-slate-200 mb-1" />
+                    Empty
                   </div>
                 )}
               </div>
