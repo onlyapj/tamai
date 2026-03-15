@@ -67,7 +67,7 @@ export default function DaySchedule({ date, tasks, onEdit, onDelete, onToggle, f
           <p className="text-slate-300 text-xs mt-1">Select a date or add an event</p>
         </div>
       ) : (
-        <div className={cn("space-y-3", fullScreen ? "max-h-screen overflow-y-auto" : "max-h-[600px] overflow-y-auto")}>
+        <div className={cn("space-y-2", fullScreen ? "max-h-screen overflow-y-auto pr-1" : "max-h-[600px] overflow-y-auto pr-1")}>
           <AnimatePresence>
             {sortedTasks.map((task) => (
               <motion.div
