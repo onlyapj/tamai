@@ -75,7 +75,7 @@ export default function DaySchedule({ date, tasks, onEdit, onDelete, onToggle, f
                 initial={{ opacity: 0, x: -10 }}
                 animate={{ opacity: 1, x: 0 }}
                 exit={{ opacity: 0, x: 10 }}
-                className={cn(
+                className={cn("group",
                   "border rounded-xl p-3.5 transition-all",
                   task.status === 'completed' 
                     ? "bg-slate-50/60 border-slate-100 opacity-50" 
