@@ -38,11 +38,7 @@ export default function WeeklyView({ date, tasks, onEdit, onDelete, onToggle }) 
   };
 
   return (
-    <div className="bg-white rounded-3xl border border-slate-200 shadow-sm p-6">
-      <h2 className="text-xl font-semibold text-slate-800 mb-6">
-        {format(weekStart, 'MMM d')} - {format(addDays(weekStart, 6), 'MMM d, yyyy')}
-      </h2>
-      
+    <div className="bg-white rounded-2xl border border-slate-200/80 shadow-sm p-5">      
       <div className="grid grid-cols-7 gap-2">
         {weekDays.map((day) => {
           const dayTasks = getTasksForDay(day);
@@ -52,16 +48,19 @@ export default function WeeklyView({ date, tasks, onEdit, onDelete, onToggle }) 
             <div
               key={day.toISOString()}
               className={cn(
-                "border rounded-2xl p-3 min-h-[500px] overflow-y-auto",
-                isToday ? "border-indigo-300 bg-indigo-50" : "border-slate-200 bg-slate-50"
+                "border rounded-xl p-2.5 min-h-[480px] overflow-y-auto flex flex-col",
+                isToday ? "border-indigo-300 bg-indigo-50/50" : "border-slate-100 bg-slate-50/50"
               )}
             >
               <div className={cn(
-                "font-semibold text-center mb-3 pb-3 border-b",
-                isToday && "text-indigo-700 border-indigo-300"
+                "text-center mb-3 pb-2.5 border-b",
+                isToday ? "border-indigo-200" : "border-slate-200"
               )}>
-                <div className="text-xs text-slate-600">{format(day, 'EEE')}</div>
-                <div className={isToday ? "text-indigo-700" : "text-slate-900"}>
+                <div className="text-xs font-semibold text-slate-400 uppercase tracking-wide mb-1">{format(day, 'EEE')}</div>
+                <div className={cn(
+                  "w-8 h-8 rounded-full flex items-center justify-center mx-auto text-sm font-bold",
+                  isToday ? "bg-indigo-600 text-white" : "text-slate-700"
+                )}>
                   {format(day, 'd')}
                 </div>
               </div>
