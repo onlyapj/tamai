@@ -38,18 +38,33 @@ export default function DaySchedule({ date, tasks, onEdit, onDelete, onToggle, f
   };
 
   return (
-    <div className={cn("bg-white rounded-3xl border border-slate-200 shadow-sm p-6", fullScreen ? "w-full" : "sticky top-6")}>
-      <div className="flex items-center gap-2 mb-4">
-        <Calendar className="h-5 w-5 text-indigo-600" />
-        <h3 className="font-semibold text-slate-800">
-          {format(date, 'EEEE, MMMM d')}
-        </h3>
+    <div className={cn("bg-white rounded-2xl border border-slate-200/80 shadow-sm p-5", fullScreen ? "w-full" : "sticky top-6")}>
+      <div className="flex items-center justify-between mb-4">
+        <div className="flex items-center gap-2">
+          <div className="w-8 h-8 rounded-lg bg-indigo-50 flex items-center justify-center">
+            <Calendar className="h-4 w-4 text-indigo-600" />
+          </div>
+          <div>
+            <h3 className="font-semibold text-slate-800 text-sm">
+              {format(date, 'EEEE')}
+            </h3>
+            <p className="text-xs text-slate-400">{format(date, 'MMMM d, yyyy')}</p>
+          </div>
+        </div>
+        {tasks.length > 0 && (
+          <span className="text-xs font-medium bg-indigo-100 text-indigo-600 px-2 py-0.5 rounded-full">
+            {tasks.length} event{tasks.length !== 1 ? 's' : ''}
+          </span>
+        )}
       </div>
 
       {tasks.length === 0 ? (
         <div className="text-center py-12">
-          <Circle className="h-12 w-12 text-slate-200 mx-auto mb-3" />
-          <p className="text-slate-400">No events scheduled</p>
+          <div className="w-14 h-14 rounded-2xl bg-slate-50 flex items-center justify-center mx-auto mb-3 border-2 border-dashed border-slate-200">
+            <Calendar className="h-6 w-6 text-slate-300" />
+          </div>
+          <p className="text-slate-400 text-sm font-medium">No events today</p>
+          <p className="text-slate-300 text-xs mt-1">Select a date or add an event</p>
         </div>
       ) : (
         <div className={cn("space-y-3", fullScreen ? "max-h-screen overflow-y-auto" : "max-h-[600px] overflow-y-auto")}>
