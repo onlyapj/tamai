@@ -136,12 +136,12 @@ export default function DaySchedule({ date, tasks, onEdit, onDelete, onToggle, f
                     </div>
                   </div>
                   
-                  <div className="flex gap-1">
+                  <div className="flex gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
                     <Button
                       variant="ghost"
                       size="sm"
                       onClick={() => setExpandedTask(expandedTask === task.id ? null : task.id)}
-                      className="h-8 w-8 p-0"
+                      className="h-7 w-7 p-0 rounded-lg text-slate-400 hover:text-slate-600"
                       title="View meeting summary"
                     >
                       <ChevronDown className={`h-3.5 w-3.5 transition-transform ${expandedTask === task.id ? 'rotate-180' : ''}`} />
@@ -150,7 +150,7 @@ export default function DaySchedule({ date, tasks, onEdit, onDelete, onToggle, f
                       variant="ghost"
                       size="sm"
                       onClick={() => onEdit(task)}
-                      className="h-8 w-8 p-0"
+                      className="h-7 w-7 p-0 rounded-lg text-slate-400 hover:text-indigo-600"
                     >
                       <Edit2 className="h-3.5 w-3.5" />
                     </Button>
@@ -158,7 +158,7 @@ export default function DaySchedule({ date, tasks, onEdit, onDelete, onToggle, f
                       variant="ghost"
                       size="sm"
                       onClick={() => onDelete(task)}
-                      className="h-8 w-8 p-0 text-red-500 hover:text-red-600"
+                      className="h-7 w-7 p-0 rounded-lg text-slate-400 hover:text-rose-500"
                     >
                       <Trash2 className="h-3.5 w-3.5" />
                     </Button>
