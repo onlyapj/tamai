@@ -27,43 +27,45 @@ export default function CalendarView({ tasks, selectedDate, onDateSelect, curren
       days.push(
         <motion.button
           key={day.toString()}
-          whileHover={{ scale: 1.02 }}
+          whileHover={{ scale: 1.01 }}
           whileTap={{ scale: 0.98 }}
           onClick={() => onDateSelect(currentDay)}
           className={cn(
-            "relative p-2 rounded-xl transition-all min-h-[80px] flex flex-col",
-            !isSameMonth(currentDay, monthStart) && "text-slate-300 bg-slate-50/50",
-            isSameMonth(currentDay, monthStart) && "text-slate-700 hover:bg-indigo-50",
-            isSameDay(currentDay, selectedDate) && "bg-indigo-100 ring-2 ring-indigo-600",
-            isToday(currentDay) && "font-bold border-2 border-indigo-400"
+            "relative p-2 rounded-xl transition-all min-h-[80px] flex flex-col text-left",
+            !isSameMonth(currentDay, monthStart) && "opacity-30",
+            isSameMonth(currentDay, monthStart) && "hover:bg-indigo-50/60",
+            isSameDay(currentDay, selectedDate) && "bg-indigo-50 ring-2 ring-indigo-500 ring-offset-1",
           )}
         >
           <span className={cn(
-            "text-sm mb-1",
-            isToday(currentDay) && "text-indigo-600"
+            "text-sm font-medium w-7 h-7 flex items-center justify-center rounded-full mb-1 leading-none",
+            isToday(currentDay) && "bg-indigo-600 text-white font-bold",
+            !isToday(currentDay) && isSameMonth(currentDay, monthStart) && "text-slate-700",
+            !isToday(currentDay) && isSameDay(currentDay, selectedDate) && "text-indigo-700"
           )}>
             {format(currentDay, dateFormat)}
           </span>
           
           {incompleteTasks.length > 0 && (
-            <div className="flex flex-col gap-0.5 overflow-hidden">
-              {incompleteTasks.slice(0, 3).map((task, idx) => (
+            <div className="flex flex-col gap-0.5 overflow-hidden w-full">
+              {incompleteTasks.slice(0, 2).map((task) => (
                 <div
                   key={task.id}
                   className={cn(
-                    "text-xs px-1.5 py-0.5 rounded truncate",
+                    "text-xs px-1.5 py-0.5 rounded-md truncate font-medium",
                     task.priority === 'high' && "bg-rose-100 text-rose-700",
                     task.priority === 'medium' && "bg-amber-100 text-amber-700",
-                    task.priority === 'low' && "bg-slate-100 text-slate-600"
+                    task.priority === 'low' && "bg-emerald-100 text-emerald-700",
+                    (!task.priority) && "bg-slate-100 text-slate-600"
                   )}
                 >
-                  {task.scheduled_time && `${task.scheduled_time} `}
+                  {task.scheduled_time && <span className="opacity-60">{task.scheduled_time} · </span>}
                   {task.title}
                 </div>
               ))}
-              {incompleteTasks.length > 3 && (
-                <span className="text-xs text-slate-400 px-1">
-                  +{incompleteTasks.length - 3} more
+              {incompleteTasks.length > 2 && (
+                <span className="text-xs text-indigo-500 font-medium px-1">
+                  +{incompleteTasks.length - 2} more
                 </span>
               )}
             </div>
