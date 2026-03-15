@@ -131,124 +131,105 @@ export default function Calendar() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 p-4 sm:p-6 lg:p-8">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-indigo-50/30 p-4 sm:p-6 lg:p-8">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
-        <div className="flex items-center justify-between mb-6">
+        <div className="flex items-center justify-between mb-8">
           <div>
-            <h1 className="text-2xl sm:text-3xl font-bold text-slate-900">
+            <h1 className="text-2xl sm:text-3xl font-bold">
               <span className="bg-gradient-to-r from-indigo-600 to-violet-600 bg-clip-text text-transparent">Calendar</span>
             </h1>
-            <p className="text-slate-500 mt-1">Schedule your time with intention</p>
+            <p className="text-slate-400 mt-1 text-sm">Schedule your time with intention</p>
           </div>
-          <div className="flex gap-2">
+          <div className="flex items-center gap-2">
             <Button 
               onClick={() => setShowTemplates(true)}
               variant="outline"
-              title="Quick event templates"
+              size="sm"
+              className="hidden sm:flex border-slate-200 text-slate-600 hover:bg-indigo-50 hover:border-indigo-300 hover:text-indigo-600"
             >
               ⚡ Templates
             </Button>
             <Button 
               onClick={() => setShowSyncSettings(!showSyncSettings)}
               variant="outline"
+              size="sm"
+              className="border-slate-200 text-slate-600 hover:bg-slate-100"
             >
-              <Settings className="h-4 w-4 mr-2" />
-              Sync
+              <Settings className="h-4 w-4 sm:mr-2" />
+              <span className="hidden sm:inline">Sync</span>
             </Button>
             <Button 
               onClick={() => { setEditingTask(null); setShowEventForm(true); }}
-              className="bg-indigo-600 hover:bg-indigo-700"
+              size="sm"
+              className="bg-indigo-600 hover:bg-indigo-700 shadow-md shadow-indigo-200"
             >
-              <Plus className="h-4 w-4 mr-2" />
-              Add Event
+              <Plus className="h-4 w-4 sm:mr-2" />
+              <span className="hidden sm:inline">Add Event</span>
             </Button>
           </div>
         </div>
 
-        {/* Navigation */}
-        <div className="flex items-center justify-between mb-6">
-          <h2 className="text-xl font-semibold text-slate-800">
-            {viewMode === 'month' ? format(currentMonth, 'MMMM yyyy') : format(selectedDate, 'EEEE, MMMM d, yyyy')}
-          </h2>
-          <div className="flex gap-2">
-            {(viewMode === 'month' || viewMode === 'week') && (
-              <>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => viewMode === 'month' ? setCurrentMonth(new Date(currentMonth.setMonth(currentMonth.getMonth() - 1))) : setSelectedDate(new Date(selectedDate.setDate(selectedDate.getDate() - 7)))}
-                >
-                  <ChevronLeft className="h-4 w-4" />
-                </Button>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => {
-                    setCurrentMonth(new Date());
-                    setSelectedDate(new Date());
-                  }}
-                >
-                  Today
-                </Button>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => viewMode === 'month' ? setCurrentMonth(new Date(currentMonth.setMonth(currentMonth.getMonth() + 1))) : setSelectedDate(new Date(selectedDate.setDate(selectedDate.getDate() + 7)))}
-                >
-                  <ChevronRight className="h-4 w-4" />
-                </Button>
-              </>
-            )}
-            {viewMode === 'day' && (
-              <>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setSelectedDate(new Date(selectedDate.setDate(selectedDate.getDate() - 1)))}
-                >
-                  <ChevronLeft className="h-4 w-4" />
-                </Button>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setSelectedDate(new Date())}
-                >
-                  Today
-                </Button>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setSelectedDate(new Date(selectedDate.setDate(selectedDate.getDate() + 1)))}
-                >
-                  <ChevronRight className="h-4 w-4" />
-                </Button>
-              </>
-            )}
+        {/* Navigation Bar */}
+        <div className="flex items-center justify-between mb-6 bg-white rounded-2xl border border-slate-200/80 shadow-sm px-4 py-3">
+          <div className="flex items-center gap-3">
             <Button
-              variant={viewMode === 'month' ? 'default' : 'outline'}
+              variant="ghost"
               size="sm"
-              onClick={() => setViewMode('month')}
-              title="Month view"
+              className="h-8 w-8 p-0 text-slate-500 hover:text-indigo-600 hover:bg-indigo-50"
+              onClick={() => {
+                if (viewMode === 'month') setCurrentMonth(new Date(currentMonth.setMonth(currentMonth.getMonth() - 1)));
+                else if (viewMode === 'week') setSelectedDate(new Date(selectedDate.setDate(selectedDate.getDate() - 7)));
+                else setSelectedDate(new Date(selectedDate.setDate(selectedDate.getDate() - 1)));
+              }}
             >
-              <LayoutGrid className="h-4 w-4" />
+              <ChevronLeft className="h-4 w-4" />
+            </Button>
+            <h2 className="text-base font-semibold text-slate-800 min-w-[180px] text-center">
+              {viewMode === 'month' ? format(currentMonth, 'MMMM yyyy') : format(selectedDate, viewMode === 'week' ? "'Week of' MMM d" : 'EEEE, MMM d')}
+            </h2>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="h-8 w-8 p-0 text-slate-500 hover:text-indigo-600 hover:bg-indigo-50"
+              onClick={() => {
+                if (viewMode === 'month') setCurrentMonth(new Date(currentMonth.setMonth(currentMonth.getMonth() + 1)));
+                else if (viewMode === 'week') setSelectedDate(new Date(selectedDate.setDate(selectedDate.getDate() + 7)));
+                else setSelectedDate(new Date(selectedDate.setDate(selectedDate.getDate() + 1)));
+              }}
+            >
+              <ChevronRight className="h-4 w-4" />
             </Button>
             <Button
-              variant={viewMode === 'week' ? 'default' : 'outline'}
+              variant="outline"
               size="sm"
-              onClick={() => setViewMode('week')}
-              title="Week view"
+              className="text-xs h-7 px-3 border-slate-200 text-slate-600 hover:bg-indigo-50 hover:border-indigo-300 hover:text-indigo-600"
+              onClick={() => { setCurrentMonth(new Date()); setSelectedDate(new Date()); }}
             >
-              <CalendarIcon className="h-4 w-4" />
+              Today
             </Button>
-            <Button
-              variant={viewMode === 'day' ? 'default' : 'outline'}
-              size="sm"
-              onClick={() => setViewMode('day')}
-              title="Day view"
-            >
-              <ListIcon className="h-4 w-4" />
-            </Button>
+          </div>
+
+          {/* View toggle */}
+          <div className="flex items-center bg-slate-100 rounded-xl p-1 gap-1">
+            {[
+              { mode: 'month', icon: LayoutGrid, label: 'Month' },
+              { mode: 'week', icon: CalendarIcon, label: 'Week' },
+              { mode: 'day', icon: ListIcon, label: 'Day' },
+            ].map(({ mode, icon: Icon, label }) => (
+              <button
+                key={mode}
+                onClick={() => setViewMode(mode)}
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
+                  viewMode === mode
+                    ? 'bg-white text-indigo-600 shadow-sm'
+                    : 'text-slate-500 hover:text-slate-700'
+                }`}
+              >
+                <Icon className="h-3.5 w-3.5" />
+                <span className="hidden sm:inline">{label}</span>
+              </button>
+            ))}
           </div>
         </div>
 
