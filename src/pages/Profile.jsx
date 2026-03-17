@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
+import { supabase } from '@/api/supabaseClient';
 import { createPageUrl } from '@/utils';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -83,8 +84,8 @@ export default function Profile() {
 
   const updateEmailMutation = useMutation({
     mutationFn: async (newEmail) => {
-      const response = await base44.functions.invoke('updateUserEmail', { email: newEmail });
-      return response.data;
+      const { error } = await supabase.auth.updateUser({ email: newEmail });
+      if (error) throw error;
     },
     onSuccess: () => {
       queryClient.invalidateQueries(['current-user']);
@@ -98,11 +99,8 @@ export default function Profile() {
 
   const changePasswordMutation = useMutation({
     mutationFn: async ({ currentPassword, newPassword }) => {
-      const response = await base44.functions.invoke('changePassword', { 
-        currentPassword, 
-        newPassword 
-      });
-      return response.data;
+      const { error } = await supabase.auth.updateUser({ password: newPassword });
+      if (error) throw error;
     },
     onSuccess: () => {
       setIsChangingPassword(false);

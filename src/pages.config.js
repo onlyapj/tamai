@@ -61,6 +61,7 @@ import Health from './pages/Health';
 import Home from './pages/Home';
 import Investments from './pages/Investments';
 import Landing from './pages/Landing';
+import Login from './pages/Login';
 import Mindfulness from './pages/Mindfulness';
 import NotificationSettings from './pages/NotificationSettings';
 import Organizations from './pages/Organizations';
@@ -90,6 +91,7 @@ export const PAGES = {
     "Home": Home,
     "Investments": Investments,
     "Landing": Landing,
+    "Login": Login,
     "Mindfulness": Mindfulness,
     "NotificationSettings": NotificationSettings,
     "Organizations": Organizations,

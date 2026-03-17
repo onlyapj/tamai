@@ -33,18 +33,18 @@ export default function ADHDProfileSetup() {
   const { data: profile, isLoading } = useQuery({
     queryKey: ['adhd-profile'],
     queryFn: async () => {
-      const profiles = await base44.asServiceRole.entities.ADHDProfile.list();
-      const userProfile = profiles.find(p => p.created_by === (await base44.auth.me()).email);
-      return userProfile;
+      // With Supabase RLS, list() returns only the current user's profiles
+      const profiles = await base44.entities.ADHDProfile.list();
+      return profiles[0] || null;
     }
   });
 
   const saveMutation = useMutation({
     mutationFn: async (data) => {
       if (profile?.id) {
-        await base44.asServiceRole.entities.ADHDProfile.update(profile.id, data);
+        await base44.entities.ADHDProfile.update(profile.id, data);
       } else {
-        await base44.asServiceRole.entities.ADHDProfile.create(data);
+        await base44.entities.ADHDProfile.create(data);
       }
     },
     onSuccess: () => {
