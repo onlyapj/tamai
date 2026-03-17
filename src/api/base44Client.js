@@ -9,7 +9,7 @@ import { entities, asServiceRole } from './entities';
 const auth = {
   async me() {
     const { data: { user: authUser } } = await supabase.auth.getUser();
-    if (!authUser) throw { status: 401, message: 'Not authenticated' };
+    if (!authUser) return null;
 
     const { data: profile, error } = await supabase
       .from('profiles')
@@ -17,7 +17,10 @@ const auth = {
       .eq('id', authUser.id)
       .single();
 
-    if (error) throw error;
+    if (error) {
+      console.warn('[auth.me] Profile fetch failed:', error.message);
+      return null;
+    }
     return { ...profile, id: authUser.id, email: authUser.email };
   },
 

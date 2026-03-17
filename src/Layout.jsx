@@ -67,11 +67,11 @@ export default function Layout({ children, currentPageName }) {
     // Redirect based on auth status
     useEffect(() => {
       if (!isLoading) {
-        if (!user && currentPageName !== 'Landing') {
+        if (!user && currentPageName !== 'Landing' && currentPageName !== 'Login') {
           // Not logged in, redirect to Landing
           navigate(createPageUrl('Landing'));
-        } else if (user && currentPageName === 'Landing') {
-          // Logged in, redirect away from Landing to Home
+        } else if (user && (currentPageName === 'Landing' || currentPageName === 'Login')) {
+          // Logged in, redirect away from Landing/Login to Home
           navigate(createPageUrl('Home'));
         }
       }
@@ -80,7 +80,7 @@ export default function Layout({ children, currentPageName }) {
 
 
     // Show nothing while checking auth or redirecting
-    if (!isLoading && !user && currentPageName !== 'Landing') {
+    if (!isLoading && !user && currentPageName !== 'Landing' && currentPageName !== 'Login') {
       return null;
     }
 
