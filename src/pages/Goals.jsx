@@ -1,225 +1,410 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { base44 } from '@/api/base44Client';
-import { motion, AnimatePresence } from 'framer-motion';
-import { format, isThisWeek, addDays } from 'date-fns';
-import { Button } from "@/components/ui/button";
-import { Plus, Target, CheckCircle2, Clock, Sparkles, X, ChevronRight } from 'lucide-react';
-import GoalCard from '@/components/goals/GoalCard.jsx';
-import GoalForm from '@/components/goals/GoalForm.jsx';
+import { useAuth } from '@/lib/AuthContext';
+import { db } from '@/api/db';
+import { cn } from '@/lib/utils';
+import { format } from 'date-fns';
+import { toast } from 'sonner';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Badge } from '@/components/ui/badge';
+import { Progress } from '@/components/ui/progress';
+import { Textarea } from '@/components/ui/textarea';
+import { Slider } from '@/components/ui/slider';
+import {
+  Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter, DialogClose,
+} from '@/components/ui/dialog';
+import {
+  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
+} from '@/components/ui/select';
+import {
+  Plus, Target, Loader2, Calendar, Trophy,
+} from 'lucide-react';
+
+const goalCategories = ['Health', 'Career', 'Finance', 'Education', 'Personal', 'Fitness', 'Creative', 'Other'];
+
+const statusConfig = {
+  active: { label: 'Active', className: 'bg-blue-100 text-blue-700 dark:bg-blue-950 dark:text-blue-400' },
+  completed: { label: 'Completed', className: 'bg-green-100 text-green-700 dark:bg-green-950 dark:text-green-400' },
+  paused: { label: 'Paused', className: 'bg-amber-100 text-amber-700 dark:bg-amber-950 dark:text-amber-400' },
+  at_risk: { label: 'At Risk', className: 'bg-red-100 text-red-700 dark:bg-red-950 dark:text-red-400' },
+};
 
 export default function Goals() {
-  const [showForm, setShowForm] = useState(false);
-  const [editingGoal, setEditingGoal] = useState(null);
-  const [filter, setFilter] = useState('active');
+  const { user } = useAuth();
+  const isDark = user?.theme === 'dark';
   const queryClient = useQueryClient();
 
-  const { data: goals = [] } = useQuery({
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [progressGoal, setProgressGoal] = useState(null);
+  const [progressValue, setProgressValue] = useState([0]);
+  const [goalForm, setGoalForm] = useState({
+    title: '', description: '', target_date: '', category: '',
+  });
+
+  // Fetch goals
+  const { data: goals = [], isLoading } = useQuery({
     queryKey: ['goals'],
-    queryFn: () => base44.entities.Goal.list('-created_date')
+    queryFn: () => db.list('goals', { orderBy: 'created_at', ascending: false }),
   });
 
+  // Create goal
   const createGoal = useMutation({
-    mutationFn: (data) => base44.entities.Goal.create(data),
+    mutationFn: (data) => db.create('goals', data),
     onSuccess: () => {
-      queryClient.invalidateQueries(['goals']);
-      setShowForm(false);
-    }
+      queryClient.invalidateQueries({ queryKey: ['goals'] });
+      toast.success('Goal created!');
+      setGoalForm({ title: '', description: '', target_date: '', category: '' });
+      setDialogOpen(false);
+    },
+    onError: (err) => toast.error(err.message),
   });
 
+  // Update goal
   const updateGoal = useMutation({
-    mutationFn: ({ id, data }) => base44.entities.Goal.update(id, data),
+    mutationFn: ({ id, updates }) => db.update('goals', id, updates),
     onSuccess: () => {
-      queryClient.invalidateQueries(['goals']);
-      setShowForm(false);
-      setEditingGoal(null);
-    }
+      queryClient.invalidateQueries({ queryKey: ['goals'] });
+      toast.success('Goal updated!');
+      setProgressGoal(null);
+    },
+    onError: (err) => toast.error(err.message),
   });
 
-  const deleteGoal = useMutation({
-    mutationFn: (id) => base44.entities.Goal.delete(id),
-    onSuccess: () => queryClient.invalidateQueries(['goals'])
-  });
-
-  const filteredGoals = goals.filter(g => filter === 'all' || g.status === filter);
-  
-  const weeklyGoals = goals.filter(g => {
-    if (!g.target_date || g.status === 'completed') return false;
-    const dueDate = new Date(g.target_date);
-    return isThisWeek(dueDate, { weekStartsOn: 1 });
-  });
-  
-  const categoryColors = {
-    productivity: 'from-indigo-500 to-blue-500',
-    health: 'from-rose-500 to-orange-500',
-    financial: 'from-emerald-500 to-teal-500',
-    mental: 'from-violet-500 to-purple-500',
-    personal: 'from-amber-500 to-yellow-500'
+  const handleCreate = (e) => {
+    e.preventDefault();
+    if (!goalForm.title.trim()) return;
+    createGoal.mutate({
+      title: goalForm.title.trim(),
+      description: goalForm.description,
+      target_date: goalForm.target_date || null,
+      category: goalForm.category || null,
+      status: 'active',
+      progress: 0,
+    });
   };
 
-  return (
-    <div className="min-h-screen bg-gradient-to-b from-amber-50 to-white p-4 sm:p-6 lg:p-8">
-      <div className="max-w-4xl mx-auto">
-        {/* Header */}
-        <div className="flex items-center justify-between mb-8">
-          <div>
-            <h1 className="text-2xl sm:text-3xl font-bold text-slate-900">
-              <span className="bg-gradient-to-r from-amber-600 to-orange-600 bg-clip-text text-transparent">Goals</span>
-            </h1>
-            <p className="text-slate-500 mt-1">Set intentions & track your progress</p>
-          </div>
-          <Button 
-            onClick={() => { setEditingGoal(null); setShowForm(true); }}
-            className="bg-amber-600 hover:bg-amber-700"
-          >
-            <Plus className="h-4 w-4 mr-2" />
-            New Goal
-          </Button>
-        </div>
+  const handleUpdateProgress = () => {
+    if (!progressGoal) return;
+    const newProgress = progressValue[0];
+    const status = newProgress >= 100 ? 'completed' : progressGoal.status;
+    updateGoal.mutate({ id: progressGoal.id, updates: { progress: newProgress, status } });
+  };
 
-        {/* Stats */}
-        <div className="grid grid-cols-3 gap-3 mb-6">
-          {[
-            { label: 'Active', count: goals.filter(g => g.status === 'active').length, icon: Target, color: 'text-amber-600' },
-            { label: 'Completed', count: goals.filter(g => g.status === 'completed').length, icon: CheckCircle2, color: 'text-emerald-600' },
-            { label: 'Paused', count: goals.filter(g => g.status === 'paused').length, icon: Clock, color: 'text-slate-500' }
-          ].map((stat, i) => (
-            <motion.div
-              key={stat.label}
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: i * 0.05 }}
-              className="bg-white rounded-2xl p-4 border border-slate-200"
-            >
-              <div className="flex items-center gap-2 mb-1">
-                <stat.icon className={`h-4 w-4 ${stat.color}`} />
-                <span className="text-xs font-medium text-slate-500">{stat.label}</span>
-              </div>
-              <p className="text-2xl font-bold text-slate-900">{stat.count}</p>
-            </motion.div>
-          ))}
-        </div>
+  const handleStatusChange = (goalId, newStatus) => {
+    updateGoal.mutate({ id: goalId, updates: { status: newStatus } });
+  };
 
-        {/* This Week's Goals */}
-        {weeklyGoals.length > 0 && (
-          <div className="mb-8 bg-gradient-to-r from-indigo-50 to-blue-50 rounded-3xl border border-indigo-200 p-6">
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="font-semibold text-slate-800 flex items-center gap-2">
-                <Clock className="h-5 w-5 text-indigo-600" />
-                This Week's Goals
-              </h2>
-              <Button 
-                onClick={() => { setEditingGoal(null); setShowForm(true); }}
-                size="sm"
-                variant="outline"
-                className="bg-white border-indigo-200"
-              >
-                <Plus className="h-3.5 w-3.5 mr-1" />
-                Add
-              </Button>
-            </div>
-            <div className="space-y-2">
-              {weeklyGoals.map(goal => (
-                <motion.div
-                  key={goal.id}
-                  initial={{ opacity: 0, x: -10 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  className="flex items-center justify-between p-3 bg-white rounded-lg border border-indigo-100 hover:shadow-sm transition-all group"
-                >
-                  <div className="flex-1 flex items-center gap-3">
-                    <div className={`w-1 h-1 rounded-full bg-gradient-to-r ${categoryColors[goal.category] || categoryColors.personal}`} />
-                    <div className="flex-1">
-                      <p className="text-sm font-medium text-slate-800">{goal.title}</p>
-                      <p className="text-xs text-slate-500">Due {format(new Date(goal.target_date), 'EEE, MMM d')}</p>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <div className="h-1.5 w-24 bg-slate-100 rounded-full overflow-hidden">
-                      <motion.div
-                        initial={{ width: 0 }}
-                        animate={{ width: `${goal.progress || 0}%` }}
-                        transition={{ duration: 0.5 }}
-                        className={`h-full bg-gradient-to-r ${categoryColors[goal.category] || categoryColors.personal}`}
-                      />
-                    </div>
-                    <span className="text-xs font-medium text-slate-600 w-8 text-right">{goal.progress || 0}%</span>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="h-7 w-7 text-slate-400 hover:text-red-600 hover:bg-red-50 opacity-0 group-hover:opacity-100 transition-all"
-                      onClick={() => deleteGoal.mutate(goal.id)}
-                    >
-                      <X className="h-3.5 w-3.5" />
-                    </Button>
-                  </div>
-                </motion.div>
-              ))}
-            </div>
-          </div>
-        )}
+  const activeGoals = goals.filter((g) => g.status === 'active' || g.status === 'at_risk');
+  const completedGoals = goals.filter((g) => g.status === 'completed');
+  const pausedGoals = goals.filter((g) => g.status === 'paused');
 
-        {/* Filter */}
-        <div className="flex gap-2 mb-6">
-          {['active', 'completed', 'paused', 'all'].map(f => (
-            <button
-              key={f}
-              onClick={() => setFilter(f)}
-              className={`px-4 py-2 rounded-xl text-sm font-medium transition-all ${
-                filter === f 
-                  ? 'bg-amber-600 text-white' 
-                  : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-50'
-              }`}
-            >
-              {f.charAt(0).toUpperCase() + f.slice(1)}
-            </button>
-          ))}
-        </div>
-
-        {/* Goals Grid */}
-        <div className="grid gap-4 sm:grid-cols-2">
-          <AnimatePresence mode="popLayout">
-            {filteredGoals.map((goal, i) => (
-              <motion.div
-                key={goal.id}
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, scale: 0.95 }}
-                transition={{ delay: i * 0.05 }}
-              >
-                <GoalCard
-                  goal={goal}
-                  gradientClass={categoryColors[goal.category] || categoryColors.personal}
-                  onEdit={() => { setEditingGoal(goal); setShowForm(true); }}
-                  onDelete={() => deleteGoal.mutate(goal.id)}
-                  onUpdate={(data) => updateGoal.mutate({ id: goal.id, data })}
-                />
-              </motion.div>
-            ))}
-          </AnimatePresence>
-        </div>
-
-        {filteredGoals.length === 0 && (
-          <div className="text-center py-16">
-            <Sparkles className="h-12 w-12 text-amber-300 mx-auto mb-3" />
-            <p className="text-slate-500">No goals yet. Set your first goal!</p>
-          </div>
-        )}
-
-        {/* Goal Form Modal */}
-        <AnimatePresence>
-          {showForm && (
-            <GoalForm
-              goal={editingGoal}
-              onSubmit={(data) => editingGoal 
-                ? updateGoal.mutate({ id: editingGoal.id, data })
-                : createGoal.mutate(data)
-              }
-              onCancel={() => { setShowForm(false); setEditingGoal(null); }}
-              isLoading={createGoal.isPending || updateGoal.isPending}
-            />
-          )}
-        </AnimatePresence>
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-[50vh]">
+        <Loader2 className="h-8 w-8 animate-spin text-indigo-600" />
       </div>
+    );
+  }
+
+  return (
+    <div className={cn('p-4 sm:p-6 lg:p-8 max-w-4xl mx-auto space-y-6')}>
+      {/* Header */}
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className={cn('text-2xl sm:text-3xl font-bold', isDark ? 'text-white' : 'text-slate-900')}>
+            Goals
+          </h1>
+          <p className={cn('text-sm mt-1', isDark ? 'text-slate-400' : 'text-slate-500')}>
+            Set ambitious goals and track your journey
+          </p>
+        </div>
+        <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+          <DialogTrigger asChild>
+            <Button className="bg-indigo-600 hover:bg-indigo-700 text-white">
+              <Plus className="h-4 w-4 mr-2" /> New Goal
+            </Button>
+          </DialogTrigger>
+          <DialogContent className={cn(isDark && 'bg-slate-900 border-slate-700')}>
+            <DialogHeader>
+              <DialogTitle className={cn(isDark && 'text-white')}>Create Goal</DialogTitle>
+            </DialogHeader>
+            <form onSubmit={handleCreate} className="space-y-4">
+              <div className="space-y-2">
+                <Label className={cn(isDark && 'text-slate-300')}>Title</Label>
+                <Input
+                  placeholder="e.g., Run a marathon"
+                  value={goalForm.title}
+                  onChange={(e) => setGoalForm((p) => ({ ...p, title: e.target.value }))}
+                  required
+                  className={cn(isDark && 'bg-slate-800 border-slate-700 text-white')}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label className={cn(isDark && 'text-slate-300')}>Description</Label>
+                <Textarea
+                  placeholder="What does achieving this goal look like?"
+                  value={goalForm.description}
+                  onChange={(e) => setGoalForm((p) => ({ ...p, description: e.target.value }))}
+                  rows={3}
+                  className={cn(isDark && 'bg-slate-800 border-slate-700 text-white')}
+                />
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label className={cn(isDark && 'text-slate-300')}>Target Date</Label>
+                  <Input
+                    type="date"
+                    value={goalForm.target_date}
+                    onChange={(e) => setGoalForm((p) => ({ ...p, target_date: e.target.value }))}
+                    className={cn(isDark && 'bg-slate-800 border-slate-700 text-white')}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label className={cn(isDark && 'text-slate-300')}>Category</Label>
+                  <Select value={goalForm.category} onValueChange={(v) => setGoalForm((p) => ({ ...p, category: v }))}>
+                    <SelectTrigger className={cn(isDark && 'bg-slate-800 border-slate-700 text-white')}>
+                      <SelectValue placeholder="Select" />
+                    </SelectTrigger>
+                    <SelectContent className={cn(isDark && 'bg-slate-800 border-slate-700')}>
+                      {goalCategories.map((c) => (
+                        <SelectItem key={c} value={c} className={cn(isDark && 'text-slate-200')}>{c}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+              <DialogFooter>
+                <DialogClose asChild>
+                  <Button type="button" variant="outline" className={cn(isDark && 'border-slate-700 text-slate-300')}>Cancel</Button>
+                </DialogClose>
+                <Button type="submit" disabled={createGoal.isPending} className="bg-indigo-600 hover:bg-indigo-700 text-white">
+                  {createGoal.isPending ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
+                  Create Goal
+                </Button>
+              </DialogFooter>
+            </form>
+          </DialogContent>
+        </Dialog>
+      </div>
+
+      {/* Progress Update Dialog */}
+      <Dialog open={!!progressGoal} onOpenChange={(open) => !open && setProgressGoal(null)}>
+        <DialogContent className={cn(isDark && 'bg-slate-900 border-slate-700')}>
+          <DialogHeader>
+            <DialogTitle className={cn(isDark && 'text-white')}>Update Progress</DialogTitle>
+          </DialogHeader>
+          {progressGoal && (
+            <div className="space-y-6">
+              <div>
+                <p className={cn('font-medium mb-1', isDark ? 'text-white' : 'text-slate-900')}>
+                  {progressGoal.title}
+                </p>
+                <p className={cn('text-sm', isDark ? 'text-slate-400' : 'text-slate-500')}>
+                  Current progress: {Math.round(progressGoal.progress || 0)}%
+                </p>
+              </div>
+              <div className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <Label className={cn(isDark && 'text-slate-300')}>New Progress</Label>
+                  <span className={cn('text-sm font-bold', isDark ? 'text-indigo-400' : 'text-indigo-600')}>
+                    {progressValue[0]}%
+                  </span>
+                </div>
+                <Slider
+                  value={progressValue}
+                  onValueChange={setProgressValue}
+                  min={0}
+                  max={100}
+                  step={5}
+                  className="w-full"
+                />
+              </div>
+              <DialogFooter>
+                <DialogClose asChild>
+                  <Button variant="outline" className={cn(isDark && 'border-slate-700 text-slate-300')}>Cancel</Button>
+                </DialogClose>
+                <Button
+                  onClick={handleUpdateProgress}
+                  disabled={updateGoal.isPending}
+                  className="bg-indigo-600 hover:bg-indigo-700 text-white"
+                >
+                  {updateGoal.isPending ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
+                  Save
+                </Button>
+              </DialogFooter>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Empty State */}
+      {goals.length === 0 && (
+        <Card className={cn('border', isDark ? 'bg-slate-900 border-slate-800' : 'bg-white border-slate-200')}>
+          <CardContent className="py-16 text-center">
+            <Target className={cn('h-16 w-16 mx-auto mb-4 opacity-30', isDark ? 'text-slate-500' : 'text-slate-300')} />
+            <h3 className={cn('text-lg font-semibold mb-2', isDark ? 'text-white' : 'text-slate-900')}>
+              No Goals Yet
+            </h3>
+            <p className={cn('text-sm mb-4', isDark ? 'text-slate-400' : 'text-slate-500')}>
+              Set your first goal and start making progress toward what matters most.
+            </p>
+            <Button onClick={() => setDialogOpen(true)} className="bg-indigo-600 hover:bg-indigo-700 text-white">
+              <Plus className="h-4 w-4 mr-2" /> Create Your First Goal
+            </Button>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Active Goals */}
+      {activeGoals.length > 0 && (
+        <div className="space-y-3">
+          <h2 className={cn('text-lg font-semibold', isDark ? 'text-white' : 'text-slate-900')}>
+            Active Goals ({activeGoals.length})
+          </h2>
+          {activeGoals.map((goal) => (
+            <GoalCard
+              key={goal.id}
+              goal={goal}
+              isDark={isDark}
+              onUpdateProgress={() => {
+                setProgressGoal(goal);
+                setProgressValue([Math.round(goal.progress || 0)]);
+              }}
+              onStatusChange={handleStatusChange}
+            />
+          ))}
+        </div>
+      )}
+
+      {/* Completed Goals */}
+      {completedGoals.length > 0 && (
+        <div className="space-y-3">
+          <h2 className={cn('text-lg font-semibold flex items-center gap-2', isDark ? 'text-white' : 'text-slate-900')}>
+            <Trophy className="h-5 w-5 text-amber-500" />
+            Completed ({completedGoals.length})
+          </h2>
+          {completedGoals.map((goal) => (
+            <GoalCard
+              key={goal.id}
+              goal={goal}
+              isDark={isDark}
+              onUpdateProgress={() => {
+                setProgressGoal(goal);
+                setProgressValue([Math.round(goal.progress || 0)]);
+              }}
+              onStatusChange={handleStatusChange}
+            />
+          ))}
+        </div>
+      )}
+
+      {/* Paused Goals */}
+      {pausedGoals.length > 0 && (
+        <div className="space-y-3">
+          <h2 className={cn('text-lg font-semibold', isDark ? 'text-slate-400' : 'text-slate-600')}>
+            Paused ({pausedGoals.length})
+          </h2>
+          {pausedGoals.map((goal) => (
+            <GoalCard
+              key={goal.id}
+              goal={goal}
+              isDark={isDark}
+              onUpdateProgress={() => {
+                setProgressGoal(goal);
+                setProgressValue([Math.round(goal.progress || 0)]);
+              }}
+              onStatusChange={handleStatusChange}
+            />
+          ))}
+        </div>
+      )}
     </div>
+  );
+}
+
+function GoalCard({ goal, isDark, onUpdateProgress, onStatusChange }) {
+  const progress = Math.round(goal.progress || 0);
+  const status = statusConfig[goal.status] || statusConfig.active;
+
+  return (
+    <Card className={cn('border', isDark ? 'bg-slate-900 border-slate-800' : 'bg-white border-slate-200')}>
+      <CardContent className="p-5">
+        <div className="flex items-start justify-between mb-3">
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center gap-2 mb-1">
+              <h3 className={cn('font-semibold truncate', isDark ? 'text-white' : 'text-slate-900')}>
+                {goal.title}
+              </h3>
+              <Badge className={cn('text-xs flex-shrink-0', status.className)}>
+                {status.label}
+              </Badge>
+            </div>
+            {goal.description && (
+              <p className={cn('text-sm', isDark ? 'text-slate-400' : 'text-slate-500')}>
+                {goal.description}
+              </p>
+            )}
+          </div>
+        </div>
+
+        <div className="mb-3">
+          <div className="flex items-center justify-between mb-1.5">
+            <span className={cn('text-xs', isDark ? 'text-slate-400' : 'text-slate-500')}>Progress</span>
+            <span className={cn('text-xs font-bold', isDark ? 'text-indigo-400' : 'text-indigo-600')}>
+              {progress}%
+            </span>
+          </div>
+          <Progress
+            value={progress}
+            className={cn('h-2.5', isDark ? 'bg-slate-800' : 'bg-slate-100')}
+          />
+        </div>
+
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3 text-xs">
+            {goal.category && (
+              <Badge variant="outline" className={cn('text-xs', isDark && 'border-slate-700 text-slate-400')}>
+                {goal.category}
+              </Badge>
+            )}
+            {goal.target_date && (
+              <span className={cn('flex items-center gap-1', isDark ? 'text-slate-500' : 'text-slate-400')}>
+                <Calendar className="h-3 w-3" />
+                {format(new Date(goal.target_date + 'T12:00:00'), 'MMM d, yyyy')}
+              </span>
+            )}
+          </div>
+          <div className="flex items-center gap-2">
+            {goal.status !== 'completed' && (
+              <Select
+                value={goal.status}
+                onValueChange={(v) => onStatusChange(goal.id, v)}
+              >
+                <SelectTrigger className={cn('h-8 w-24 text-xs', isDark && 'bg-slate-800 border-slate-700 text-white')}>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent className={cn(isDark && 'bg-slate-800 border-slate-700')}>
+                  <SelectItem value="active" className={cn('text-xs', isDark && 'text-slate-200')}>Active</SelectItem>
+                  <SelectItem value="paused" className={cn('text-xs', isDark && 'text-slate-200')}>Paused</SelectItem>
+                  <SelectItem value="at_risk" className={cn('text-xs', isDark && 'text-slate-200')}>At Risk</SelectItem>
+                  <SelectItem value="completed" className={cn('text-xs', isDark && 'text-slate-200')}>Completed</SelectItem>
+                </SelectContent>
+              </Select>
+            )}
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={onUpdateProgress}
+              className={cn('text-xs', isDark && 'border-slate-700 text-slate-300 hover:bg-slate-800')}
+            >
+              Update
+            </Button>
+          </div>
+        </div>
+      </CardContent>
+    </Card>
   );
 }

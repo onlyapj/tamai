@@ -1,459 +1,342 @@
-import React, { useState, useEffect } from 'react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { base44 } from '@/api/base44Client';
-import { Link } from 'react-router-dom';
-import { createPageUrl } from '../utils';
-import { motion, AnimatePresence } from 'framer-motion';
+import { useQuery } from '@tanstack/react-query';
+import { useAuth } from '@/lib/AuthContext';
+import { db } from '@/api/db';
+import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
-import { Plus, Calendar, ListTodo, Sparkles, ChevronRight, Heart, Wallet, Activity, Target, ArrowRight, MessageCircle, GripVertical, Edit2, Check } from 'lucide-react';
-import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
-import { Button } from "@/components/ui/button";
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import TaskList from '../components/tasks/TaskList';
-import TaskForm from '../components/tasks/TaskForm';
-import ChatInterface from '../components/chat/ChatInterface';
-import DayTimeline from '../components/dashboard/DayTimeline';
-import TopPriorities from '../components/dashboard/TopPriorities';
-import DailyReflection from '../components/dashboard/DailyReflection';
-import TamaiLogo from '../components/common/TamaiLogo';
-import BudgetOverviewWidget from '../components/finance/BudgetOverviewWidget';
-import TutorialOverlay from '../components/onboarding/TutorialOverlay';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { useNavigate } from 'react-router-dom';
+import {
+  CheckSquare, Activity, Smile, Wallet, Plus,
+  Target, CalendarDays, Heart, ArrowRight,
+  Sparkles, Sun, Moon, Sunrise, Sunset,
+} from 'lucide-react';
 
-import ADHDQuickLog from '../components/adhd/ADHDQuickLog';
-import ADHDTaskView from '../components/adhd/ADHDTaskView';
-import ADHDFocusBooster from '../components/adhd/ADHDFocusBooster';
+function getGreeting() {
+  const hour = new Date().getHours();
+  if (hour < 6) return { text: 'Good night', icon: Moon };
+  if (hour < 12) return { text: 'Good morning', icon: Sunrise };
+  if (hour < 17) return { text: 'Good afternoon', icon: Sun };
+  if (hour < 21) return { text: 'Good evening', icon: Sunset };
+  return { text: 'Good night', icon: Moon };
+}
 
 export default function Home() {
-    const [showForm, setShowForm] = useState(false);
-    const [editingTask, setEditingTask] = useState(null);
-    const [activeTab, setActiveTab] = useState('today');
-    const [showChat, setShowChat] = useState(false);
-    const [showTutorial, setShowTutorial] = useState(false);
-    const [showFocusBooster, setShowFocusBooster] = useState(false);
-    const [boosterTrigger, setBoosterTrigger] = useState(null);
-    const queryClient = useQueryClient();
+  const { user } = useAuth();
+  const navigate = useNavigate();
+  const isDark = user?.theme === 'dark';
+  const today = format(new Date(), 'yyyy-MM-dd');
+  const greeting = getGreeting();
+  const GreetingIcon = greeting.icon;
 
-    const defaultSectionOrder = ['reflection', 'insights', 'tasks'];
-    const [sectionOrder, setSectionOrder] = useState(defaultSectionOrder);
-    const [isRearrangeMode, setIsRearrangeMode] = useState(false);
-
-  const { data: tasks = [], isLoading } = useQuery({
-    queryKey: ['tasks'],
-    queryFn: () => base44.entities.Task.list('-created_date'),
+  // Tasks due today
+  const { data: todayTasks = [] } = useQuery({
+    queryKey: ['tasks', 'today'],
+    queryFn: () => db.filter('tasks', { due_date: today, status: 'pending' }),
   });
 
-  const createMutation = useMutation({
-    mutationFn: (data) => base44.entities.Task.create(data),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['tasks'] });
-      setShowForm(false);
-    }
+  // Habits
+  const { data: habits = [] } = useQuery({
+    queryKey: ['habits'],
+    queryFn: () => db.list('habits', { orderBy: 'created_at', ascending: true }),
   });
 
-  const updateMutation = useMutation({
-    mutationFn: ({ id, data }) => base44.entities.Task.update(id, data),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['tasks'] });
-      setShowForm(false);
-      setEditingTask(null);
-    }
+  // Today's habit logs
+  const { data: todayHabitLogs = [] } = useQuery({
+    queryKey: ['habit_logs', 'today'],
+    queryFn: () => db.filter('habit_logs', { date: today }),
   });
 
-  const deleteMutation = useMutation({
-    mutationFn: (id) => base44.entities.Task.delete(id),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['tasks'] })
+  // Today's mood
+  const { data: todayMood = [] } = useQuery({
+    queryKey: ['mood_entries', 'today'],
+    queryFn: () => db.filter('mood_entries', { date: today }),
   });
 
-  const handleSubmit = (data) => {
-    if (editingTask) {
-      updateMutation.mutate({ id: editingTask.id, data });
-    } else {
-      createMutation.mutate(data);
-    }
-  };
-
-  const handleToggle = (task) => {
-    const newStatus = task.status === 'completed' ? 'pending' : 'completed';
-    updateMutation.mutate({ id: task.id, data: { ...task, status: newStatus } });
-  };
-
-  const handleEdit = (task) => {
-    setEditingTask(task);
-    setShowForm(true);
-  };
-
-  const handleTutorialComplete = async () => {
-    setShowTutorial(false);
-    await base44.auth.updateMe({ tutorial_completed: true });
-  };
-
-  const todayStr = format(new Date(), 'yyyy-MM-dd');
-    const currentHour = new Date().getHours();
-    const reflectionType = currentHour < 12 ? 'morning' : 'evening';
-    const currentMonth = format(new Date(), 'yyyy-MM');
-  
-  const { data: user } = useQuery({
-    queryKey: ['current-user'],
-    queryFn: () => base44.auth.me(),
-  });
-
-  const { data: todayMood } = useQuery({
-    queryKey: ['todayMood'],
-    queryFn: async () => {
-      const entries = await base44.entities.MoodEntry.filter({ date: todayStr });
-      return entries[0] || null;
-    }
-  });
-
-  // Check for ADHD profile and recent logs
-  const { data: adhdProfile } = useQuery({
-    queryKey: ['adhd-profile'],
-    queryFn: async () => {
-      const profiles = await base44.asServiceRole.entities.ADHDProfile.list();
-      const user_ = await base44.auth.me();
-      return profiles.find(p => p.created_by === user_.email);
-    }
-  });
-
-  const { data: todayADHDLog } = useQuery({
-    queryKey: ['today-adhd-log'],
-    queryFn: async () => {
-      const logs = await base44.entities.ADHDLog.filter({ date: todayStr });
-      return logs[0] || null;
-    },
-    enabled: !!adhdProfile?.has_adhd
-  });
-
-  // Show tutorial on first login
-  useEffect(() => {
-    if (user && !user.tutorial_completed) {
-      setShowTutorial(true);
-    }
-  }, [user]);
-
-  // Load saved section order
-  useEffect(() => {
-    if (user?.home_section_order) {
-      setSectionOrder(user.home_section_order);
-    }
-  }, [user]);
-
-  const saveSectionOrder = useMutation({
-    mutationFn: (order) => base44.auth.updateMe({ home_section_order: order }),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['current-user'] })
-  });
-
-  const handleDragEnd = (result) => {
-    if (!result.destination) return;
-    const items = Array.from(sectionOrder);
-    const [reorderedItem] = items.splice(result.source.index, 1);
-    items.splice(result.destination.index, 0, reorderedItem);
-    setSectionOrder(items);
-    saveSectionOrder.mutate(items);
-  };
-
+  // This month's transactions
   const { data: transactions = [] } = useQuery({
-    queryKey: ['transactions-month'],
-    queryFn: async () => {
-      const all = await base44.entities.Transaction.list('-date', 100);
-      return all.filter(t => t.date?.startsWith(currentMonth));
-    }
+    queryKey: ['transactions', 'recent'],
+    queryFn: () => db.list('transactions', { orderBy: 'date', ascending: false, limit: 50 }),
   });
 
-  const { data: budgets = [] } = useQuery({
-    queryKey: ['budgets-month'],
-    queryFn: () => base44.entities.Budget.filter({ month: currentMonth })
+  // Recent goals
+  const { data: goals = [] } = useQuery({
+    queryKey: ['goals', 'active'],
+    queryFn: () => db.filter('goals', { status: 'active' }, { orderBy: 'created_at', ascending: false, limit: 3 }),
   });
-  
-  const filteredTasks = {
-    today: tasks.filter(t => t.due_date === todayStr && t.status !== 'completed'),
-    upcoming: tasks.filter(t => t.due_date && t.due_date > todayStr && t.status !== 'completed'),
-    all: tasks.filter(t => t.status !== 'completed'),
-    completed: tasks.filter(t => t.status === 'completed')
-  }[activeTab] || [];
+
+  const completedHabits = todayHabitLogs.filter((l) => l.completed).length;
+  const totalHabits = habits.filter((h) => h.active !== false).length;
+  const moodScore = todayMood.length > 0 ? todayMood[0].mood_score : null;
+
+  const currentMonth = format(new Date(), 'yyyy-MM');
+  const monthTransactions = transactions.filter((t) => t.date?.startsWith(currentMonth));
+  const monthIncome = monthTransactions.filter((t) => t.type === 'income').reduce((s, t) => s + Number(t.amount), 0);
+  const monthExpenses = monthTransactions.filter((t) => t.type === 'expense').reduce((s, t) => s + Number(t.amount), 0);
+  const budgetRemaining = monthIncome - monthExpenses;
+
+  const statCards = [
+    {
+      label: 'Tasks Due Today',
+      value: todayTasks.length,
+      icon: CheckSquare,
+      color: 'text-blue-600',
+      bg: isDark ? 'bg-blue-950' : 'bg-blue-50',
+    },
+    {
+      label: 'Habits Completed',
+      value: `${completedHabits}/${totalHabits}`,
+      icon: Activity,
+      color: 'text-green-600',
+      bg: isDark ? 'bg-green-950' : 'bg-green-50',
+    },
+    {
+      label: 'Mood Score',
+      value: moodScore !== null ? `${moodScore}/10` : '--',
+      icon: Smile,
+      color: 'text-amber-600',
+      bg: isDark ? 'bg-amber-950' : 'bg-amber-50',
+    },
+    {
+      label: 'Net This Month',
+      value: `${user?.currency || '$'}${budgetRemaining >= 0 ? '' : '-'}${Math.abs(budgetRemaining).toFixed(0)}`,
+      icon: Wallet,
+      color: budgetRemaining >= 0 ? 'text-emerald-600' : 'text-red-600',
+      bg: isDark ? 'bg-emerald-950' : 'bg-emerald-50',
+    },
+  ];
+
+  const quickActions = [
+    { label: 'Add Task', icon: CalendarDays, path: '/calendar' },
+    { label: 'Log Mood', icon: Smile, path: '/mood' },
+    { label: 'Track Health', icon: Heart, path: '/health' },
+    { label: 'Add Expense', icon: Wallet, path: '/finance' },
+    { label: 'New Goal', icon: Target, path: '/goals' },
+    { label: 'Habits', icon: Activity, path: '/habits' },
+  ];
 
   return (
-        <div className="min-h-screen bg-slate-50">
-          {showTutorial && <TutorialOverlay onComplete={handleTutorialComplete} />}
-          {showFocusBooster && boosterTrigger && (
-            <div className="fixed inset-0 bg-black/30 z-40 flex items-center justify-center p-4">
-              <ADHDFocusBooster
-                energyLevel={boosterTrigger.energy_level}
-                symptomSeverity={boosterTrigger.symptom_severity}
-                onClose={() => setShowFocusBooster(false)}
-              />
+    <div className={cn('p-4 sm:p-6 lg:p-8 max-w-6xl mx-auto space-y-6')}>
+      {/* Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+        <div>
+          <div className="flex items-center gap-2 mb-1">
+            <GreetingIcon className={cn('h-5 w-5', isDark ? 'text-amber-400' : 'text-amber-500')} />
+            <h1 className={cn('text-2xl sm:text-3xl font-bold', isDark ? 'text-white' : 'text-slate-900')}>
+              {greeting.text}, {user?.full_name?.split(' ')[0] || 'there'}
+            </h1>
+          </div>
+          <p className={cn('text-sm', isDark ? 'text-slate-400' : 'text-slate-500')}>
+            {format(new Date(), 'EEEE, MMMM d, yyyy')}
+          </p>
+        </div>
+      </div>
+
+      {/* Mood Check-in Prompt */}
+      {moodScore === null && (
+        <Card className={cn(
+          'border-dashed',
+          isDark ? 'bg-indigo-950/50 border-indigo-800' : 'bg-indigo-50/50 border-indigo-200'
+        )}>
+          <CardContent className="p-4 flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className={cn('h-10 w-10 rounded-full flex items-center justify-center', isDark ? 'bg-indigo-900' : 'bg-indigo-100')}>
+                <Sparkles className="h-5 w-5 text-indigo-600" />
+              </div>
+              <div>
+                <p className={cn('font-medium', isDark ? 'text-white' : 'text-slate-900')}>
+                  How are you feeling today?
+                </p>
+                <p className={cn('text-sm', isDark ? 'text-slate-400' : 'text-slate-500')}>
+                  Take a moment to log your mood and reflect.
+                </p>
+              </div>
             </div>
-          )}
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 lg:py-10">
-        {/* Header */}
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
-          <div>
-            <TamaiLogo size="md" />
-            <p className="text-slate-500 mt-2">
-              {format(new Date(), 'EEEE, MMMM d')} • Good {new Date().getHours() < 12 ? 'morning' : new Date().getHours() < 17 ? 'afternoon' : 'evening'}
-            </p>
-          </div>
-          <div className="flex gap-3">
             <Button
-              onClick={() => setIsRearrangeMode(!isRearrangeMode)}
-              variant={isRearrangeMode ? "default" : "outline"}
-              className={isRearrangeMode ? "bg-amber-600 hover:bg-amber-700" : ""}
+              size="sm"
+              onClick={() => navigate('/mood')}
+              className="bg-indigo-600 hover:bg-indigo-700 text-white"
             >
-              {isRearrangeMode ? (
-                <>
-                  <Check className="h-4 w-4 mr-2" />
-                  Done
-                </>
-              ) : (
-                <>
-                  <Edit2 className="h-4 w-4 mr-2" />
-                  Rearrange
-                </>
-              )}
+              Log Mood
             </Button>
-            <a 
-              href={base44.agents.getWhatsAppConnectURL('TAMAI')} 
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              <Button variant="outline" className="border-green-600 text-green-600 hover:bg-green-50">
-                <MessageCircle className="h-4 w-4 mr-2" />
-                WhatsApp
-              </Button>
-            </a>
-            <Button
-              onClick={() => setShowChat(!showChat)}
-              variant={showChat ? "default" : "outline"}
-              className={showChat ? "bg-indigo-600 hover:bg-indigo-700" : ""}
-            >
-              <Sparkles className="h-4 w-4 mr-2" />
-              AI Assistant
-            </Button>
-            <Button onClick={() => { setEditingTask(null); setShowForm(true); }} className="bg-slate-900 hover:bg-slate-800">
-              <Plus className="h-4 w-4 mr-2" />
-              New Task
-            </Button>
-          </div>
-        </div>
+          </CardContent>
+        </Card>
+      )}
 
-        {/* Quick Access Pillars */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-8">
-          {[
-            { name: 'Mindfulness', icon: Heart, color: 'from-violet-500 to-purple-500', bg: 'bg-violet-50' },
-            { name: 'Finance', icon: Wallet, color: 'from-emerald-500 to-teal-500', bg: 'bg-emerald-50' },
-            { name: 'Health', icon: Activity, color: 'from-rose-500 to-orange-500', bg: 'bg-rose-50' },
-            { name: 'Goals', icon: Target, color: 'from-amber-500 to-yellow-500', bg: 'bg-amber-50' }
-          ].map((pillar, i) => (
-            <Link 
-              key={pillar.name}
-              to={createPageUrl(pillar.name)}
-              className={`group ${pillar.bg} rounded-2xl p-4 border border-slate-200/60 hover:shadow-md transition-all`}
-            >
-              <div className={`w-10 h-10 rounded-xl bg-gradient-to-br ${pillar.color} flex items-center justify-center mb-2`}>
-                <pillar.icon className="h-5 w-5 text-white" />
+      {/* Stat Cards */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        {statCards.map((stat) => (
+          <Card key={stat.label} className={cn('border', isDark ? 'bg-slate-900 border-slate-800' : 'bg-white border-slate-200')}>
+            <CardContent className="p-4">
+              <div className="flex items-center justify-between mb-3">
+                <div className={cn('h-10 w-10 rounded-xl flex items-center justify-center', stat.bg)}>
+                  <stat.icon className={cn('h-5 w-5', stat.color)} />
+                </div>
               </div>
-              <p className="font-medium text-slate-800">{pillar.name}</p>
-              <div className="flex items-center text-xs text-slate-500 mt-1 group-hover:text-slate-700">
-                Open <ArrowRight className="h-3 w-3 ml-1 group-hover:translate-x-1 transition-transform" />
+              <div className={cn('text-2xl font-bold', isDark ? 'text-white' : 'text-slate-900')}>
+                {stat.value}
               </div>
-            </Link>
-          ))}
-        </div>
+              <div className={cn('text-xs mt-1', isDark ? 'text-slate-400' : 'text-slate-500')}>
+                {stat.label}
+              </div>
+            </CardContent>
+          </Card>
+        ))}
+      </div>
 
-        <DragDropContext onDragEnd={handleDragEnd}>
-          <Droppable droppableId="home-sections" direction="vertical">
-            {(provided) => (
-              <div
-                ref={provided.innerRef}
-                {...provided.droppableProps}
-                className="space-y-6 mb-6"
+      {/* Quick Actions */}
+      <Card className={cn('border', isDark ? 'bg-slate-900 border-slate-800' : 'bg-white border-slate-200')}>
+        <CardHeader className="pb-3">
+          <CardTitle className={cn('text-lg', isDark ? 'text-white' : 'text-slate-900')}>
+            Quick Actions
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-3 sm:grid-cols-6 gap-3">
+            {quickActions.map((action) => (
+              <button
+                key={action.label}
+                onClick={() => navigate(action.path)}
+                className={cn(
+                  'flex flex-col items-center gap-2 p-3 rounded-xl transition-all',
+                  isDark
+                    ? 'hover:bg-slate-800 text-slate-300 hover:text-white'
+                    : 'hover:bg-slate-50 text-slate-600 hover:text-slate-900'
+                )}
               >
-                {sectionOrder.map((section, index) => (
-                  <Draggable key={section} draggableId={section} index={index}>
-                    {(provided, snapshot) => (
-                      <div
-                        ref={provided.innerRef}
-                        {...provided.draggableProps}
-                        className={`group relative ${snapshot.isDragging ? 'opacity-50' : ''}`}
-                      >
-                        <div
-                          {...provided.dragHandleProps}
-                          className={`absolute -left-8 top-4 transition-opacity z-10 ${isRearrangeMode ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}
-                        >
-                          <GripVertical className={`h-5 w-5 ${isRearrangeMode ? 'text-amber-600' : 'text-slate-400'}`} />
-                        </div>
+                <div className={cn(
+                  'h-10 w-10 rounded-xl flex items-center justify-center',
+                  isDark ? 'bg-slate-800' : 'bg-indigo-50'
+                )}>
+                  <action.icon className={cn('h-5 w-5', isDark ? 'text-indigo-400' : 'text-indigo-600')} />
+                </div>
+                <span className="text-xs font-medium">{action.label}</span>
+              </button>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
 
-                        {section === 'reflection' && !todayMood && (
-                          <DailyReflection 
-                            type={reflectionType}
-                            existingEntry={todayMood}
-                            onComplete={() => queryClient.invalidateQueries({ queryKey: ['todayMood'] })}
-                          />
-                        )}
-
-
-
-                        {section === 'insights' && (
-                          <div className="grid lg:grid-cols-2 gap-6">
-                            <TopPriorities 
-                              tasks={tasks.filter(t => t.due_date === todayStr)} 
-                              onToggle={handleToggle}
-                            />
-                            <BudgetOverviewWidget 
-                              budgets={budgets}
-                              transactions={transactions}
-                              currencySymbol="£"
-                            />
-                          </div>
-                        )}
-
-                        {section === 'tasks' && (
-                          <div className="grid lg:grid-cols-3 gap-6">
-                            {/* Tasks Panel */}
-                            <div className={showChat ? "lg:col-span-2" : "lg:col-span-3"}>
-                              <div className="bg-white rounded-3xl border border-slate-200/60 shadow-sm overflow-hidden">
-                                {/* Tabs */}
-                                <div className="p-4 border-b border-slate-100">
-                                  <Tabs value={activeTab} onValueChange={setActiveTab}>
-                                    <TabsList className="bg-slate-100/80 p-1">
-                                      <TabsTrigger value="today" className="data-[state=active]:bg-white">
-                                        <Calendar className="h-4 w-4 mr-2" />
-                                        Today
-                                      </TabsTrigger>
-                                      <TabsTrigger value="upcoming" className="data-[state=active]:bg-white">
-                                        <ChevronRight className="h-4 w-4 mr-2" />
-                                        Upcoming
-                                      </TabsTrigger>
-                                      <TabsTrigger value="all" className="data-[state=active]:bg-white">
-                                        <ListTodo className="h-4 w-4 mr-2" />
-                                        All
-                                      </TabsTrigger>
-                                      <TabsTrigger value="completed" className="data-[state=active]:bg-white text-emerald-600">
-                                        Completed
-                                      </TabsTrigger>
-                                    </TabsList>
-                                  </Tabs>
-                                </div>
-
-                                {/* Form */}
-                                <AnimatePresence>
-                                  {showForm && (
-                                    <div className="p-4 border-b border-slate-100">
-                                      <TaskForm
-                                        task={editingTask}
-                                        onSubmit={handleSubmit}
-                                        onCancel={() => { setShowForm(false); setEditingTask(null); }}
-                                      />
-                                    </div>
-                                  )}
-                                </AnimatePresence>
-
-                                {/* Task List */}
-                                <div className="p-4">
-                                  {isLoading ? (
-                                    <div className="flex items-center justify-center py-12">
-                                      <div className="h-8 w-8 border-2 border-indigo-600 border-t-transparent rounded-full animate-spin" />
-                                    </div>
-                                  ) : adhdProfile?.has_adhd ? (
-                                    <div className="space-y-3">
-                                      {filteredTasks.length > 0 ? (
-                                        filteredTasks.map((task) => (
-                                          <ADHDTaskView
-                                            key={task.id}
-                                            task={task}
-                                            onToggle={handleToggle}
-                                            onEdit={handleEdit}
-                                          />
-                                        ))
-                                      ) : (
-                                        <div className="text-center py-8 text-slate-500">
-                                          {activeTab === 'today' ? "No tasks for today" :
-                                          activeTab === 'upcoming' ? "No upcoming tasks" :
-                                          activeTab === 'completed' ? "No completed tasks yet" :
-                                          "No tasks yet"}
-                                        </div>
-                                      )}
-                                    </div>
-                                  ) : (
-                                    <TaskList
-                                      tasks={filteredTasks}
-                                      onToggle={handleToggle}
-                                      onDelete={(task) => deleteMutation.mutate(task.id)}
-                                      onEdit={handleEdit}
-                                      emptyMessage={
-                                        activeTab === 'today' ? "No tasks for today" :
-                                        activeTab === 'upcoming' ? "No upcoming tasks" :
-                                        activeTab === 'completed' ? "No completed tasks yet" :
-                                        "No tasks yet"
-                                      }
-                                    />
-                                  )}
-                                </div>
-                              </div>
-
-                              {/* Timeline for Today */}
-                              {activeTab === 'today' && (
-                                <div className="mt-6 bg-white rounded-3xl border border-slate-200/60 shadow-sm p-6">
-                                  <h3 className="font-semibold text-slate-800 mb-4">Today's Schedule</h3>
-                                  <DayTimeline tasks={tasks.filter(t => t.due_date === todayStr)} />
-                                </div>
-                              )}
-                            </div>
-
-                            {/* Chat Panel */}
-                            <AnimatePresence>
-                              {showChat && (
-                                <motion.div
-                                  initial={{ opacity: 0, x: 20 }}
-                                  animate={{ opacity: 1, x: 0 }}
-                                  exit={{ opacity: 0, x: 20 }}
-                                  className="lg:col-span-1 h-[600px]"
-                                >
-                                  <ChatInterface onTasksUpdate={() => queryClient.invalidateQueries({ queryKey: ['tasks'] })} />
-                                </motion.div>
-                              )}
-                            </AnimatePresence>
-                          </div>
-                        )}
-                      </div>
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Today's Tasks */}
+        <Card className={cn('border', isDark ? 'bg-slate-900 border-slate-800' : 'bg-white border-slate-200')}>
+          <CardHeader className="pb-3 flex flex-row items-center justify-between">
+            <CardTitle className={cn('text-lg', isDark ? 'text-white' : 'text-slate-900')}>
+              Today&apos;s Tasks
+            </CardTitle>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => navigate('/calendar')}
+              className={cn(isDark ? 'text-slate-400 hover:text-white' : 'text-slate-500 hover:text-slate-900')}
+            >
+              View All <ArrowRight className="ml-1 h-4 w-4" />
+            </Button>
+          </CardHeader>
+          <CardContent>
+            {todayTasks.length === 0 ? (
+              <div className={cn('text-center py-8', isDark ? 'text-slate-500' : 'text-slate-400')}>
+                <CheckSquare className="h-10 w-10 mx-auto mb-2 opacity-50" />
+                <p className="text-sm">No tasks due today. Enjoy your day!</p>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="mt-3"
+                  onClick={() => navigate('/calendar')}
+                >
+                  <Plus className="h-4 w-4 mr-1" /> Add Task
+                </Button>
+              </div>
+            ) : (
+              <div className="space-y-2">
+                {todayTasks.slice(0, 5).map((task) => (
+                  <div
+                    key={task.id}
+                    className={cn(
+                      'flex items-center gap-3 p-3 rounded-lg',
+                      isDark ? 'bg-slate-800' : 'bg-slate-50'
                     )}
-                  </Draggable>
+                  >
+                    <div className={cn(
+                      'h-2 w-2 rounded-full flex-shrink-0',
+                      task.priority === 'urgent' ? 'bg-red-500' :
+                      task.priority === 'high' ? 'bg-orange-500' :
+                      task.priority === 'medium' ? 'bg-amber-500' : 'bg-green-500'
+                    )} />
+                    <span className={cn('text-sm flex-1 truncate', isDark ? 'text-slate-200' : 'text-slate-700')}>
+                      {task.title}
+                    </span>
+                    <Badge variant="outline" className="text-xs capitalize">
+                      {task.priority}
+                    </Badge>
+                  </div>
                 ))}
-                {provided.placeholder}
               </div>
             )}
-          </Droppable>
-        </DragDropContext>
+          </CardContent>
+        </Card>
 
-
-
-        {/* ADHD Quick Log Widget */}
-        {adhdProfile?.has_adhd && <ADHDQuickLog />}
-
-        {/* Show Focus Booster if energy/symptoms are concerning */}
-        {adhdProfile?.has_adhd && todayADHDLog && !showFocusBooster && (
-          (todayADHDLog.energy_level <= 3 || todayADHDLog.symptom_severity >= 8)
-        ) && (
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="fixed bottom-28 lg:bottom-6 right-4 lg:right-72 z-40 max-w-sm"
-          >
-            <button
-              onClick={() => {
-                setBoosterTrigger({
-                  energy_level: todayADHDLog.energy_level,
-                  symptom_severity: todayADHDLog.symptom_severity
-                });
-                setShowFocusBooster(true);
-              }}
-              className="w-full bg-gradient-to-r from-rose-500 to-red-500 text-white px-4 py-3 rounded-full shadow-lg hover:shadow-xl transition-all font-medium text-sm"
+        {/* Active Goals */}
+        <Card className={cn('border', isDark ? 'bg-slate-900 border-slate-800' : 'bg-white border-slate-200')}>
+          <CardHeader className="pb-3 flex flex-row items-center justify-between">
+            <CardTitle className={cn('text-lg', isDark ? 'text-white' : 'text-slate-900')}>
+              Active Goals
+            </CardTitle>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => navigate('/goals')}
+              className={cn(isDark ? 'text-slate-400 hover:text-white' : 'text-slate-500 hover:text-slate-900')}
             >
-              🆘 Need Help? Try a Break
-            </button>
-          </motion.div>
-        )}
+              View All <ArrowRight className="ml-1 h-4 w-4" />
+            </Button>
+          </CardHeader>
+          <CardContent>
+            {goals.length === 0 ? (
+              <div className={cn('text-center py-8', isDark ? 'text-slate-500' : 'text-slate-400')}>
+                <Target className="h-10 w-10 mx-auto mb-2 opacity-50" />
+                <p className="text-sm">No active goals yet. Set one to get started!</p>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="mt-3"
+                  onClick={() => navigate('/goals')}
+                >
+                  <Plus className="h-4 w-4 mr-1" /> Set Goal
+                </Button>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {goals.map((goal) => (
+                  <div
+                    key={goal.id}
+                    className={cn(
+                      'p-3 rounded-lg',
+                      isDark ? 'bg-slate-800' : 'bg-slate-50'
+                    )}
+                  >
+                    <div className="flex items-center justify-between mb-2">
+                      <span className={cn('text-sm font-medium truncate', isDark ? 'text-slate-200' : 'text-slate-700')}>
+                        {goal.title}
+                      </span>
+                      <span className={cn('text-xs font-medium', isDark ? 'text-indigo-400' : 'text-indigo-600')}>
+                        {Math.round(goal.progress || 0)}%
+                      </span>
+                    </div>
+                    <div className={cn('h-2 rounded-full overflow-hidden', isDark ? 'bg-slate-700' : 'bg-slate-200')}>
+                      <div
+                        className="h-full rounded-full bg-gradient-to-r from-indigo-500 to-violet-500 transition-all"
+                        style={{ width: `${Math.min(goal.progress || 0, 100)}%` }}
+                      />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </CardContent>
+        </Card>
       </div>
     </div>
-        );
-      }
+  );
+}

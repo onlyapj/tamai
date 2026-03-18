@@ -1,363 +1,369 @@
-import React, { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { base44 } from '@/api/base44Client';
-import { format, startOfMonth, endOfMonth, isSameDay, parseISO, addMinutes, isBefore } from 'date-fns';
-import { motion, AnimatePresence } from 'framer-motion';
-import { Button } from "@/components/ui/button";
-import { Calendar as CalendarIcon, Plus, Bell, Clock, ChevronLeft, ChevronRight, Settings, LayoutGrid, ListIcon } from 'lucide-react';
-import CalendarView from '../components/calendar/CalendarView.jsx';
-import EventForm from '../components/calendar/EventForm.jsx';
-import DaySchedule from '../components/calendar/DaySchedule.jsx';
-import WeeklyView from '../components/calendar/WeeklyView.jsx';
-import GoogleCalendarSync from '../components/calendar/GoogleCalendarSync.jsx';
-import EventTemplateManager from '../components/calendar/EventTemplateManager.jsx';
+import { useAuth } from '@/lib/AuthContext';
+import { db } from '@/api/db';
+import { cn } from '@/lib/utils';
+import { format } from 'date-fns';
 import { toast } from 'sonner';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Badge } from '@/components/ui/badge';
+import { Textarea } from '@/components/ui/textarea';
+import { Checkbox } from '@/components/ui/checkbox';
+import {
+  Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter, DialogClose,
+} from '@/components/ui/dialog';
+import {
+  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
+} from '@/components/ui/select';
+import {
+  Plus, CalendarDays, Loader2, Filter, CheckSquare, Clock, Trash2,
+} from 'lucide-react';
+
+const priorityConfig = {
+  low: { label: 'Low', className: 'bg-green-100 text-green-700 dark:bg-green-950 dark:text-green-400' },
+  medium: { label: 'Medium', className: 'bg-amber-100 text-amber-700 dark:bg-amber-950 dark:text-amber-400' },
+  high: { label: 'High', className: 'bg-orange-100 text-orange-700 dark:bg-orange-950 dark:text-orange-400' },
+  urgent: { label: 'Urgent', className: 'bg-red-100 text-red-700 dark:bg-red-950 dark:text-red-400' },
+};
+
+const statusConfig = {
+  pending: { label: 'Pending', className: 'bg-blue-100 text-blue-700 dark:bg-blue-950 dark:text-blue-400' },
+  in_progress: { label: 'In Progress', className: 'bg-violet-100 text-violet-700 dark:bg-violet-950 dark:text-violet-400' },
+  completed: { label: 'Done', className: 'bg-green-100 text-green-700 dark:bg-green-950 dark:text-green-400' },
+  cancelled: { label: 'Cancelled', className: 'bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-400' },
+};
 
 export default function Calendar() {
-  const [selectedDate, setSelectedDate] = useState(new Date());
-  const [showEventForm, setShowEventForm] = useState(false);
-  const [editingTask, setEditingTask] = useState(null);
-  const [currentMonth, setCurrentMonth] = useState(new Date());
-  const [showSyncSettings, setShowSyncSettings] = useState(false);
-  const [showTemplates, setShowTemplates] = useState(false);
-  const [viewMode, setViewMode] = useState('month'); // 'month', 'week', or 'day'
+  const { user } = useAuth();
+  const isDark = user?.theme === 'dark';
   const queryClient = useQueryClient();
 
-  const { data: tasks = [] } = useQuery({
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [filterStatus, setFilterStatus] = useState('all');
+  const [taskForm, setTaskForm] = useState({
+    title: '', description: '', due_date: format(new Date(), 'yyyy-MM-dd'),
+    priority: 'medium', status: 'pending',
+  });
+
+  // Fetch tasks
+  const { data: tasks = [], isLoading } = useQuery({
     queryKey: ['tasks'],
-    queryFn: () => base44.entities.Task.list('-due_date')
+    queryFn: () => db.list('tasks', { orderBy: 'due_date', ascending: true }),
   });
 
-  const createMutation = useMutation({
-    mutationFn: async (data) => {
-      const task = await base44.entities.Task.create(data);
-      
-      // Auto-export to Google Calendar if available
-      try {
-        await base44.functions.invoke('syncGoogleCalendar', {
-          action: 'export_event',
-          calendarIds: ['primary'],
-          taskId: task.id,
-          taskData: data
-        });
-      } catch (error) {
-        // Silently fail if Google Calendar not connected
-      }
-      
-      return task;
-    },
+  // Create task
+  const createTask = useMutation({
+    mutationFn: (data) => db.create('tasks', data),
     onSuccess: () => {
-      queryClient.invalidateQueries(['tasks']);
-      setShowEventForm(false);
-      toast.success('Event added to calendar');
-    }
-  });
-
-  const updateMutation = useMutation({
-    mutationFn: ({ id, data }) => base44.entities.Task.update(id, data),
-    onSuccess: () => {
-      queryClient.invalidateQueries(['tasks']);
-      setShowEventForm(false);
-      setEditingTask(null);
-      toast.success('Event updated');
-    }
-  });
-
-  const deleteMutation = useMutation({
-    mutationFn: (id) => base44.entities.Task.delete(id),
-    onSuccess: () => {
-      queryClient.invalidateQueries(['tasks']);
-      toast.success('Event deleted');
-    }
-  });
-
-  // Check for upcoming reminders
-  useEffect(() => {
-    const checkReminders = () => {
-      const now = new Date();
-      tasks.forEach(task => {
-        if (!task.due_date || !task.scheduled_time || !task.reminder_minutes || task.status === 'completed') return;
-        
-        const [hours, minutes] = task.scheduled_time.split(':');
-        const scheduledDateTime = parseISO(task.due_date);
-        scheduledDateTime.setHours(parseInt(hours), parseInt(minutes), 0);
-        
-        const reminderTime = addMinutes(scheduledDateTime, -task.reminder_minutes);
-        const timeDiff = reminderTime.getTime() - now.getTime();
-        
-        // Show reminder if it's within the next minute
-        if (timeDiff > 0 && timeDiff < 60000) {
-          setTimeout(() => {
-            toast.info(`Reminder: ${task.title}`, {
-              description: `Starting in ${task.reminder_minutes} minutes`,
-              duration: 10000,
-              icon: <Bell className="h-4 w-4" />
-            });
-            
-            // Browser notification if permitted
-            if ('Notification' in window && Notification.permission === 'granted') {
-              new Notification('TAMAI Reminder', {
-                body: `${task.title} - Starting in ${task.reminder_minutes} minutes`,
-                icon: '/favicon.ico'
-              });
-            }
-          }, timeDiff);
-        }
+      queryClient.invalidateQueries({ queryKey: ['tasks'] });
+      toast.success('Task created!');
+      setTaskForm({
+        title: '', description: '', due_date: format(new Date(), 'yyyy-MM-dd'),
+        priority: 'medium', status: 'pending',
       });
-    };
+      setDialogOpen(false);
+    },
+    onError: (err) => toast.error(err.message),
+  });
 
-    checkReminders();
-    const interval = setInterval(checkReminders, 30000); // Check every 30 seconds
-    return () => clearInterval(interval);
-  }, [tasks]);
+  // Update task status
+  const updateTask = useMutation({
+    mutationFn: ({ id, updates }) => db.update('tasks', id, updates),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['tasks'] });
+    },
+    onError: (err) => toast.error(err.message),
+  });
 
-  // Request notification permission on mount
-  useEffect(() => {
-    if ('Notification' in window && Notification.permission === 'default') {
-      Notification.requestPermission();
-    }
-  }, []);
+  // Delete task
+  const deleteTask = useMutation({
+    mutationFn: (id) => db.remove('tasks', id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['tasks'] });
+      toast.success('Task deleted.');
+    },
+    onError: (err) => toast.error(err.message),
+  });
 
-  const selectedDateTasks = tasks.filter(task => 
-    task.due_date && isSameDay(parseISO(task.due_date), selectedDate)
-  );
-
-  const handleSubmit = (data) => {
-    if (editingTask) {
-      updateMutation.mutate({ id: editingTask.id, data });
-    } else {
-      createMutation.mutate(data);
-    }
+  const handleCreate = (e) => {
+    e.preventDefault();
+    if (!taskForm.title.trim()) return;
+    createTask.mutate({
+      title: taskForm.title.trim(),
+      description: taskForm.description,
+      due_date: taskForm.due_date || null,
+      priority: taskForm.priority,
+      status: taskForm.status,
+    });
   };
 
-  return (
-    <div className="min-h-screen bg-slate-50/50 p-4 sm:p-6 lg:p-8">
-      <div className="max-w-7xl mx-auto">
-        {/* Header */}
-        <div className="flex items-center justify-between mb-6">
-          <div>
-            <h1 className="text-2xl sm:text-3xl font-bold">
-              <span className="bg-gradient-to-r from-indigo-600 to-violet-600 bg-clip-text text-transparent">Calendar</span>
-            </h1>
-            <p className="text-slate-400 mt-0.5 text-sm">Schedule your time with intention</p>
-          </div>
-          <div className="flex items-center gap-2">
-            <Button 
-              onClick={() => setShowTemplates(true)}
-              variant="outline"
-              size="sm"
-              className="hidden sm:flex h-9 border-slate-200 text-slate-600 hover:bg-indigo-50 hover:border-indigo-300 hover:text-indigo-600 gap-1.5"
-            >
-              <span>⚡</span> Templates
-            </Button>
-            <Button 
-              onClick={() => setShowSyncSettings(!showSyncSettings)}
-              variant="outline"
-              size="sm"
-              className="h-9 border-slate-200 text-slate-600 hover:bg-slate-100"
-            >
-              <Settings className="h-4 w-4 sm:mr-1.5" />
-              <span className="hidden sm:inline">Sync</span>
-            </Button>
-            <Button 
-              onClick={() => { setEditingTask(null); setShowEventForm(true); }}
-              size="sm"
-              className="h-9 bg-indigo-600 hover:bg-indigo-700 shadow-sm shadow-indigo-200 gap-1.5"
-            >
-              <Plus className="h-4 w-4" />
-              <span className="hidden sm:inline">Add Event</span>
-            </Button>
-          </div>
-        </div>
+  const toggleComplete = (task) => {
+    const newStatus = task.status === 'completed' ? 'pending' : 'completed';
+    updateTask.mutate({ id: task.id, updates: { status: newStatus } });
+  };
 
-        {/* Navigation Bar */}
-        <div className="flex items-center justify-between mb-5 bg-white rounded-2xl border border-slate-200/80 shadow-sm px-4 py-2.5">
-          <div className="flex items-center gap-2">
-            <Button
-              variant="ghost"
-              size="sm"
-              className="h-8 w-8 p-0 rounded-lg text-slate-400 hover:text-indigo-600 hover:bg-indigo-50"
-              onClick={() => {
-                if (viewMode === 'month') setCurrentMonth(new Date(currentMonth.setMonth(currentMonth.getMonth() - 1)));
-                else if (viewMode === 'week') setSelectedDate(new Date(selectedDate.setDate(selectedDate.getDate() - 7)));
-                else setSelectedDate(new Date(selectedDate.setDate(selectedDate.getDate() - 1)));
-              }}
-            >
-              <ChevronLeft className="h-4 w-4" />
-            </Button>
-            <h2 className="text-sm font-semibold text-slate-800 min-w-[160px] text-center">
-              {viewMode === 'month' ? format(currentMonth, 'MMMM yyyy') : format(selectedDate, viewMode === 'week' ? "'Week of' MMM d" : 'EEEE, MMM d')}
-            </h2>
-            <Button
-              variant="ghost"
-              size="sm"
-              className="h-8 w-8 p-0 rounded-lg text-slate-400 hover:text-indigo-600 hover:bg-indigo-50"
-              onClick={() => {
-                if (viewMode === 'month') setCurrentMonth(new Date(currentMonth.setMonth(currentMonth.getMonth() + 1)));
-                else if (viewMode === 'week') setSelectedDate(new Date(selectedDate.setDate(selectedDate.getDate() + 7)));
-                else setSelectedDate(new Date(selectedDate.setDate(selectedDate.getDate() + 1)));
-              }}
-            >
-              <ChevronRight className="h-4 w-4" />
-            </Button>
-            <button
-              className="text-xs font-medium h-7 px-3 rounded-lg border border-slate-200 text-slate-500 hover:bg-indigo-50 hover:border-indigo-300 hover:text-indigo-600 transition-colors"
-              onClick={() => { setCurrentMonth(new Date()); setSelectedDate(new Date()); }}
-            >
-              Today
-            </button>
-          </div>
+  // Filtered tasks
+  const filteredTasks = filterStatus === 'all'
+    ? tasks
+    : tasks.filter((t) => t.status === filterStatus);
 
-          {/* View toggle */}
-          <div className="flex items-center bg-slate-100/80 rounded-xl p-1 gap-0.5">
-            {[
-              { mode: 'month', icon: LayoutGrid, label: 'Month' },
-              { mode: 'week', icon: CalendarIcon, label: 'Week' },
-              { mode: 'day', icon: ListIcon, label: 'Day' },
-            ].map(({ mode, icon: Icon, label }) => (
-              <button
-                key={mode}
-                onClick={() => setViewMode(mode)}
-                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
-                  viewMode === mode
-                    ? 'bg-white text-indigo-600 shadow-sm ring-1 ring-slate-200/60'
-                    : 'text-slate-500 hover:text-slate-700'
-                }`}
-              >
-                <Icon className="h-3.5 w-3.5" />
-                <span className="hidden sm:inline">{label}</span>
-              </button>
-            ))}
-          </div>
-        </div>
+  // Group tasks by date
+  const grouped = {};
+  filteredTasks.forEach((task) => {
+    const dateKey = task.due_date || 'No Due Date';
+    if (!grouped[dateKey]) grouped[dateKey] = [];
+    grouped[dateKey].push(task);
+  });
 
-        {/* Google Calendar Sync */}
-        <AnimatePresence>
-          {showSyncSettings && (
-            <motion.div
-              initial={{ opacity: 0, height: 0 }}
-              animate={{ opacity: 1, height: 'auto' }}
-              exit={{ opacity: 0, height: 0 }}
-              className="mb-6 overflow-hidden"
-            >
-              <GoogleCalendarSync 
-                onSyncComplete={() => queryClient.invalidateQueries(['tasks'])}
-              />
-            </motion.div>
-          )}
-        </AnimatePresence>
+  const sortedDates = Object.keys(grouped).sort((a, b) => {
+    if (a === 'No Due Date') return 1;
+    if (b === 'No Due Date') return -1;
+    return a.localeCompare(b);
+  });
 
-        <AnimatePresence mode="wait">
-          {viewMode === 'month' ? (
-            <motion.div
-              key="month"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              className="grid lg:grid-cols-3 gap-6"
-            >
-              {/* Calendar View */}
-              <div className="lg:col-span-2">
-                <CalendarView
-                  tasks={tasks}
-                  selectedDate={selectedDate}
-                  onDateSelect={setSelectedDate}
-                  currentMonth={currentMonth}
-                />
-              </div>
+  const today = format(new Date(), 'yyyy-MM-dd');
 
-              {/* Selected Day Schedule */}
-              <div className="lg:col-span-1">
-                <DaySchedule
-                  date={selectedDate}
-                  tasks={selectedDateTasks}
-                  onEdit={(task) => { setEditingTask(task); setShowEventForm(true); }}
-                  onDelete={(task) => deleteMutation.mutate(task.id)}
-                  onToggle={(task) => updateMutation.mutate({ 
-                    id: task.id, 
-                    data: { ...task, status: task.status === 'completed' ? 'pending' : 'completed' }
-                  })}
-                />
-              </div>
-            </motion.div>
-          ) : viewMode === 'week' ? (
-            <motion.div
-              key="week"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              className="w-full overflow-x-auto"
-            >
-              <WeeklyView
-                date={selectedDate}
-                tasks={tasks}
-                onEdit={(task) => { setEditingTask(task); setShowEventForm(true); }}
-                onDelete={(task) => deleteMutation.mutate(task.id)}
-                onToggle={(task) => updateMutation.mutate({ 
-                  id: task.id, 
-                  data: { ...task, status: task.status === 'completed' ? 'pending' : 'completed' }
-                })}
-              />
-            </motion.div>
-          ) : (
-            <motion.div
-              key="day"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              className="w-full"
-            >
-              <DaySchedule
-                date={selectedDate}
-                tasks={selectedDateTasks}
-                onEdit={(task) => { setEditingTask(task); setShowEventForm(true); }}
-                onDelete={(task) => deleteMutation.mutate(task.id)}
-                onToggle={(task) => updateMutation.mutate({ 
-                  id: task.id, 
-                  data: { ...task, status: task.status === 'completed' ? 'pending' : 'completed' }
-                })}
-                fullScreen
-              />
-            </motion.div>
-          )}
-        </AnimatePresence>
-
-        {/* Event Form Modal */}
-        <AnimatePresence>
-          {showEventForm && (
-            <EventForm
-              task={editingTask}
-              defaultDate={selectedDate}
-              onSubmit={handleSubmit}
-              onCancel={() => { setShowEventForm(false); setEditingTask(null); }}
-              isLoading={createMutation.isPending || updateMutation.isPending}
-            />
-          )}
-          {showTemplates && (
-            <EventTemplateManager
-              onSelectTemplate={(template) => {
-                setEditingTask(null);
-                setShowEventForm(true);
-                setShowTemplates(false);
-                setEditingTask({
-                  title: template.title,
-                  description: template.description,
-                  duration_minutes: template.duration_minutes,
-                  scheduled_time: template.scheduled_time,
-                  priority: template.priority,
-                  list_name: template.list_name,
-                  recurring: true,
-                  recurring_pattern: template.recurring_pattern,
-                  reminder_minutes: template.reminder_minutes,
-                  due_date: format(selectedDate, 'yyyy-MM-dd'),
-                  status: 'pending'
-                });
-              }}
-              onCancel={() => setShowTemplates(false)}
-            />
-          )}
-        </AnimatePresence>
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-[50vh]">
+        <Loader2 className="h-8 w-8 animate-spin text-indigo-600" />
       </div>
+    );
+  }
+
+  return (
+    <div className={cn('p-4 sm:p-6 lg:p-8 max-w-4xl mx-auto space-y-6')}>
+      {/* Header */}
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className={cn('text-2xl sm:text-3xl font-bold', isDark ? 'text-white' : 'text-slate-900')}>
+            Tasks
+          </h1>
+          <p className={cn('text-sm mt-1', isDark ? 'text-slate-400' : 'text-slate-500')}>
+            Manage your tasks and stay organized
+          </p>
+        </div>
+        <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+          <DialogTrigger asChild>
+            <Button className="bg-indigo-600 hover:bg-indigo-700 text-white">
+              <Plus className="h-4 w-4 mr-2" /> Add Task
+            </Button>
+          </DialogTrigger>
+          <DialogContent className={cn(isDark && 'bg-slate-900 border-slate-700')}>
+            <DialogHeader>
+              <DialogTitle className={cn(isDark && 'text-white')}>New Task</DialogTitle>
+            </DialogHeader>
+            <form onSubmit={handleCreate} className="space-y-4">
+              <div className="space-y-2">
+                <Label className={cn(isDark && 'text-slate-300')}>Title</Label>
+                <Input
+                  placeholder="What needs to be done?"
+                  value={taskForm.title}
+                  onChange={(e) => setTaskForm((p) => ({ ...p, title: e.target.value }))}
+                  required
+                  className={cn(isDark && 'bg-slate-800 border-slate-700 text-white')}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label className={cn(isDark && 'text-slate-300')}>Description</Label>
+                <Textarea
+                  placeholder="Add more details (optional)"
+                  value={taskForm.description}
+                  onChange={(e) => setTaskForm((p) => ({ ...p, description: e.target.value }))}
+                  rows={3}
+                  className={cn(isDark && 'bg-slate-800 border-slate-700 text-white')}
+                />
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label className={cn(isDark && 'text-slate-300')}>Due Date</Label>
+                  <Input
+                    type="date"
+                    value={taskForm.due_date}
+                    onChange={(e) => setTaskForm((p) => ({ ...p, due_date: e.target.value }))}
+                    className={cn(isDark && 'bg-slate-800 border-slate-700 text-white')}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label className={cn(isDark && 'text-slate-300')}>Priority</Label>
+                  <Select value={taskForm.priority} onValueChange={(v) => setTaskForm((p) => ({ ...p, priority: v }))}>
+                    <SelectTrigger className={cn(isDark && 'bg-slate-800 border-slate-700 text-white')}>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent className={cn(isDark && 'bg-slate-800 border-slate-700')}>
+                      <SelectItem value="low" className={cn(isDark && 'text-slate-200')}>Low</SelectItem>
+                      <SelectItem value="medium" className={cn(isDark && 'text-slate-200')}>Medium</SelectItem>
+                      <SelectItem value="high" className={cn(isDark && 'text-slate-200')}>High</SelectItem>
+                      <SelectItem value="urgent" className={cn(isDark && 'text-slate-200')}>Urgent</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+              <DialogFooter>
+                <DialogClose asChild>
+                  <Button type="button" variant="outline" className={cn(isDark && 'border-slate-700 text-slate-300')}>Cancel</Button>
+                </DialogClose>
+                <Button type="submit" disabled={createTask.isPending} className="bg-indigo-600 hover:bg-indigo-700 text-white">
+                  {createTask.isPending ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
+                  Create Task
+                </Button>
+              </DialogFooter>
+            </form>
+          </DialogContent>
+        </Dialog>
+      </div>
+
+      {/* Filters */}
+      <div className="flex items-center gap-2 flex-wrap">
+        <Filter className={cn('h-4 w-4', isDark ? 'text-slate-400' : 'text-slate-500')} />
+        {['all', 'pending', 'in_progress', 'completed', 'cancelled'].map((status) => (
+          <Button
+            key={status}
+            variant={filterStatus === status ? 'default' : 'outline'}
+            size="sm"
+            onClick={() => setFilterStatus(status)}
+            className={cn(
+              'text-xs capitalize',
+              filterStatus === status
+                ? 'bg-indigo-600 hover:bg-indigo-700 text-white'
+                : isDark ? 'border-slate-700 text-slate-300 hover:bg-slate-800' : ''
+            )}
+          >
+            {status === 'all' ? 'All' : status === 'in_progress' ? 'In Progress' : status.charAt(0).toUpperCase() + status.slice(1)}
+          </Button>
+        ))}
+      </div>
+
+      {/* Tasks List */}
+      {filteredTasks.length === 0 ? (
+        <Card className={cn('border', isDark ? 'bg-slate-900 border-slate-800' : 'bg-white border-slate-200')}>
+          <CardContent className="py-16 text-center">
+            <CheckSquare className={cn('h-16 w-16 mx-auto mb-4 opacity-30', isDark ? 'text-slate-500' : 'text-slate-300')} />
+            <h3 className={cn('text-lg font-semibold mb-2', isDark ? 'text-white' : 'text-slate-900')}>
+              {filterStatus === 'all' ? 'No Tasks Yet' : 'No Matching Tasks'}
+            </h3>
+            <p className={cn('text-sm mb-4', isDark ? 'text-slate-400' : 'text-slate-500')}>
+              {filterStatus === 'all'
+                ? 'Create your first task to get organized.'
+                : 'Try a different filter to see more tasks.'}
+            </p>
+            {filterStatus === 'all' && (
+              <Button onClick={() => setDialogOpen(true)} className="bg-indigo-600 hover:bg-indigo-700 text-white">
+                <Plus className="h-4 w-4 mr-2" /> Create Task
+              </Button>
+            )}
+          </CardContent>
+        </Card>
+      ) : (
+        <div className="space-y-6">
+          {sortedDates.map((dateKey) => {
+            const isToday = dateKey === today;
+            const isPast = dateKey !== 'No Due Date' && dateKey < today;
+
+            return (
+              <div key={dateKey}>
+                <div className="flex items-center gap-2 mb-3">
+                  <CalendarDays className={cn('h-4 w-4', isDark ? 'text-slate-500' : 'text-slate-400')} />
+                  <h3 className={cn(
+                    'text-sm font-semibold',
+                    isToday ? (isDark ? 'text-indigo-400' : 'text-indigo-600') :
+                    isPast ? 'text-red-500' :
+                    isDark ? 'text-slate-300' : 'text-slate-700'
+                  )}>
+                    {dateKey === 'No Due Date'
+                      ? 'No Due Date'
+                      : isToday
+                        ? `Today - ${format(new Date(dateKey + 'T12:00:00'), 'MMM d, yyyy')}`
+                        : format(new Date(dateKey + 'T12:00:00'), 'EEEE, MMM d, yyyy')}
+                  </h3>
+                  {isPast && <Badge className="text-xs bg-red-100 text-red-700">Overdue</Badge>}
+                </div>
+                <div className="space-y-2">
+                  {grouped[dateKey].map((task) => {
+                    const priority = priorityConfig[task.priority] || priorityConfig.medium;
+                    const isCompleted = task.status === 'completed';
+
+                    return (
+                      <Card
+                        key={task.id}
+                        className={cn(
+                          'border transition-all',
+                          isDark ? 'bg-slate-900 border-slate-800' : 'bg-white border-slate-200',
+                          isCompleted && 'opacity-60'
+                        )}
+                      >
+                        <CardContent className="p-4">
+                          <div className="flex items-start gap-3">
+                            <Checkbox
+                              checked={isCompleted}
+                              onCheckedChange={() => toggleComplete(task)}
+                              className={cn(
+                                'mt-0.5 border-2',
+                                isCompleted
+                                  ? 'border-green-500 bg-green-500 text-white data-[state=checked]:bg-green-500 data-[state=checked]:border-green-500'
+                                  : isDark ? 'border-slate-600' : 'border-slate-300'
+                              )}
+                            />
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-center gap-2 mb-1">
+                                <span className={cn(
+                                  'font-medium text-sm',
+                                  isCompleted
+                                    ? (isDark ? 'text-slate-500 line-through' : 'text-slate-400 line-through')
+                                    : (isDark ? 'text-white' : 'text-slate-900')
+                                )}>
+                                  {task.title}
+                                </span>
+                                <Badge className={cn('text-xs', priority.className)}>
+                                  {priority.label}
+                                </Badge>
+                              </div>
+                              {task.description && (
+                                <p className={cn('text-xs', isDark ? 'text-slate-500' : 'text-slate-400')}>
+                                  {task.description}
+                                </p>
+                              )}
+                            </div>
+                            <div className="flex items-center gap-1 flex-shrink-0">
+                              {!isCompleted && (
+                                <Select
+                                  value={task.status}
+                                  onValueChange={(v) => updateTask.mutate({ id: task.id, updates: { status: v } })}
+                                >
+                                  <SelectTrigger className={cn('h-7 w-24 text-xs', isDark && 'bg-slate-800 border-slate-700 text-white')}>
+                                    <SelectValue />
+                                  </SelectTrigger>
+                                  <SelectContent className={cn(isDark && 'bg-slate-800 border-slate-700')}>
+                                    <SelectItem value="pending" className={cn('text-xs', isDark && 'text-slate-200')}>Pending</SelectItem>
+                                    <SelectItem value="in_progress" className={cn('text-xs', isDark && 'text-slate-200')}>In Progress</SelectItem>
+                                    <SelectItem value="completed" className={cn('text-xs', isDark && 'text-slate-200')}>Done</SelectItem>
+                                    <SelectItem value="cancelled" className={cn('text-xs', isDark && 'text-slate-200')}>Cancelled</SelectItem>
+                                  </SelectContent>
+                                </Select>
+                              )}
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => deleteTask.mutate(task.id)}
+                                className={cn('h-7 w-7 p-0', isDark ? 'text-slate-500 hover:text-red-400' : 'text-slate-400 hover:text-red-500')}
+                              >
+                                <Trash2 className="h-3.5 w-3.5" />
+                              </Button>
+                            </div>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    );
+                  })}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
     </div>
   );
 }

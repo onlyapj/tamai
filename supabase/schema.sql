@@ -379,13 +379,8 @@ ALTER TABLE teams ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "teams_owner_all" ON teams
   FOR ALL USING (user_id = auth.uid());
 
-CREATE POLICY "teams_member_select" ON teams
-  FOR SELECT USING (
-    id IN (
-      SELECT team_id FROM team_members
-      WHERE user_email = (SELECT email FROM profiles WHERE id = auth.uid())
-    )
-  );
+-- NOTE: teams_member_select policy is created at the end of the file
+-- after team_members table exists
 
 CREATE TRIGGER teams_updated_at
   BEFORE UPDATE ON teams
@@ -448,13 +443,8 @@ ALTER TABLE shared_projects ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "shared_projects_owner_all" ON shared_projects
   FOR ALL USING (user_id = auth.uid());
 
-CREATE POLICY "shared_projects_team_member_select" ON shared_projects
-  FOR SELECT USING (
-    team_id IN (
-      SELECT team_id FROM team_members
-      WHERE user_email = (SELECT email FROM profiles WHERE id = auth.uid())
-    )
-  );
+-- NOTE: shared_projects_team_member_select policy is created at the end of the file
+-- after team_members table exists
 
 CREATE TRIGGER shared_projects_updated_at
   BEFORE UPDATE ON shared_projects
@@ -839,3 +829,23 @@ CREATE TRIGGER journal_entries_updated_at
 -- =============================================================================
 
 ALTER PUBLICATION supabase_realtime ADD TABLE investments;
+
+-- =============================================================================
+-- DEFERRED POLICIES (require team_members to exist)
+-- =============================================================================
+
+CREATE POLICY "teams_member_select" ON teams
+  FOR SELECT USING (
+    id IN (
+      SELECT team_id FROM team_members
+      WHERE user_email = (SELECT email FROM profiles WHERE id = auth.uid())
+    )
+  );
+
+CREATE POLICY "shared_projects_team_member_select" ON shared_projects
+  FOR SELECT USING (
+    team_id IN (
+      SELECT team_id FROM team_members
+      WHERE user_email = (SELECT email FROM profiles WHERE id = auth.uid())
+    )
+  );
